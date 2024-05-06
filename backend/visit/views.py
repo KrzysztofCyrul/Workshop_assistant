@@ -9,7 +9,8 @@ from . import serializers
 import random
 import string
 from .models import Client
-    
+from django.contrib.auth.decorators import login_required
+
 class CarsView(APIView):
     def get(self, request):
         cars = models.ClientCar.objects.all()
@@ -102,38 +103,38 @@ class ClientDetailView(APIView):
         client.delete()
         return JsonResponse({'message': 'Client was deleted successfully!'}, status=204)
 
-class ServicesView(APIView):
+class VisitView(APIView):
     def get(self, request):
-        services = models.Service.objects.all()
-        serializer = serializers.ServiceSerializer(services, many=True)
+        visits = models.visit.objects.all()
+        serializer = serializers.visitSerializer(visits, many=True)
         return JsonResponse(serializer.data, safe=False)
     
     def post(self, request):
         data = JSONParser().parse(request)
-        serializer = serializers.ServiceSerializer(data=data)
+        serializer = serializers.visitSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
             return JsonResponse(serializer.data, status=201)
         return JsonResponse(serializer.errors, status=400)
 
-class ServiceDetailView(APIView):
+class VisitDetailView(APIView):
     def get(self, request, id):
         try:
-            service = models.Service.objects.get(id=id)
-        except models.Service.DoesNotExist:
-            return JsonResponse({'error': 'Service not found'}, status=404)
+            visit = models.Visit.objects.get(id=id)
+        except models.Visit.DoesNotExist:
+            return JsonResponse({'error': 'visit not found'}, status=404)
         
-        serializer = serializers.ServiceSerializer(service)
+        serializer = serializers.VisitSerializer(visit)
         return JsonResponse(serializer.data)
     
     def post(self, request, id):
         try:
-            service = models.Service.objects.get(id=id)
-        except models.Service.DoesNotExist:
-            return JsonResponse({'error': 'Service not found'}, status=404)
+            visit = models.Visit.objects.get(id=id)
+        except models.Visit.DoesNotExist:
+            return JsonResponse({'error': 'visit not found'}, status=404)
         
         data = JSONParser().parse(request)
-        serializer = serializers.ServiceSerializer(service, data=data)
+        serializer = serializers.VisitSerializer(visit, data=data)
         if serializer.is_valid():
             serializer.save()
             return JsonResponse(serializer.data)
@@ -141,12 +142,13 @@ class ServiceDetailView(APIView):
     
     def delete(self, request, id):
         try:
-            service = models.Service.objects.get(id=id)
-        except models.Service.DoesNotExist:
-            return JsonResponse({'error': 'Service not found'}, status=404)
+            visit = models.Visit.objects.get(id=id)
+        except models.Visit.DoesNotExist:
+            return JsonResponse({'error': 'visit not found'}, status=404)
         
-        service.delete()
-        return JsonResponse({'message': 'Service was deleted successfully!'}, status=204)
+        visit.delete()
+        return JsonResponse({'message': 'visit was deleted successfully!'}, status=204)
+
     
 class MechanicsView(APIView):
     def get(self, request):
@@ -193,6 +195,34 @@ class MechanicDetailView(APIView):
         
         mechanic.delete()
         return JsonResponse({'message': 'Mechanic was deleted successfully!'}, status=204) 
+    
+class ClientVisitView(APIView):
+    def get(self, request):
+        visits = models.Visit.objects.all()
+        serializer = serializers.ClientVisitSerializer(visits, many=True)
+        return JsonResponse(serializer.data, safe=False)
+    
+class ClientVisitDetailView(APIView):
+    def get(self, request, id):
+        try:
+            visit = models.Visit.objects.get(id=id)
+        except models.Visit.DoesNotExist:
+            return JsonResponse({'error': 'Visit not found'}, status=404)
+        
+        serializer = serializers.ClientVisitSerializer(visit)
+        return JsonResponse(serializer.data)
+    def post(self, request, id):
+        try:
+            visit = models.Visit.objects.get(id=id)
+        except models.Visit.DoesNotExist:
+            return JsonResponse({'error': 'Visit not found'}, status=404)
+        
+        data = JSONParser().parse(request)
+        serializer = serializers.ClientVisitSerializer(visit, data=data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return JsonResponse(serializer.data)
+        return JsonResponse(serializer.errors, status=400)
 
 
 def generate_random_clients(request):

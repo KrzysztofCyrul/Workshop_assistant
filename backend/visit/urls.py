@@ -1,19 +1,18 @@
 from pathlib import Path
 from django.contrib import admin
 from django.urls import path
-from .views import CarsView, CarDetailView, ClientsView, ClientDetailView, ServicesView, ServiceDetailView, MechanicsView, MechanicDetailView, generate_random_clients
-
+from . import views
 
 urlpatterns = [
-    path('cars/', CarsView.as_view()),
-    path('cars/<int:id>/', CarDetailView.as_view()),
-    path('clients/', ClientsView.as_view()),
-    path('clients/<int:id>/', ClientDetailView.as_view()),
-    path('services/', ServicesView.as_view()),
-    path('services/<int:id>/', ServiceDetailView.as_view()),
-    path('mechanics/', MechanicsView.as_view()),
-    path('mechanics/<int:id>/', MechanicDetailView.as_view()),
-    path('generate/', generate_random_clients),
-    
-
+    path('cars/', views.CarsView.as_view()),
+    path('cars/<int:id>/', views.CarDetailView.as_view()),
+    path('clients/', views.ClientsView.as_view()),
+    path('clients/<int:id>/', views.ClientDetailView.as_view()),
+    path('services/', views.VisitView.as_view()),
+    path('services/<str:id>', views.VisitDetailView.as_view()),
+    path('mechanics/', views.MechanicsView.as_view()),
+    path('mechanics/<int:id>/', views.MechanicDetailView.as_view()),
+    path('visit/', views.ClientVisitView.as_view()),
+    path('visit/<str:id>', views.ClientVisitDetailView.as_view()),
+    path('generate/', views.generate_random_clients),
 ]
