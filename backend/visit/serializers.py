@@ -1,10 +1,15 @@
 from rest_framework import serializers
-from .models import ClientCar, Client, Visit, Mechanic
+from .models import ClientCar, Client, Visit, Mechanic, Company
 
        
 class ClientSerializer(serializers.ModelSerializer):
     class Meta:
         model = Client
+        fields = '__all__'
+        
+class CompanySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Company
         fields = '__all__'
 
 class CarSerializer(serializers.ModelSerializer):
@@ -49,5 +54,5 @@ class ClientVisitSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Visit
-        fields = ['id', 'date', 'name', 'description', 'parts', 'price', 'cars', 'mechanics', 'clients', 'status']
+        fields = ['id', 'date', 'name', 'description', 'parts', 'price', 'cars', 'mechanics', 'clients', 'status', 'striked_lines']
         

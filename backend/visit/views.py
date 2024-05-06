@@ -102,16 +102,62 @@ class ClientDetailView(APIView):
         
         client.delete()
         return JsonResponse({'message': 'Client was deleted successfully!'}, status=204)
-
-class VisitView(APIView):
+    
+class CompaniesView(APIView):
     def get(self, request):
-        visits = models.visit.objects.all()
-        serializer = serializers.visitSerializer(visits, many=True)
+        companies = models.Company.objects.all()
+        serializer = serializers.CompanySerializer(companies, many=True)
         return JsonResponse(serializer.data, safe=False)
     
     def post(self, request):
         data = JSONParser().parse(request)
-        serializer = serializers.visitSerializer(data=data)
+        serializer = serializers.CompanySerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return JsonResponse(serializer.data, status=201)
+        return JsonResponse(serializer.errors, status=400)
+    
+class CompanyDetailView(APIView):
+    def get(self, request, id):
+        try:
+            company = models.Company.objects.get(id=id)
+        except models.Company.DoesNotExist:
+            return JsonResponse({'error': 'Company not found'}, status=404)
+        
+        serializer = serializers.CompanySerializer(company)
+        return JsonResponse(serializer.data)
+    
+    def post(self, request, id):
+        try:
+            company = models.Company.objects.get(id=id)
+        except models.Company.DoesNotExist:
+            return JsonResponse({'error': 'Company not found'}, status=404)
+        
+        data = JSONParser().parse(request)
+        serializer = serializers.CompanySerializer(company, data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return JsonResponse(serializer.data)
+        return JsonResponse(serializer.errors, status=400)
+    
+    def delete(self, request, id):
+        try:
+            company = models.Company.objects.get(id=id)
+        except models.Company.DoesNotExist:
+            return JsonResponse({'error': 'Company not found'}, status=404)
+        
+        company.delete()
+        return JsonResponse({'message': 'Company was deleted successfully!'}, status=204)
+
+class VisitView(APIView):
+    def get(self, request):
+        visits = models.visit.objects.all()
+        serializer = serializers.VisitSerializer(visits, many=True)
+        return JsonResponse(serializer.data, safe=False)
+    
+    def post(self, request):
+        data = JSONParser().parse(request)
+        serializer = serializers.VisitSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
             return JsonResponse(serializer.data, status=201)
@@ -201,6 +247,13 @@ class ClientVisitView(APIView):
         visits = models.Visit.objects.all()
         serializer = serializers.ClientVisitSerializer(visits, many=True)
         return JsonResponse(serializer.data, safe=False)
+    def post(self, request):
+        data = JSONParser().parse(request)
+        serializer = serializers.ClientVisitSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return JsonResponse(serializer.data, status=201)
+        return JsonResponse(serializer.errors, status=400)
     
 class ClientVisitDetailView(APIView):
     def get(self, request, id):
@@ -224,6 +277,16 @@ class ClientVisitDetailView(APIView):
             return JsonResponse(serializer.data)
         return JsonResponse(serializer.errors, status=400)
 
+class UpdateStrikedLines(APIView):
+    def post(self, request, pk, format=None):
+        try:
+            visit = models.Visit.objects.get(pk=pk)
+            striked_lines = request.data.get('strikedLines', {})  # Pobierz nowy format słownika
+            visit.striked_lines = striked_lines
+            visit.save()
+            return JsonResponse({'status': 'striked lines updated'})
+        except models.Visit.DoesNotExist:
+            return JsonResponse({'error': 'Visit not found'}, status=404)
 
 def generate_random_clients(request):
     first_names = ["Krzysztof", "Anna", "Jan", "Maria", "Piotr", "Agnieszka"]
