@@ -2,6 +2,7 @@ import { createStackNavigator } from "@react-navigation/stack";
 import HomeScreen from "../screens/home-screen";
 import VisitScreen from "../screens/visit-screen";
 import { Image } from "react-native";
+import AddVisitScreen from "../screens/add-visit-screen";
 
 const Stack = createStackNavigator();
 
@@ -23,6 +24,7 @@ export const HomeStack = () => {
         options={{ headerShown: false }}
       />
       <Stack.Screen name="Visit" component={VisitScreen} />
+      <Stack.Screen name="AddVisit" component={AddVisitScreen} />
     </Stack.Navigator>
   );
 };

@@ -12,6 +12,8 @@ import {
 import Collapsible from "react-native-collapsible";
 import _ from "lodash";
 
+const BASE_URL = "http://10.1.20.208:8000"; // You can change this base URL as needed
+
 const VisitScreen = ({ navigation }) => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -29,7 +31,7 @@ const VisitScreen = ({ navigation }) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch("http://192.168.1.11:8000/api/visits/");
+        const response = await fetch(`${BASE_URL}/api/visits/`);
         if (!response.ok) {
           throw new Error("Network response was not ok");
         }
@@ -99,7 +101,7 @@ const VisitScreen = ({ navigation }) => {
 
   const updateStatusInDatabase = async (id, newStatus) => {
     try {
-      const response = await fetch(`http://192.168.1.11:8000/api/visit/${id}`, {
+      const response = await fetch(`${BASE_URL}/api/visit/${id}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -131,7 +133,7 @@ const VisitScreen = ({ navigation }) => {
   const updateStrikedOnServer = async (id, strikedLines) => {
     try {
       const response = await fetch(
-        `http://192.168.1.11:8000/api/visit/update-striked/${id}`,
+        `${BASE_URL}/api/visit/update-striked/${id}`,
         {
           method: "POST",
           headers: {
@@ -141,6 +143,14 @@ const VisitScreen = ({ navigation }) => {
         }
       );
       if (!response.ok) {
+        const text = await response.text();
+        console.error("Server response:", text);
+        try {
+          const data = JSON.parse(text);
+          console.error("Parsed server response:", data);
+        } catch (error) {
+          console.error("Failed to parse server response:", error);
+        }
         throw new Error("Failed to update striked lines");
       }
     } catch (error) {
