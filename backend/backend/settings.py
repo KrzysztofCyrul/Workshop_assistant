@@ -1,4 +1,7 @@
 from pathlib import Path
+import pymysql
+
+pymysql.install_as_MySQLdb()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -11,9 +14,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-(yfdqiolpoybx*l$q*h_&r0v=-#^dtb7b7dzx$t%_+-=yei!+s'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
-ALLOWED_HOSTS = ['192.168.1.11', 'localhost', '192.168.0.101', '10.1.20.208']
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -72,11 +75,22 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'django_mechanic_assistant',
-        'USER': 'root',
-        'PASSWORD': '',
+        'NAME': 'db',
+        'USER': 'user',
+        'PASSWORD': 'password',
+        # 'HOST': 'db',
+        # 'PORT': '3306',
     }
 }
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'django_mechanic_assistant',
+#         'USER': 'root',
+#         'PASSWORD': '',
+#     }
+# }
 
 
 # Password validation

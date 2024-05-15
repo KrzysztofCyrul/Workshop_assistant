@@ -12,7 +12,7 @@ import {
 import Collapsible from "react-native-collapsible";
 import _ from "lodash";
 
-const BASE_URL = "http://10.1.20.208:8000"; // You can change this base URL as needed
+const BASE_URL = "http://192.168.1.11:8000"; // You can change this base URL as needed
 
 const VisitScreen = ({ navigation }) => {
   const [data, setData] = useState([]);

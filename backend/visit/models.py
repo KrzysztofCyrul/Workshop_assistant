@@ -77,7 +77,7 @@ class Visit(models.Model):
     cars = models.ManyToManyField('ClientCar', related_name='Services', blank=True)
     mechanics = models.ManyToManyField('Mechanic', related_name='assigned_Services', blank=True)
     status = models.CharField(max_length=50, choices=status, default='pending')
-    striked_lines = models.JSONField(default=dict)  # Lista indeksów przekreślonych linii
+    striked_lines = models.JSONField(default=dict, blank=True)  # Lista indeksów przekreślonych linii
 
 
     def __str__(self):

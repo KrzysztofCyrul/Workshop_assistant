@@ -3,6 +3,7 @@ import HomeScreen from "../screens/home-screen";
 import VisitScreen from "../screens/visit-screen";
 import { Image } from "react-native";
 import AddVisitScreen from "../screens/add-visit-screen";
+import ClientForm from "../screens/add-client-screen";
 
 const Stack = createStackNavigator();
 
@@ -25,6 +26,7 @@ export const HomeStack = () => {
       />
       <Stack.Screen name="Visit" component={VisitScreen} />
       <Stack.Screen name="AddVisit" component={AddVisitScreen} />
+      <Stack.Screen name="AddClient" component={ClientForm} />
     </Stack.Navigator>
   );
 };

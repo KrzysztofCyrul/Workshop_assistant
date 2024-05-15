@@ -40,7 +40,7 @@ const HomeScreen = () => {
           </TouchableOpacity>
           <TouchableOpacity
             title="Przycisk 3"
-            onPress={() => handlePress("3")}
+            onPress={() => navigation.navigate("AddClient")}
             color="#28a745"
             style={styles.button}
           >
