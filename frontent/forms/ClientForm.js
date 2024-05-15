@@ -10,7 +10,7 @@ import {
 import { Formik } from "formik";
 import * as Yup from "yup";
 import axios from "axios";
-import { apiLink } from "../config"; // Import linków API
+import { apiLink } from "../api"; // Import linków API
 
 const validationSchema = Yup.object().shape({
   first_name: Yup.string().required("First name is required"),

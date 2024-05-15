@@ -1,4 +1,5 @@
 import { useNavigation } from "@react-navigation/native";
+import { useEffect } from "react";
 import {
   View,
   Text,
@@ -9,8 +10,22 @@ import {
   Alert,
 } from "react-native";
 import { ScrollView, TouchableOpacity } from "react-native-gesture-handler";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
 
 const HomeScreen = () => {
+  useEffect(() => {
+    const checkAuth = async () => {
+      const token = await AsyncStorage.getItem('access');
+      if (!token) {
+        navigation.navigate('Login');
+      }
+    };
+  
+    checkAuth();
+  }, []);
+
+
   const navigation = useNavigation();
   const handlePress = (buttonName) => {
     Alert.alert(`Naciśnięto przycisk ${buttonName}`);
@@ -47,20 +62,20 @@ const HomeScreen = () => {
             <Text style={styles.buttonText}>Przycisk 3</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            title="Przycisk 4"
-            onPress={() => handlePress("4")}
+            title="Login"
+            onPress={() => navigation.navigate("Login")}
             color="#28a745"
             style={styles.button}
           >
-            <Text style={styles.buttonText}>Przycisk 4</Text>
+            <Text style={styles.buttonText}>Login</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            title="Przycisk 5"
-            onPress={() => handlePress("5")}
+            title="Logout"
+            onPress={() => navigation.navigate("Logout")}
             color="#28a745"
             style={styles.button}
           >
-            <Text style={styles.buttonText}>Przycisk 5</Text>
+            <Text style={styles.buttonText}>Logout</Text>
           </TouchableOpacity>
         </ScrollView>
       </ImageBackground>

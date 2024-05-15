@@ -6,9 +6,8 @@ import {
   StyleSheet,
   ImageBackground,
   ScrollView,
-  TouchableOpacity,
-  Modal,
   Alert,
+  Modal,
 } from "react-native";
 import SelectDropdown from "react-native-select-dropdown";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
@@ -16,7 +15,9 @@ import { TextInput } from "react-native-gesture-handler";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import ClientForm from "../forms/ClientForm";
 import ClientCarForm from "../forms/ClientCarForm";
-import { apiLink } from "../config"; // Import linków API
+import api from "../api"; // Importuj skonfigurowane axios
+import { apiLink } from "../api"; // Importuj linki API
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const AddVisitScreen = () => {
   const navigation = useNavigation();
@@ -27,10 +28,17 @@ const AddVisitScreen = () => {
   const [carModalVisible, setCarModalVisible] = useState(false);
 
   useEffect(() => {
+    const checkAuth = async () => {
+      const token = await AsyncStorage.getItem('access');
+      if (!token) {
+        navigation.navigate('Login');
+      }
+    };
+
     const fetchMechanics = async () => {
       try {
-        const response = await fetch(apiLink.mechanics);
-        const data = await response.json();
+        const response = await api.get(apiLink.mechanics);
+        const data = response.data;
         setMechanics(
           data.map((mechanic) => ({
             icon: "wrench",
@@ -44,12 +52,8 @@ const AddVisitScreen = () => {
 
     const fetchClients = async () => {
       try {
-        const response = await fetch(apiLink.clients);
-        if (!response.ok) {
-          // Check if response is not ok then throw error
-          throw new Error("Network response was not ok");
-        }
-        const data = await response.json();
+        const response = await api.get(apiLink.clients);
+        const data = response.data;
         setClients(
           data.map((client) => ({
             icon: "account-circle-outline",
@@ -59,18 +63,13 @@ const AddVisitScreen = () => {
         );
       } catch (error) {
         console.error("Failed to fetch clients:", error);
-        Alert.alert("Error", "Failed to fetch clients: " + error.message); // Displaying alert with error message
       }
     };
 
     const fetchCars = async () => {
       try {
-        const response = await fetch(apiLink.cars);
-        if (!response.ok) {
-          // Check if response is not ok then throw error
-          throw new Error("Network response was not ok");
-        }
-        const data = await response.json();
+        const response = await api.get(apiLink.cars);
+        const data = response.data;
         setCars(
           data.map((car) => ({
             icon: "car",
@@ -79,10 +78,10 @@ const AddVisitScreen = () => {
         );
       } catch (error) {
         console.error("Failed to fetch cars:", error);
-        Alert.alert("Error", "Failed to fetch cars: " + error.message); // Displaying alert with error message
       }
     };
 
+    checkAuth();
     fetchMechanics();
     fetchClients();
     fetchCars();

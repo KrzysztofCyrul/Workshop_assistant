@@ -4,6 +4,8 @@ import VisitScreen from "../screens/visit-screen";
 import { Image } from "react-native";
 import AddVisitScreen from "../screens/add-visit-screen";
 import ClientForm from "../screens/add-client-screen";
+import LoginScreen from "../screens/login-screen";
+import LogoutScreen from "../screens/logout-screen";
 
 const Stack = createStackNavigator();
 
@@ -27,6 +29,8 @@ export const HomeStack = () => {
       <Stack.Screen name="Visit" component={VisitScreen} />
       <Stack.Screen name="AddVisit" component={AddVisitScreen} />
       <Stack.Screen name="AddClient" component={ClientForm} />
+      <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }}/>
+      <Stack.Screen name="Logout" component={LogoutScreen} />
     </Stack.Navigator>
   );
 };

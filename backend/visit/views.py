@@ -2,16 +2,17 @@ from django.http import JsonResponse
 from django.http import HttpResponse
 from django.views.generic import View
 from rest_framework.views import APIView
-from rest_framework.decorators import api_view
 from rest_framework.parsers import JSONParser
+from rest_framework.permissions import IsAuthenticated
 from . import models
 from . import serializers
 import random
 import string
 from .models import Client
-from django.contrib.auth.decorators import login_required
 
 class CarsView(APIView):
+    permission_classes = [IsAuthenticated]
+
     def get(self, request):
         cars = models.ClientCar.objects.all()
         serializer = serializers.CarSerializer(cars, many=True)
@@ -26,6 +27,8 @@ class CarsView(APIView):
         return JsonResponse(serializer.errors, status=400)
     
 class CarDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+
     def get(self, request, id):
         try:
             car = models.ClientCar.objects.get(id=id)
@@ -58,6 +61,8 @@ class CarDetailView(APIView):
         return JsonResponse({'message': 'Car was deleted successfully!'}, status=204)    
     
 class ClientsView(APIView):
+    permission_classes = [IsAuthenticated]
+
     def get(self, request):
         clients = models.Client.objects.all()
         serializer = serializers.ClientSerializer(clients, many=True)
@@ -72,6 +77,8 @@ class ClientsView(APIView):
         return JsonResponse(serializer.errors, status=400)
     
 class ClientDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+
     def get(self, request, id):
         try:
             client = models.Client.objects.get(id=id)
@@ -104,6 +111,7 @@ class ClientDetailView(APIView):
         return JsonResponse({'message': 'Client was deleted successfully!'}, status=204)
     
 class CompaniesView(APIView):
+    permission_classes = [IsAuthenticated]
     def get(self, request):
         companies = models.Company.objects.all()
         serializer = serializers.CompanySerializer(companies, many=True)
@@ -118,6 +126,7 @@ class CompaniesView(APIView):
         return JsonResponse(serializer.errors, status=400)
     
 class CompanyDetailView(APIView):
+    permission_classes = [IsAuthenticated]
     def get(self, request, id):
         try:
             company = models.Company.objects.get(id=id)
@@ -150,6 +159,7 @@ class CompanyDetailView(APIView):
         return JsonResponse({'message': 'Company was deleted successfully!'}, status=204)
 
 class VisitView(APIView):
+    permission_classes = [IsAuthenticated]
     def get(self, request):
         visits = models.visit.objects.all()
         serializer = serializers.VisitSerializer(visits, many=True)
@@ -164,6 +174,7 @@ class VisitView(APIView):
         return JsonResponse(serializer.errors, status=400)
 
 class VisitDetailView(APIView):
+    permission_classes = [IsAuthenticated]
     def get(self, request, id):
         try:
             visit = models.Visit.objects.get(id=id)
@@ -197,6 +208,8 @@ class VisitDetailView(APIView):
 
     
 class MechanicsView(APIView):
+    permission_classes = [IsAuthenticated]    
+
     def get(self, request):
         mechanics = models.Mechanic.objects.all()
         serializer = serializers.MechanicSerializer(mechanics, many=True)
@@ -211,6 +224,7 @@ class MechanicsView(APIView):
         return JsonResponse(serializer.errors, status=400)
 
 class MechanicDetailView(APIView):
+    permission_classes = [IsAuthenticated]
     def get(self, request, id):
         try:
             mechanic = models.Mechanic.objects.get(id=id)
@@ -243,6 +257,7 @@ class MechanicDetailView(APIView):
         return JsonResponse({'message': 'Mechanic was deleted successfully!'}, status=204) 
     
 class ClientVisitView(APIView):
+    permission_classes = [IsAuthenticated]
     def get(self, request):
         visits = models.Visit.objects.all()
         serializer = serializers.ClientVisitSerializer(visits, many=True)
@@ -256,6 +271,7 @@ class ClientVisitView(APIView):
         return JsonResponse(serializer.errors, status=400)
     
 class ClientVisitDetailView(APIView):
+    permission_classes = [IsAuthenticated]
     def get(self, request, id):
         try:
             visit = models.Visit.objects.get(id=id)
@@ -278,6 +294,8 @@ class ClientVisitDetailView(APIView):
         return JsonResponse(serializer.errors, status=400)
 
 class UpdateStrikedLines(APIView):
+    permission_classes = [IsAuthenticated]
+    
     def post(self, request, pk, format=None):
         try:
             visit = models.Visit.objects.get(pk=pk)
