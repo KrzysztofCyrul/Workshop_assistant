@@ -49,6 +49,7 @@ class Car {
   final String vin;
   final String licensePlate;
   final Client client;
+  final String? company;  // Dodanie pola company
 
   Car({
     required this.id,
@@ -58,6 +59,7 @@ class Car {
     required this.vin,
     required this.licensePlate,
     required this.client,
+    this.company,  // Inicjalizacja pola company
   });
 
   factory Car.fromJson(Map<String, dynamic> json) {
@@ -69,6 +71,7 @@ class Car {
       vin: json['vin'] ?? '',
       licensePlate: json['license_plate'] ?? '',
       client: Client.fromJson(json['client']),
+      company: json['company'],  // Parsowanie pola company
     );
   }
 }
@@ -115,3 +118,4 @@ class Mechanic {
     );
   }
 }
+// lib/screens/add_visit_screen.dart

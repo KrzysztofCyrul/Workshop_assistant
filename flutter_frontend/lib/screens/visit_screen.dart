@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/visit_provider.dart';
+import 'add_visit_screen.dart';
 import '../models/visit.dart';
 
 class VisitScreen extends StatelessWidget {
@@ -17,7 +18,8 @@ class VisitScreen extends StatelessWidget {
             if (visitProvider.loading) {
               return Center(child: CircularProgressIndicator());
             } else if (visitProvider.error != null) {
-              return Center(child: Text('Failed to load data: ${visitProvider.error}'));
+              return Center(
+                  child: Text('Failed to load data: ${visitProvider.error}'));
             } else {
               return ListView.builder(
                 itemCount: visitProvider.visits.length,
@@ -29,6 +31,15 @@ class VisitScreen extends StatelessWidget {
             }
           },
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => AddVisitScreen()),
+          );
+        },
+        child: Icon(Icons.add),
       ),
     );
   }
@@ -46,7 +57,8 @@ class VisitItem extends StatefulWidget {
 class _VisitItemState extends State<VisitItem> {
   bool _isExpanded = false;
 
-  void _confirmStatusChange(BuildContext context, String id, String currentStatus) {
+  void _confirmStatusChange(
+      BuildContext context, String id, String currentStatus) {
     String newStatus;
     String confirmStatus;
     switch (currentStatus) {
@@ -81,7 +93,8 @@ class _VisitItemState extends State<VisitItem> {
           TextButton(
             child: Text('Potwierdź'),
             onPressed: () {
-              Provider.of<VisitProvider>(context, listen: false).updateStatus(id, newStatus);
+              Provider.of<VisitProvider>(context, listen: false)
+                  .updateStatus(id, newStatus);
               Navigator.of(ctx).pop();
             },
           ),
@@ -99,9 +112,11 @@ class _VisitItemState extends State<VisitItem> {
       child: Column(
         children: [
           ListTile(
-            title: Text('${visit.date} id: ${visit.id}'),
+            title: Text(
+                '${visit.date} ${visit.cars.map((car) => '${car.brand} ${car.model}\nTablica: ${car.licensePlate}').join(", ")}'),
             trailing: GestureDetector(
-              onTap: () => _confirmStatusChange(context, visit.id, visit.status),
+              onTap: () =>
+                  _confirmStatusChange(context, visit.id, visit.status),
               child: Container(
                 width: 24,
                 height: 24,
@@ -119,12 +134,13 @@ class _VisitItemState extends State<VisitItem> {
           ),
           if (_isExpanded)
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Samochód: ${visit.cars.map((car) => '${car.brand} ${car.model} ${car.year} \nVIN: ${car.vin} \nTablica: ${car.licensePlate}').join(", ")}',
+                    'Id: ${visit.id} \nSamochód: ${visit.cars.map((car) => '${car.brand} ${car.model} ${car.year} \nVIN: ${car.vin} \nTablica: ${car.licensePlate}').join(", ")}',
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                   SizedBox(height: 8),
@@ -152,9 +168,11 @@ class _VisitItemState extends State<VisitItem> {
                         Checkbox(
                           value: isStriked,
                           onChanged: (bool? value) {
-                            final newStrikedLines = Map<int, bool>.from(visit.strikedLines);
+                            final newStrikedLines =
+                                Map<int, bool>.from(visit.strikedLines);
                             newStrikedLines[index] = value ?? false;
-                            visitProvider.updateStrikedLines(visit.id, newStrikedLines);
+                            visitProvider.updateStrikedLines(
+                                visit.id, newStrikedLines);
                           },
                         ),
                         Expanded(
@@ -168,6 +186,19 @@ class _VisitItemState extends State<VisitItem> {
                       ],
                     );
                   }).toList(),
+                  ButtonBar(children: [
+                    ElevatedButton(onPressed: () {
+                      visitProvider.editVisit(visit.id);
+                    }, child: Text('Edytuj')
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        visitProvider.deleteVisit(visit.id);
+                      },
+                      child: Text('Usuń'),
+                    ),
+
+                  ]),
                 ],
               ),
             ),

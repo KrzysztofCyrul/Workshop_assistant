@@ -1,9 +1,9 @@
-// lib/services/api_service.dart
-import 'dart:convert';
-import 'package:http/http.dart' as http;
-import 'package:flutter_frontend/models/visit.dart';
+  // lib/services/api_service.dart
+  import 'dart:convert';
+  import 'package:http/http.dart' as http;
+  import '../models/visit.dart';
 
-class ApiService {
+  class ApiService {
   static const String baseUrl = "http://192.168.0.101:8000/api";
 
   static Future<List<Visit>> fetchVisits() async {
@@ -14,6 +14,28 @@ class ApiService {
       return data.map((json) => Visit.fromJson(json)).toList();
     } else {
       throw Exception('Failed to load visits');
+    }
+  }
+
+  static Future<List<Car>> fetchCars() async {
+    final response = await http.get(Uri.parse('$baseUrl/cars/'));
+
+    if (response.statusCode == 200) {
+      List<dynamic> data = json.decode(response.body);
+      return data.map((json) => Car.fromJson(json)).toList();
+    } else {
+      throw Exception('Failed to load cars');
+    }
+  }
+
+  static Future<List<Mechanic>> fetchMechanics() async {
+    final response = await http.get(Uri.parse('$baseUrl/mechanics/'));
+
+    if (response.statusCode == 200) {
+      List<dynamic> data = json.decode(response.body);
+      return data.map((json) => Mechanic.fromJson(json)).toList();
+    } else {
+      throw Exception('Failed to load mechanics');
     }
   }
 
@@ -45,4 +67,16 @@ class ApiService {
       throw Exception('Failed to update striked lines');
     }
   }
-}
+
+  static Future<void> addVisit(Map<String, dynamic> visitData) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/visits/'),
+      body: json.encode(visitData),
+      headers: {'Content-Type': 'application/json'},
+    );
+
+    if (response.statusCode != 201) {
+      throw Exception('Failed to add visit');
+    }
+  }
+  }

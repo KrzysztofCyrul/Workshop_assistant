@@ -11,7 +11,7 @@ import string
 from .models import Client
 
 class CarsView(APIView):
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
 
     def get(self, request):
         cars = models.ClientCar.objects.all()
@@ -27,7 +27,7 @@ class CarsView(APIView):
         return JsonResponse(serializer.errors, status=400)
     
 class CarDetailView(APIView):
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
 
     def get(self, request, id):
         try:
@@ -208,7 +208,7 @@ class VisitDetailView(APIView):
 
     
 class MechanicsView(APIView):
-    permission_classes = [IsAuthenticated]    
+    # permission_classes = [IsAuthenticated]    
 
     def get(self, request):
         mechanics = models.Mechanic.objects.all()
@@ -224,7 +224,7 @@ class MechanicsView(APIView):
         return JsonResponse(serializer.errors, status=400)
 
 class MechanicDetailView(APIView):
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
     def get(self, request, id):
         try:
             mechanic = models.Mechanic.objects.get(id=id)
@@ -262,6 +262,7 @@ class ClientVisitView(APIView):
         visits = models.Visit.objects.all()
         serializer = serializers.ClientVisitSerializer(visits, many=True)
         return JsonResponse(serializer.data, safe=False)
+
     def post(self, request):
         data = JSONParser().parse(request)
         serializer = serializers.ClientVisitSerializer(data=data)
