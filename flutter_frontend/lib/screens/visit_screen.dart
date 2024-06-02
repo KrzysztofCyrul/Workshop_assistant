@@ -188,12 +188,12 @@ class _VisitItemState extends State<VisitItem> {
                   }).toList(),
                   ButtonBar(children: [
                     ElevatedButton(onPressed: () {
-                      visitProvider.editVisit(visit.id);
+                      visitProvider.editVisit(visit.id, visit.name, visit.description, visit.date, visit.status, visit.cars.first, visit.mechanics.first);
                     }, child: Text('Edytuj')
                     ),
                     ElevatedButton(
                       onPressed: () {
-                        visitProvider.deleteVisit(visit.id);
+                        visitProvider.archiveVisit(visit.id);
                       },
                       child: Text('Usuń'),
                     ),

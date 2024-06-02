@@ -77,6 +77,8 @@ class Visit(models.Model):
     mechanics = models.ManyToManyField('Mechanic', related_name='assigned_Services', blank=True)
     status = models.CharField(max_length=50, choices=status, default='pending')
     striked_lines = models.JSONField(default=dict, blank=True)  # Lista indeksów przekreślonych linii
+    is_active = models.BooleanField(default=True)  # New field to track active visits
+
 
 
     def __str__(self):

@@ -50,12 +50,12 @@ class VisitMechanicSerializer(serializers.ModelSerializer):
         fields = ['id', 'first_name', 'last_name']
 
 class ClientVisitSerializer(serializers.ModelSerializer):
-    cars = VisitCarSerializer(many=True)
-    mechanics = VisitMechanicSerializer(many=True)
+    cars = CarSerializer(many=True)
+    mechanics = MechanicSerializer(many=True)
 
     class Meta:
         model = Visit
-        fields = ['id', 'date', 'name', 'description', 'parts', 'price', 'cars', 'mechanics', 'status', 'striked_lines']
+        fields = '__all__'
 
     def create(self, validated_data):
         cars_data = validated_data.pop('cars')
@@ -75,8 +75,8 @@ class ClientVisitSerializer(serializers.ModelSerializer):
         return visit
 
     def update(self, instance, validated_data):
-        cars_data = validated_data.pop('cars')
-        mechanics_data = validated_data.pop('mechanics')
+        cars_data = validated_data.pop('cars', None)
+        mechanics_data = validated_data.pop('mechanics', None)
 
         instance.date = validated_data.get('date', instance.date)
         instance.name = validated_data.get('name', instance.name)
@@ -85,18 +85,21 @@ class ClientVisitSerializer(serializers.ModelSerializer):
         instance.price = validated_data.get('price', instance.price)
         instance.status = validated_data.get('status', instance.status)
         instance.striked_lines = validated_data.get('striked_lines', instance.striked_lines)
+        instance.is_active = validated_data.get('is_active', instance.is_active)
         instance.save()
 
-        instance.cars.clear()
-        for car_data in cars_data:
-            client_data = car_data.pop('client')
-            client, created = Client.objects.get_or_create(**client_data)
-            car, created = ClientCar.objects.get_or_create(client=client, **car_data)
-            instance.cars.add(car)
+        if cars_data is not None:
+            instance.cars.clear()
+            for car_data in cars_data:
+                client_data = car_data.pop('client')
+                client, created = Client.objects.get_or_create(**client_data)
+                car, created = ClientCar.objects.get_or_create(client=client, **car_data)
+                instance.cars.add(car)
 
-        instance.mechanics.clear()
-        for mechanic_data in mechanics_data:
-            mechanic, created = Mechanic.objects.get_or_create(**mechanic_data)
-            instance.mechanics.add(mechanic)
+        if mechanics_data is not None:
+            instance.mechanics.clear()
+            for mechanic_data in mechanics_data:
+                mechanic, created = Mechanic.objects.get_or_create(**mechanic_data)
+                instance.mechanics.add(mechanic)
 
         return instance

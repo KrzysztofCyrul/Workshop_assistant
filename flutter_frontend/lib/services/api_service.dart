@@ -1,9 +1,9 @@
-  // lib/services/api_service.dart
-  import 'dart:convert';
-  import 'package:http/http.dart' as http;
-  import '../models/visit.dart';
+// lib/services/api_service.dart
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import '../models/visit.dart';
 
-  class ApiService {
+class ApiService {
   static const String baseUrl = "http://192.168.0.101:8000/api";
 
   static Future<List<Visit>> fetchVisits() async {
@@ -79,4 +79,28 @@
       throw Exception('Failed to add visit');
     }
   }
+
+  static Future<void> editVisit(String id, Map<String, dynamic> visitData) async {
+    final response = await http.put(
+      Uri.parse('$baseUrl/visit/$id'),
+      body: json.encode(visitData),
+      headers: {'Content-Type': 'application/json'},
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to edit visit');
+    }
   }
+
+  static Future<void> archiveVisit(String id) async {
+    final response = await http.patch(
+      Uri.parse('$baseUrl/visit/$id'),
+      body: json.encode({'is_active': false}),
+      headers: {'Content-Type': 'application/json'},
+    );
+
+    if (response.statusCode != 204) {
+      throw Exception('Failed to archive visit');
+    }
+  }
+}

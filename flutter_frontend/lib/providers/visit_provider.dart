@@ -35,19 +35,20 @@ class VisitProvider with ChangeNotifier {
       await ApiService.updateStatus(id, newStatus);
       _visits = _visits
           .map((visit) => visit.id == id
-              ? Visit(
-                  id: visit.id,
-                  date: visit.date,
-                  name: visit.name,
-                  description: visit.description,
-                  parts: visit.parts,
-                  price: visit.price,
-                  cars: visit.cars,
-                  mechanics: visit.mechanics,
-                  status: newStatus,
-                  strikedLines: visit.strikedLines,
-                )
-              : visit)
+          ? Visit(
+        id: visit.id,
+        date: visit.date,
+        name: visit.name,
+        description: visit.description,
+        parts: visit.parts,
+        price: visit.price,
+        cars: visit.cars,
+        mechanics: visit.mechanics,
+        status: newStatus,
+        strikedLines: visit.strikedLines,
+        isActive: visit.isActive,
+      )
+          : visit)
           .toList();
       notifyListeners();
     } catch (e) {
@@ -55,25 +56,25 @@ class VisitProvider with ChangeNotifier {
     }
   }
 
-  Future<void> updateStrikedLines(
-      String id, Map<int, bool> strikedLines) async {
+  Future<void> updateStrikedLines(String id, Map<int, bool> strikedLines) async {
     try {
       await ApiService.updateStrikedLines(id, strikedLines);
       _visits = _visits
           .map((visit) => visit.id == id
-              ? Visit(
-                  id: visit.id,
-                  date: visit.date,
-                  name: visit.name,
-                  description: visit.description,
-                  parts: visit.parts,
-                  price: visit.price,
-                  cars: visit.cars,
-                  mechanics: visit.mechanics,
-                  status: visit.status,
-                  strikedLines: strikedLines,
-                )
-              : visit)
+          ? Visit(
+        id: visit.id,
+        date: visit.date,
+        name: visit.name,
+        description: visit.description,
+        parts: visit.parts,
+        price: visit.price,
+        cars: visit.cars,
+        mechanics: visit.mechanics,
+        status: visit.status,
+        strikedLines: strikedLines,
+        isActive: visit.isActive,
+      )
+          : visit)
           .toList();
       notifyListeners();
     } catch (e) {
@@ -97,6 +98,7 @@ class VisitProvider with ChangeNotifier {
         mechanics: [mechanic],
         status: status,
         strikedLines: {},
+        isActive: true,
       );
       await ApiService.addVisit({
         'id': newVisit.id,
@@ -131,7 +133,8 @@ class VisitProvider with ChangeNotifier {
         ],
         'status': newVisit.status,
         'striked_lines':
-            newVisit.strikedLines.map((k, v) => MapEntry(k.toString(), v)),
+        newVisit.strikedLines.map((k, v) => MapEntry(k.toString(), v)),
+        'is_active': newVisit.isActive,
       });
       _visits.add(newVisit);
       notifyListeners();
@@ -141,13 +144,74 @@ class VisitProvider with ChangeNotifier {
     }
   }
 
-  Future<void> editVisit(String id) async {
-    // Add implementation here
-
+  Future<void> editVisit(String id, String name, String description, String date,
+      String status, Car car, Mechanic mechanic) async {
+    try {
+      final updatedVisit = Visit(
+        id: id,
+        date: date,
+        name: name,
+        description: description,
+        parts: '',
+        price: null,
+        cars: [car],
+        mechanics: [mechanic],
+        status: status,
+        strikedLines: {},
+        isActive: true,
+      );
+      await ApiService.editVisit(id, {
+        'id': updatedVisit.id,
+        'date': updatedVisit.date,
+        'name': updatedVisit.name,
+        'description': updatedVisit.description,
+        'parts': updatedVisit.parts,
+        'price': updatedVisit.price,
+        'cars': [
+          {
+            'id': car.id,
+            'brand': car.brand,
+            'model': car.model,
+            'year': car.year,
+            'vin': car.vin,
+            'license_plate': car.licensePlate,
+            'client': {
+              'id': car.client.id,
+              'first_name': car.client.firstName,
+              'email': car.client.email,
+              'phone': car.client.phone,
+            },
+            'company': car.company,
+          }
+        ],
+        'mechanics': [
+          {
+            'id': mechanic.id,
+            'first_name': mechanic.firstName,
+            'last_name': mechanic.lastName,
+          }
+        ],
+        'status': updatedVisit.status,
+        'striked_lines':
+        updatedVisit.strikedLines.map((k, v) => MapEntry(k.toString(), v)),
+        'is_active': updatedVisit.isActive,
+      });
+      _visits = _visits.map((visit) => visit.id == id ? updatedVisit : visit).toList();
+      notifyListeners();
+    } catch (e) {
+      print('Exception: $e');
+      throw Exception('Failed to edit visit');
+    }
   }
 
-  Future<void> deleteVisit(String id) async {
-    // Add implementation here
-
+  Future<void> archiveVisit(String id) async {
+    try {
+      await ApiService.archiveVisit(id);
+      _visits = _visits.map((visit) => visit.id == id ? visit.copyWith(isActive: false) : visit).toList();
+      notifyListeners();
+    } catch (e) {
+      print('Exception: $e');
+      throw Exception('Failed to archive visit');
+    }
   }
 }

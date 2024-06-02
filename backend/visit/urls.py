@@ -15,7 +15,7 @@ urlpatterns = [
     path('mechanics/', views.MechanicsView.as_view()),
     path('mechanics/<int:id>/', views.MechanicDetailView.as_view()),
     path('visits/', views.ClientVisitView.as_view()),
-    path('visit/<str:id>', views.ClientVisitDetailView.as_view()),
+    path('visit/<str:pk>', views.ClientVisitDetailView.as_view()),
     path('visit/update-striked/<str:pk>', views.UpdateStrikedLines.as_view(), name='update-striked-lines'),
 
     path('generate/', views.generate_random_clients),

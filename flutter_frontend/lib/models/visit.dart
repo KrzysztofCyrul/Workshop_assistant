@@ -10,6 +10,7 @@ class Visit {
   final List<Mechanic> mechanics;
   final String status;
   final Map<int, bool> strikedLines;
+  final bool isActive;
 
   Visit({
     required this.id,
@@ -22,6 +23,7 @@ class Visit {
     required this.mechanics,
     required this.status,
     this.strikedLines = const {},
+    this.isActive = true,
   });
 
   factory Visit.fromJson(Map<String, dynamic> json) {
@@ -37,6 +39,51 @@ class Visit {
       status: json['status'] ?? '',
       strikedLines: (json['striked_lines'] as Map<String, dynamic>)
           .map((key, value) => MapEntry(int.parse(key), value as bool)),
+      isActive: json['is_active'] ?? true,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'date': date,
+      'name': name,
+      'description': description,
+      'parts': parts,
+      'price': price,
+      'cars': cars.map((car) => car.toJson()).toList(),
+      'mechanics': mechanics.map((mechanic) => mechanic.toJson()).toList(),
+      'status': status,
+      'striked_lines': strikedLines.map((key, value) => MapEntry(key.toString(), value)),
+      'is_active': isActive,
+    };
+  }
+
+  Visit copyWith({
+    String? id,
+    String? date,
+    String? name,
+    String? description,
+    String? parts,
+    double? price,
+    List<Car>? cars,
+    List<Mechanic>? mechanics,
+    String? status,
+    Map<int, bool>? strikedLines,
+    bool? isActive,
+  }) {
+    return Visit(
+      id: id ?? this.id,
+      date: date ?? this.date,
+      name: name ?? this.name,
+      description: description ?? this.description,
+      parts: parts ?? this.parts,
+      price: price ?? this.price,
+      cars: cars ?? this.cars,
+      mechanics: mechanics ?? this.mechanics,
+      status: status ?? this.status,
+      strikedLines: strikedLines ?? this.strikedLines,
+      isActive: isActive ?? this.isActive,
     );
   }
 }
@@ -49,7 +96,7 @@ class Car {
   final String vin;
   final String licensePlate;
   final Client client;
-  final String? company;  // Dodanie pola company
+  final String? company;
 
   Car({
     required this.id,
@@ -59,7 +106,7 @@ class Car {
     required this.vin,
     required this.licensePlate,
     required this.client,
-    this.company,  // Inicjalizacja pola company
+    this.company,
   });
 
   factory Car.fromJson(Map<String, dynamic> json) {
@@ -71,8 +118,21 @@ class Car {
       vin: json['vin'] ?? '',
       licensePlate: json['license_plate'] ?? '',
       client: Client.fromJson(json['client']),
-      company: json['company'],  // Parsowanie pola company
+      company: json['company'],
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'brand': brand,
+      'model': model,
+      'year': year,
+      'vin': vin,
+      'license_plate': licensePlate,
+      'client': client.toJson(),
+      'company': company,
+    };
   }
 }
 
@@ -97,6 +157,15 @@ class Client {
       phone: json['phone'] ?? '',
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'first_name': firstName,
+      'email': email,
+      'phone': phone,
+    };
+  }
 }
 
 class Mechanic {
@@ -117,5 +186,12 @@ class Mechanic {
       lastName: json['last_name'] ?? '',
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'first_name': firstName,
+      'last_name': lastName,
+    };
+  }
 }
-// lib/screens/add_visit_screen.dart
