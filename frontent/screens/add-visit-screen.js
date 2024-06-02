@@ -18,6 +18,7 @@ import ClientCarForm from "../forms/ClientCarForm";
 import api from "../api"; // Importuj skonfigurowane axios
 import { apiLink } from "../api"; // Importuj linki API
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import withAuth from "../auth/auth";
 
 const AddVisitScreen = () => {
   const navigation = useNavigation();
@@ -28,13 +29,6 @@ const AddVisitScreen = () => {
   const [carModalVisible, setCarModalVisible] = useState(false);
 
   useEffect(() => {
-    const checkAuth = async () => {
-      const token = await AsyncStorage.getItem('access');
-      if (!token) {
-        navigation.navigate('Login');
-      }
-    };
-
     const fetchMechanics = async () => {
       try {
         const response = await api.get(apiLink.mechanics);
@@ -80,8 +74,6 @@ const AddVisitScreen = () => {
         console.error("Failed to fetch cars:", error);
       }
     };
-
-    checkAuth();
     fetchMechanics();
     fetchClients();
     fetchCars();
@@ -367,4 +359,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default AddVisitScreen;
+export default withAuth(AddVisitScreen);

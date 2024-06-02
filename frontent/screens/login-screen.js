@@ -4,6 +4,7 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import { apiLink } from '../api';
+import { login } from '../auth/auth';
 
 const LoginScreen = () => {
     const [username, setUsername] = useState('');
@@ -19,25 +20,11 @@ const LoginScreen = () => {
             }
         };
 
+        login();
         checkAuth();
     }, []);
 
-    const login = async () => {
-        try {
-            const response = await axios.post(apiLink.token, {
-                username,
-                password
-            });
-            const { access, refresh } = response.data;
-
-            await AsyncStorage.setItem('access', access);
-            await AsyncStorage.setItem('refresh', refresh);
-
-            navigation.navigate('Home'); // Przekierowanie po udanym logowaniu
-        } catch (error) {
-            Alert.alert('Login failed', 'Sprawdź login i hasło');
-        }
-    };
+    
 
     return (
         <View style={styles.container}>

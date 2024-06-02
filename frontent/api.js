@@ -2,7 +2,10 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
-export const BASE_URL = "http://192.168.0.101:8000"; // Adres API
+// export const BASE_URL = "http://192.168.0.101:8000"; // Adres API Zuzia
+export const BASE_URL = "http://192.168.1.11:8000"; // Adres API Dom
+// export const BASE_URL = "http://10.1.76.131:8000";
+
 
 export const apiLink = {
     mechanics: `${BASE_URL}/api/mechanics/`,

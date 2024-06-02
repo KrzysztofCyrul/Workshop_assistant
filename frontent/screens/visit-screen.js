@@ -12,6 +12,8 @@ import {
 import Collapsible from "react-native-collapsible";
 import _ from "lodash";
 import api from "../api"; // Import the configured axios instance
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import withAuth from "../auth/auth";
 
 const VisitScreen = ({ navigation }) => {
   const [data, setData] = useState([]);
@@ -139,9 +141,9 @@ const VisitScreen = ({ navigation }) => {
           <Text style={styles.title}>{item.name}</Text>
           {item.description.split(",").map((line, index) => (
             <TouchableOpacity key={index} onPress={() => toggleStriked(item.id, index)}>
-              <Text style={striked[item.id] && striked[item.id][index] ? styles.striked : undefined}>
-                * {line}
-              </Text>
+              <Text style={[{fontSize: 30}, striked[item.id] && striked[item.id][index] ? styles.striked : undefined]}>
+  * {line}
+</Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -191,6 +193,7 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingVertical: 10,
+    
   },
   title: {
     fontWeight: "bold",
@@ -222,4 +225,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default VisitScreen;
+export default withAuth(VisitScreen);

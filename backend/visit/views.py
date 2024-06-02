@@ -257,7 +257,7 @@ class MechanicDetailView(APIView):
         return JsonResponse({'message': 'Mechanic was deleted successfully!'}, status=204) 
     
 class ClientVisitView(APIView):
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
     def get(self, request):
         visits = models.Visit.objects.all()
         serializer = serializers.ClientVisitSerializer(visits, many=True)
@@ -271,7 +271,7 @@ class ClientVisitView(APIView):
         return JsonResponse(serializer.errors, status=400)
     
 class ClientVisitDetailView(APIView):
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
     def get(self, request, id):
         try:
             visit = models.Visit.objects.get(id=id)
@@ -294,7 +294,7 @@ class ClientVisitDetailView(APIView):
         return JsonResponse(serializer.errors, status=400)
 
 class UpdateStrikedLines(APIView):
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
     
     def post(self, request, pk, format=None):
         try:

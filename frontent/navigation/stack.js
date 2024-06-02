@@ -6,7 +6,6 @@ import AddVisitScreen from "../screens/add-visit-screen";
 import ClientForm from "../screens/add-client-screen";
 import LoginScreen from "../screens/login-screen";
 import LogoutScreen from "../screens/logout-screen";
-
 const Stack = createStackNavigator();
 
 function LogoTitle() {

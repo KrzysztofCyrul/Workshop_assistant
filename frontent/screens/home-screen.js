@@ -10,19 +10,11 @@ import {
   Alert,
 } from "react-native";
 import { ScrollView, TouchableOpacity } from "react-native-gesture-handler";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-
+import withAuth from "../auth/auth";
 
 const HomeScreen = () => {
   useEffect(() => {
-    const checkAuth = async () => {
-      const token = await AsyncStorage.getItem('access');
-      if (!token) {
-        navigation.navigate('Login');
-      }
-    };
-  
-    checkAuth();
+    
   }, []);
 
 
@@ -109,4 +101,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default HomeScreen;
+export default withAuth(HomeScreen);
