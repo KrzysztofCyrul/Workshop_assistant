@@ -28,9 +28,10 @@ class ClientCar(models.Model):
     brand = models.CharField(max_length=50)
     model = models.CharField(max_length=50)
     year = models.IntegerField(null=True)
-    vin = models.CharField(max_length=50, null=True)
+    vin = models.CharField(max_length=50, null=True, blank=True)
     license_plate = models.CharField(max_length=50, null=True)
-    client = models.ForeignKey('Client', on_delete=models.CASCADE)
+    client = models.ForeignKey('Client', on_delete=models.CASCADE, null=True, blank=True)
+    company = models.ForeignKey('Company', on_delete=models.CASCADE, null=True, blank=True)
     
     def __str__(self):
         return f'{self.brand} {self.model} {self.license_plate}'
@@ -72,8 +73,6 @@ class Visit(models.Model):
     description = models.TextField(null=True, blank=True)
     parts = models.TextField(null=True, blank=True)
     price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    clients = models.ManyToManyField('Client', related_name='Services', blank=True)
-    company = models.ManyToManyField('Company', related_name='Services', blank=True)
     cars = models.ManyToManyField('ClientCar', related_name='Services', blank=True)
     mechanics = models.ManyToManyField('Mechanic', related_name='assigned_Services', blank=True)
     status = models.CharField(max_length=50, choices=status, default='pending')

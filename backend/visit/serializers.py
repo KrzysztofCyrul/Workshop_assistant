@@ -32,15 +32,17 @@ class VisitSerializer(serializers.ModelSerializer):
         model = Visit
         fields = '__all__'
 
-class VisitCarSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ClientCar
-        fields = ['id', 'brand', 'model', 'year', 'vin', 'license_plate']
-        
+  
 class VisitClientSerializer(serializers.ModelSerializer):
     class Meta:
         model = Client
         fields = ['id', 'first_name','email', 'phone']
+        
+class VisitCarSerializer(serializers.ModelSerializer):
+    client = VisitClientSerializer()
+    class Meta:
+        model = ClientCar
+        fields = ['id', 'brand', 'model', 'year', 'vin', 'license_plate', 'client', 'company']
         
 class VisitMechanicSerializer(serializers.ModelSerializer):
     class Meta:
@@ -49,10 +51,9 @@ class VisitMechanicSerializer(serializers.ModelSerializer):
         
 class ClientVisitSerializer(serializers.ModelSerializer):
     cars = VisitCarSerializer(many=True)
-    clients = VisitClientSerializer(many=True)
-    mechanics = VisitMechanicSerializer(many=True)
+    mechanics = VisitMechanicSerializer(many=True)    
     
     class Meta:
         model = Visit
-        fields = ['id', 'date', 'name', 'description', 'parts', 'price', 'cars', 'mechanics', 'clients', 'status', 'striked_lines']
+        fields = ['id', 'date', 'name', 'description', 'parts', 'price', 'cars', 'mechanics', 'status', 'striked_lines']
         
