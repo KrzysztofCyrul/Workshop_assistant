@@ -114,17 +114,23 @@ class _VisitItemState extends State<VisitItem> {
           ListTile(
             title: Text(
                 '${visit.date} ${visit.cars.map((car) => '${car.brand} ${car.model}\nTablica: ${car.licensePlate}').join(", ")}'),
-            trailing: GestureDetector(
-              onTap: () =>
-                  _confirmStatusChange(context, visit.id, visit.status),
-              child: Container(
-                width: 24,
-                height: 24,
-                decoration: BoxDecoration(
-                  color: _statusColorMapping[visit.status] ?? Colors.grey,
-                  shape: BoxShape.circle,
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                GestureDetector(
+                  onTap: () =>
+                      _confirmStatusChange(context, visit.id, visit.status),
+                  child: Container(
+                    width: 24,
+                    height: 24,
+                    decoration: BoxDecoration(
+                      color: _statusColorMapping[visit.status] ?? Colors.grey,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
                 ),
-              ),
+
+              ],
             ),
             onTap: () {
               setState(() {
@@ -135,7 +141,7 @@ class _VisitItemState extends State<VisitItem> {
           if (_isExpanded)
             Padding(
               padding:
-                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -169,7 +175,7 @@ class _VisitItemState extends State<VisitItem> {
                           value: isStriked,
                           onChanged: (bool? value) {
                             final newStrikedLines =
-                                Map<int, bool>.from(visit.strikedLines);
+                            Map<int, bool>.from(visit.strikedLines);
                             newStrikedLines[index] = value ?? false;
                             visitProvider.updateStrikedLines(
                                 visit.id, newStrikedLines);
@@ -187,9 +193,15 @@ class _VisitItemState extends State<VisitItem> {
                     );
                   }).toList(),
                   ButtonBar(children: [
-                    ElevatedButton(onPressed: () {
-                      visitProvider.editVisit(visit.id, visit.name, visit.description, visit.date, visit.status, visit.cars.first, visit.mechanics.first);
-                    }, child: Text('Edytuj')
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => AddVisitScreen(visit: visit),
+                          ),
+                        );
+                      },
+                      child: Text('Edytuj'),
                     ),
                     ElevatedButton(
                       onPressed: () {
@@ -197,7 +209,6 @@ class _VisitItemState extends State<VisitItem> {
                       },
                       child: Text('Usuń'),
                     ),
-
                   ]),
                 ],
               ),

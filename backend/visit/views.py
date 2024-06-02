@@ -305,6 +305,18 @@ class ClientVisitDetailView(APIView):
             visit.save()
             return JsonResponse({'message': 'Visit archived successfully'}, status=204)
         return JsonResponse({'error': 'Invalid data'}, status=400)
+    def put(self, request, pk):
+        try:
+            visit = models.Visit.objects.get(pk=pk)
+        except models.Visit.DoesNotExist:
+            return JsonResponse({'error': 'Visit not found'}, status=404)
+
+        data = JSONParser().parse(request)
+        serializer = serializers.ClientVisitSerializer(visit, data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return JsonResponse(serializer.data)
+        return JsonResponse(serializer.errors, status=400)
 
 class UpdateStrikedLines(APIView):
     # permission_classes = [IsAuthenticated]

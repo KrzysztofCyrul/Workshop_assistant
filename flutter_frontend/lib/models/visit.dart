@@ -134,6 +134,13 @@ class Car {
       'company': company,
     };
   }
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+          other is Car && runtimeType == other.runtimeType && id == other.id;
+
+  @override
+  int get hashCode => id.hashCode;
 }
 
 class Client {
@@ -186,6 +193,15 @@ class Mechanic {
       lastName: json['last_name'] ?? '',
     );
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+          other is Mechanic && runtimeType == other.runtimeType && id == other.id;
+
+  @override
+  int get hashCode => id.hashCode;
+
 
   Map<String, dynamic> toJson() {
     return {
