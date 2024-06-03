@@ -4,13 +4,49 @@ import 'package:provider/provider.dart';
 import '../providers/visit_provider.dart';
 import 'add_visit_screen.dart';
 import '../models/visit.dart';
+import 'visit_archive_screen.dart';
 
-class VisitScreen extends StatelessWidget {
+class VisitScreen extends StatefulWidget {
+  @override
+  _VisitScreenState createState() => _VisitScreenState();
+}
+
+class _VisitScreenState extends State<VisitScreen> {
+  @override
+  void initState() {
+    super.initState();
+    Provider.of<VisitProvider>(context, listen: false).fetchVisits();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text('Visits'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.archive),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => VisitArchiveScreen()),
+              ).then((_) {
+                Provider.of<VisitProvider>(context, listen: false).fetchVisits();
+              });
+            },
+          ),
+          IconButton(
+            icon: Icon(Icons.add),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => AddVisitScreen()),
+              ).then((_) {
+                Provider.of<VisitProvider>(context, listen: false).fetchVisits();
+              });
+            },
+          ),
+        ],
       ),
       body: SafeArea(
         child: Consumer<VisitProvider>(
@@ -37,7 +73,9 @@ class VisitScreen extends StatelessWidget {
           Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => AddVisitScreen()),
-          );
+          ).then((_) {
+            Provider.of<VisitProvider>(context, listen: false).fetchVisits();
+          });
         },
         child: Icon(Icons.add),
       ),
@@ -129,7 +167,6 @@ class _VisitItemState extends State<VisitItem> {
                     ),
                   ),
                 ),
-
               ],
             ),
             onTap: () {
@@ -156,7 +193,7 @@ class _VisitItemState extends State<VisitItem> {
                   ),
                   SizedBox(height: 8),
                   Text(
-                    'Mechanicy: ${visit.mechanics.map((mechanic) => '${mechanic.firstName} ${mechanic.lastName}').join(", ")}',
+                    'Mechanik: ${visit.mechanics.map((mechanic) => '${mechanic.firstName} ${mechanic.lastName}').join(", ")}',
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                   SizedBox(height: 8),
@@ -199,15 +236,17 @@ class _VisitItemState extends State<VisitItem> {
                           MaterialPageRoute(
                             builder: (context) => AddVisitScreen(visit: visit),
                           ),
-                        );
+                        ).then((_) {
+                          visitProvider.fetchVisits();
+                        });
                       },
                       child: Text('Edytuj'),
                     ),
                     ElevatedButton(
                       onPressed: () {
-                        visitProvider.archiveVisit(visit.id);
+                        visitProvider.confirmArchiveVisit(context, visit.id, visit.name, visit.description, visit.date, visit.status, visit.cars[0], visit.mechanics[0]);
                       },
-                      child: Text('Usuń'),
+                      child: Text('Archiwizuj'),
                     ),
                   ]),
                 ],

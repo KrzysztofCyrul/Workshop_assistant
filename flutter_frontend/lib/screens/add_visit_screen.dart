@@ -5,6 +5,7 @@ import 'package:flutter_typeahead/flutter_typeahead.dart';
 import '../providers/visit_provider.dart';
 import '../models/visit.dart';
 import 'package:intl/intl.dart';
+import 'add_car_screen.dart';
 
 class AddVisitScreen extends StatefulWidget {
   final Visit? visit;
@@ -99,30 +100,46 @@ class _AddVisitScreenState extends State<AddVisitScreen> {
                   return null;
                 },
               ),
-              TypeAheadFormField<Car>(
-                textFieldConfiguration: TextFieldConfiguration(
-                  controller: _carController,
-                  decoration: InputDecoration(labelText: 'Select Car'),
-                ),
-                suggestionsCallback: (pattern) {
-                  return visitProvider.cars.where((car) =>
-                  car.brand.toLowerCase().contains(pattern.toLowerCase()) ||
-                      car.model.toLowerCase().contains(pattern.toLowerCase()) ||
-                      car.year.toString().contains(pattern) ||
-                      car.licensePlate.toLowerCase().contains(pattern.toLowerCase()));
-                },
-                itemBuilder: (context, Car car) {
-                  return ListTile(
-                    title: Text('${car.brand} ${car.model} (${car.year}) - ${car.licensePlate}'),
-                  );
-                },
-                onSuggestionSelected: (Car car) {
-                  setState(() {
-                    _selectedCar = car;
-                    _carController.text = '${car.brand} ${car.model} (${car.year}) - ${car.licensePlate}';
-                  });
-                },
-                validator: (value) => _selectedCar == null ? 'Please select a car' : null,
+              Row(
+                children: [
+                  Expanded(
+                    child: TypeAheadFormField<Car>(
+                      textFieldConfiguration: TextFieldConfiguration(
+                        controller: _carController,
+                        decoration: InputDecoration(labelText: 'Select Car'),
+                      ),
+                      suggestionsCallback: (pattern) {
+                        return visitProvider.cars.where((car) =>
+                        car.brand.toLowerCase().contains(pattern.toLowerCase()) ||
+                            car.model.toLowerCase().contains(pattern.toLowerCase()) ||
+                            car.year.toString().contains(pattern) ||
+                            car.licensePlate.toLowerCase().contains(pattern.toLowerCase()));
+                      },
+                      itemBuilder: (context, Car car) {
+                        return ListTile(
+                          title: Text('${car.brand} ${car.model} (${car.year}) - ${car.licensePlate}'),
+                        );
+                      },
+                      onSuggestionSelected: (Car car) {
+                        setState(() {
+                          _selectedCar = car;
+                          _carController.text = '${car.brand} ${car.model} (${car.year}) - ${car.licensePlate}';
+                        });
+                      },
+                      validator: (value) => _selectedCar == null ? 'Please select a car' : null,
+                    ),
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.add),
+                    onPressed: () async {
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => AddCarScreen()),
+                      );
+                      visitProvider.fetchVisits(); // refresh the cars list after adding a new car
+                    },
+                  ),
+                ],
               ),
               DropdownButtonFormField<Mechanic>(
                 value: _selectedMechanic,

@@ -30,25 +30,50 @@ class VisitProvider with ChangeNotifier {
     }
   }
 
+  Future<void> fetchArchivedVisits() async {
+    try {
+      _loading = true;
+      _visits = await ApiService.fetchVisits();
+      _visits = _visits.where((visit) => visit.status == 'archived').toList();
+      _error = null;
+    } catch (e) {
+      _error = e.toString();
+    } finally {
+      _loading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> addCar(Car car) async {
+    try {
+      await ApiService.addCar(car.toJson());
+      _cars.add(car);
+      notifyListeners();
+    } catch (e) {
+      print('Exception: $e');
+      throw Exception('Failed to add car');
+    }
+  }
+
   Future<void> updateStatus(String id, String newStatus) async {
     try {
       await ApiService.updateStatus(id, newStatus);
       _visits = _visits
           .map((visit) => visit.id == id
-          ? Visit(
-        id: visit.id,
-        date: visit.date,
-        name: visit.name,
-        description: visit.description,
-        parts: visit.parts,
-        price: visit.price,
-        cars: visit.cars,
-        mechanics: visit.mechanics,
-        status: newStatus,
-        strikedLines: visit.strikedLines,
-        isActive: visit.isActive,
-      )
-          : visit)
+              ? Visit(
+                  id: visit.id,
+                  date: visit.date,
+                  name: visit.name,
+                  description: visit.description,
+                  parts: visit.parts,
+                  price: visit.price,
+                  cars: visit.cars,
+                  mechanics: visit.mechanics,
+                  status: newStatus,
+                  strikedLines: visit.strikedLines,
+                  isActive: visit.isActive,
+                )
+              : visit)
           .toList();
       notifyListeners();
     } catch (e) {
@@ -56,25 +81,25 @@ class VisitProvider with ChangeNotifier {
     }
   }
 
-  Future<void> updateStrikedLines(String id, Map<int, bool> strikedLines) async {
+  Future<void> updateStrikedLines(
+      String id, Map<int, bool> strikedLines) async {
     try {
       await ApiService.updateStrikedLines(id, strikedLines);
       _visits = _visits
           .map((visit) => visit.id == id
-          ? Visit(
-        id: visit.id,
-        date: visit.date,
-        name: visit.name,
-        description: visit.description,
-        parts: visit.parts,
-        price: visit.price,
-        cars: visit.cars,
-        mechanics: visit.mechanics,
-        status: visit.status,
-        strikedLines: strikedLines,
-        isActive: visit.isActive,
-      )
-          : visit)
+              ? Visit(
+                  id: visit.id,
+                  date: visit.date,
+                  name: visit.name,
+                  description: visit.description,
+                  parts: visit.parts,
+                  price: visit.price,
+                  cars: visit.cars,
+                  mechanics: visit.mechanics,
+                  status: visit.status,
+                  strikedLines: strikedLines,
+                )
+              : visit)
           .toList();
       notifyListeners();
     } catch (e) {
@@ -133,8 +158,7 @@ class VisitProvider with ChangeNotifier {
         ],
         'status': newVisit.status,
         'striked_lines':
-        newVisit.strikedLines.map((k, v) => MapEntry(k.toString(), v)),
-        'is_active': newVisit.isActive,
+            newVisit.strikedLines.map((k, v) => MapEntry(k.toString(), v)),
       });
       _visits.add(newVisit);
       notifyListeners();
@@ -144,8 +168,46 @@ class VisitProvider with ChangeNotifier {
     }
   }
 
-  Future<void> editVisit(String id, String name, String description, String date,
-      String status, Car car, Mechanic mechanic) async {
+  Future<void> confirmArchiveVisit(
+      BuildContext context,
+      String id,
+      String name,
+      String description,
+      String date,
+      String status,
+      Car car,
+      Mechanic mechanic) async {
+    bool confirm = await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Confirm Archive'),
+          content: Text('Are you sure you want to archive this visit?'),
+          actions: [
+            TextButton(
+              child: Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop(false);
+              },
+            ),
+            TextButton(
+              child: Text('Confirm'),
+              onPressed: () {
+                Navigator.of(context).pop(true);
+              },
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirm) {
+      await editVisit(id, name, description, date, 'archived', car, mechanic);
+    }
+  }
+
+  Future<void> editVisit(String id, String name, String description,
+      String date, String status, Car car, Mechanic mechanic) async {
     try {
       final updatedVisit = Visit(
         id: id,
@@ -160,7 +222,8 @@ class VisitProvider with ChangeNotifier {
         strikedLines: {},
         isActive: true,
       );
-      await ApiService.editVisit(id, {
+
+      final visitData = {
         'id': updatedVisit.id,
         'date': updatedVisit.date,
         'name': updatedVisit.name,
@@ -193,10 +256,17 @@ class VisitProvider with ChangeNotifier {
         ],
         'status': updatedVisit.status,
         'striked_lines':
-        updatedVisit.strikedLines.map((k, v) => MapEntry(k.toString(), v)),
-        'is_active': updatedVisit.isActive,
-      });
-      _visits = _visits.map((visit) => visit.id == id ? updatedVisit : visit).toList();
+            updatedVisit.strikedLines.map((k, v) => MapEntry(k.toString(), v)),
+      };
+
+      // // Logowanie danych wysyłanych do API
+      // print('Sending data to API: $visitData');
+
+      await ApiService.editVisit(id, visitData);
+
+      _visits = _visits
+          .map((visit) => visit.id == id ? updatedVisit : visit)
+          .toList();
       notifyListeners();
     } catch (e) {
       print('Exception: $e');
@@ -207,11 +277,18 @@ class VisitProvider with ChangeNotifier {
   Future<void> archiveVisit(String id) async {
     try {
       await ApiService.archiveVisit(id);
-      _visits = _visits.map((visit) => visit.id == id ? visit.copyWith(isActive: false) : visit).toList();
+      _visits = _visits
+          .map((visit) =>
+              visit.id == id ? visit.copyWith(isActive: false) : visit)
+          .toList();
       notifyListeners();
     } catch (e) {
       print('Exception: $e');
       throw Exception('Failed to archive visit');
     }
+  }
+
+  Future<void> goToArchive(BuildContext context) async {
+    Navigator.of(context).pushNamed('/archive');
   }
 }

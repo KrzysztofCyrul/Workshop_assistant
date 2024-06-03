@@ -18,6 +18,12 @@ class CarSerializer(serializers.ModelSerializer):
     class Meta:
         model = ClientCar
         fields = '__all__'
+        
+    def create(self, validated_data):
+        client_data = validated_data.pop('client')
+        client, created = Client.objects.get_or_create(**client_data)
+        car = ClientCar.objects.create(client=client, **validated_data)
+        return car
 
 class MechanicSerializer(serializers.ModelSerializer):
     class Meta:
@@ -85,7 +91,6 @@ class ClientVisitSerializer(serializers.ModelSerializer):
         instance.price = validated_data.get('price', instance.price)
         instance.status = validated_data.get('status', instance.status)
         instance.striked_lines = validated_data.get('striked_lines', instance.striked_lines)
-        instance.is_active = validated_data.get('is_active', instance.is_active)
         instance.save()
 
         if cars_data is not None:

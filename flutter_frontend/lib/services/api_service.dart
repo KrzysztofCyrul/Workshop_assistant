@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import '../models/visit.dart';
 
 class ApiService {
-  static const String baseUrl = "http://192.168.0.101:8000/api";
+  static const String baseUrl = "http://192.168.1.11:8000/api";
 
   static Future<List<Visit>> fetchVisits() async {
     final response = await http.get(Uri.parse('$baseUrl/visits/'));
@@ -35,7 +35,7 @@ class ApiService {
       List<dynamic> data = json.decode(response.body);
       return data.map((json) => Mechanic.fromJson(json)).toList();
     } else {
-      throw Exception('Failed to load mechanics');
+      throw Exception('Failed to leoad mechanics');
     }
   }
 
@@ -81,13 +81,18 @@ class ApiService {
   }
 
   static Future<void> editVisit(String id, Map<String, dynamic> visitData) async {
+    final url = '$baseUrl/visit/$id';
     final response = await http.put(
-      Uri.parse('$baseUrl/visit/$id'),
-      body: json.encode(visitData),
-      headers: {'Content-Type': 'application/json'},
+      Uri.parse(url),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode(visitData),
     );
 
     if (response.statusCode != 200) {
+      print('Failed to edit visit. Status code: ${response.statusCode}');
+      print('Response body: ${response.body}');
       throw Exception('Failed to edit visit');
     }
   }
@@ -101,6 +106,18 @@ class ApiService {
 
     if (response.statusCode != 204) {
       throw Exception('Failed to archive visit');
+    }
+  }
+
+  static Future<void> addCar(Map<String, dynamic> carData) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/cars/'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode(carData),
+    );
+
+    if (response.statusCode != 201) {
+      throw Exception('Failed to add car');
     }
   }
 }

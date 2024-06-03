@@ -273,17 +273,17 @@ class ClientVisitView(APIView):
     
 class ClientVisitDetailView(APIView):
     # permission_classes = [IsAuthenticated]
-    def get(self, request, id):
+    def get(self, request, pk):
         try:
-            visit = models.Visit.objects.get(id=id)
+            visit = models.Visit.objects.get(pk=pk)
         except models.Visit.DoesNotExist:
             return JsonResponse({'error': 'Visit not found'}, status=404)
         
         serializer = serializers.ClientVisitSerializer(visit)
         return JsonResponse(serializer.data)
-    def post(self, request, id):
+    def post(self, request, pk):
         try:
-            visit = models.Visit.objects.get(id=id)
+            visit = models.Visit.objects.get(pk=pk)
         except models.Visit.DoesNotExist:
             return JsonResponse({'error': 'Visit not found'}, status=404)
         
