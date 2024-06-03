@@ -277,8 +277,53 @@ class VisitItem extends StatefulWidget {
   _VisitItemState createState() => _VisitItemState();
 }
 
+
 class _VisitItemState extends State<VisitItem> {
   bool _isExpanded = false;
+  void _confirmStatusChange(
+      BuildContext context, String id, String currentStatus) {
+    String newStatus;
+    String confirmStatus;
+    switch (currentStatus) {
+      case "in_progress":
+        newStatus = "pending";
+        confirmStatus = "Oczekujący";
+        break;
+      case "pending":
+        newStatus = "done";
+        confirmStatus = "Zakończony";
+        break;
+      case "done":
+        newStatus = "in_progress";
+        confirmStatus = "W trakcie";
+        break;
+      default:
+        newStatus = "in_progress";
+        confirmStatus = "W trakcie";
+        break;
+    }
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('Potwierdzenie zmiany statusu'),
+        content: Text('Czy na pewno chcesz zmienić status na $confirmStatus?'),
+        actions: [
+          TextButton(
+            child: Text('Anuluj'),
+            onPressed: () => Navigator.of(ctx).pop(),
+          ),
+          TextButton(
+            child: Text('Potwierdź'),
+            onPressed: () {
+              Provider.of<VisitProvider>(context, listen: false)
+                  .updateStatus(id, newStatus);
+              Navigator.of(ctx).pop();
+            },
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -288,7 +333,25 @@ class _VisitItemState extends State<VisitItem> {
       child: Column(
         children: [
           ListTile(
-            title: Text('${visit.date} ${visit.cars.map((car) => '${car.brand} ${car.model}\nTablica: ${car.licensePlate}').join(", ")}'),
+            title: Text(
+                '${visit.date} ${visit.cars.map((car) => '${car.brand} ${car.model}\nTablica: ${car.licensePlate}').join(", ")}'),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                GestureDetector(
+                  onTap: () =>
+                      _confirmStatusChange(context, visit.id, visit.status),
+                  child: Container(
+                    width: 24,
+                    height: 24,
+                    decoration: BoxDecoration(
+                      color: _statusColorMapping[visit.status] ?? Colors.grey,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ),
+              ],
+            ),
             onTap: () {
               setState(() {
                 _isExpanded = !_isExpanded;
@@ -355,4 +418,10 @@ class _VisitItemState extends State<VisitItem> {
       ),
     );
   }
+  static const Map<String, Color> _statusColorMapping = {
+    'in_progress': Colors.green,
+    'pending': Colors.orange,
+    'done': Colors.red,
+    'default': Colors.grey,
+  };
 }
