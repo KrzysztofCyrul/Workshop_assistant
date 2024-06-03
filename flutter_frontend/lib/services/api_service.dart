@@ -97,6 +97,16 @@ class ApiService {
     }
   }
 
+  static Future<void> deleteVisit(String id) async {
+    final response = await http.delete(
+      Uri.parse('$baseUrl/visit/$id'),
+    );
+
+    if (response.statusCode != 204) {
+      throw Exception('Failed to delete visit');
+    }
+  }
+
   static Future<void> archiveVisit(String id) async {
     final response = await http.patch(
       Uri.parse('$baseUrl/visit/$id'),

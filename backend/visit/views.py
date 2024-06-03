@@ -293,18 +293,6 @@ class ClientVisitDetailView(APIView):
             serializer.save()
             return JsonResponse(serializer.data)
         return JsonResponse(serializer.errors, status=400)
-    def patch(self, request, pk):
-        try:
-            visit = models.Visit.objects.get(pk=pk)
-        except models.Visit.DoesNotExist:
-            return JsonResponse({'error': 'Visit not found'}, status=404)
-
-        data = JSONParser().parse(request)
-        if 'is_active' in data:
-            visit.is_active = data['is_active']
-            visit.save()
-            return JsonResponse({'message': 'Visit archived successfully'}, status=204)
-        return JsonResponse({'error': 'Invalid data'}, status=400)
     def put(self, request, pk):
         try:
             visit = models.Visit.objects.get(pk=pk)
@@ -317,6 +305,14 @@ class ClientVisitDetailView(APIView):
             serializer.save()
             return JsonResponse(serializer.data)
         return JsonResponse(serializer.errors, status=400)
+    def delete(self, request, pk):
+        try:
+            visit = models.Visit.objects.get(pk=pk)
+        except models.Visit.DoesNotExist:
+            return JsonResponse({'error': 'Visit not found'}, status=404)
+        
+        visit.delete()
+        return JsonResponse({'message': 'Visit was deleted successfully!'}, status=204)
 
 class UpdateStrikedLines(APIView):
     # permission_classes = [IsAuthenticated]

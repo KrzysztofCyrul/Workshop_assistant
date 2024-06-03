@@ -5,6 +5,8 @@ import '../providers/visit_provider.dart';
 import 'add_visit_screen.dart';
 import '../models/visit.dart';
 import 'visit_archive_screen.dart';
+import 'package:intl/intl.dart';
+import 'visit_calendar_screen.dart';
 
 class VisitScreen extends StatefulWidget {
   @override
@@ -24,6 +26,15 @@ class _VisitScreenState extends State<VisitScreen> {
       appBar: AppBar(
         title: Text('Visits'),
         actions: [
+          IconButton(
+            icon: Icon(Icons.calendar_today),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => VisitCalendarScreen()),
+              );
+            },
+          ),
           IconButton(
             icon: Icon(Icons.archive),
             onPressed: () {
@@ -57,12 +68,40 @@ class _VisitScreenState extends State<VisitScreen> {
               return Center(
                   child: Text('Failed to load data: ${visitProvider.error}'));
             } else {
-              return ListView.builder(
-                itemCount: visitProvider.visits.length,
-                itemBuilder: (context, index) {
-                  final visit = visitProvider.visits[index];
-                  return VisitItem(visit: visit);
-                },
+              final currentDate = DateTime.now();
+              final visits = visitProvider.visits
+                  .where((visit) => visit.status != 'archived')
+                  .toList();
+              visits.sort((a, b) => DateTime.parse(a.date).compareTo(DateTime.parse(b.date)));
+
+              final pastAndPresentVisits = visits
+                  .where((visit) => DateTime.parse(visit.date).isBefore(currentDate) || DateTime.parse(visit.date).isAtSameMomentAs(currentDate))
+                  .toList();
+              final futureVisits = visits
+                  .where((visit) => DateTime.parse(visit.date).isAfter(currentDate))
+                  .toList();
+
+              return ListView(
+                children: [
+                  if (pastAndPresentVisits.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text(
+                        'Current Visits',
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ...pastAndPresentVisits.map((visit) => VisitItem(visit: visit)).toList(),
+                  if (futureVisits.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text(
+                        'Planned Visits',
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ...futureVisits.map((visit) => VisitItem(visit: visit)).toList(),
+                ],
               );
             }
           },
@@ -151,7 +190,7 @@ class _VisitItemState extends State<VisitItem> {
         children: [
           ListTile(
             title: Text(
-                '${visit.date} ${visit.cars.map((car) => '${car.brand} ${car.model}\nTablica: ${car.licensePlate}').join(", ")}'),
+                '${visit.date} ${visit.cars.map((car) => '${car.brand} ${car.model}\nTablica: ${car.licensePlate.toUpperCase()}').join(", ")}'),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -183,7 +222,7 @@ class _VisitItemState extends State<VisitItem> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Id: ${visit.id} \nSamochód: ${visit.cars.map((car) => '${car.brand} ${car.model} ${car.year} \nVIN: ${car.vin} \nTablica: ${car.licensePlate}').join(", ")}',
+                    'Id: ${visit.id} \nSamochód: ${visit.cars.map((car) => '${car.brand} ${car.model} ${car.year} \nVIN: ${car.vin.toUpperCase()} \nTablica: ${car.licensePlate.toUpperCase()}').join(", ")}',
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                   SizedBox(height: 8),
@@ -232,11 +271,13 @@ class _VisitItemState extends State<VisitItem> {
                   ButtonBar(children: [
                     ElevatedButton(
                       onPressed: () {
-                        Navigator.of(context).push(
+                        Navigator.of(context)
+                            .push(
                           MaterialPageRoute(
                             builder: (context) => AddVisitScreen(visit: visit),
                           ),
-                        ).then((_) {
+                        )
+                            .then((_) {
                           visitProvider.fetchVisits();
                         });
                       },
@@ -244,7 +285,15 @@ class _VisitItemState extends State<VisitItem> {
                     ),
                     ElevatedButton(
                       onPressed: () {
-                        visitProvider.confirmArchiveVisit(context, visit.id, visit.name, visit.description, visit.date, visit.status, visit.cars[0], visit.mechanics[0]);
+                        visitProvider.confirmArchiveVisit(
+                            context,
+                            visit.id,
+                            visit.name,
+                            visit.description,
+                            visit.date,
+                            visit.status,
+                            visit.cars[0],
+                            visit.mechanics[0]);
                       },
                       child: Text('Archiwizuj'),
                     ),

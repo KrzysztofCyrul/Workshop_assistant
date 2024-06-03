@@ -1,4 +1,3 @@
-// lib/providers/visit_provider.dart
 import 'package:flutter/material.dart';
 import '../models/visit.dart';
 import '../services/api_service.dart';
@@ -60,20 +59,20 @@ class VisitProvider with ChangeNotifier {
       await ApiService.updateStatus(id, newStatus);
       _visits = _visits
           .map((visit) => visit.id == id
-              ? Visit(
-                  id: visit.id,
-                  date: visit.date,
-                  name: visit.name,
-                  description: visit.description,
-                  parts: visit.parts,
-                  price: visit.price,
-                  cars: visit.cars,
-                  mechanics: visit.mechanics,
-                  status: newStatus,
-                  strikedLines: visit.strikedLines,
-                  isActive: visit.isActive,
-                )
-              : visit)
+          ? Visit(
+        id: visit.id,
+        date: visit.date,
+        name: visit.name,
+        description: visit.description,
+        parts: visit.parts,
+        price: visit.price,
+        cars: visit.cars,
+        mechanics: visit.mechanics,
+        status: newStatus,
+        strikedLines: visit.strikedLines,
+        isActive: visit.isActive,
+      )
+          : visit)
           .toList();
       notifyListeners();
     } catch (e) {
@@ -87,19 +86,19 @@ class VisitProvider with ChangeNotifier {
       await ApiService.updateStrikedLines(id, strikedLines);
       _visits = _visits
           .map((visit) => visit.id == id
-              ? Visit(
-                  id: visit.id,
-                  date: visit.date,
-                  name: visit.name,
-                  description: visit.description,
-                  parts: visit.parts,
-                  price: visit.price,
-                  cars: visit.cars,
-                  mechanics: visit.mechanics,
-                  status: visit.status,
-                  strikedLines: strikedLines,
-                )
-              : visit)
+          ? Visit(
+        id: visit.id,
+        date: visit.date,
+        name: visit.name,
+        description: visit.description,
+        parts: visit.parts,
+        price: visit.price,
+        cars: visit.cars,
+        mechanics: visit.mechanics,
+        status: visit.status,
+        strikedLines: strikedLines,
+      )
+          : visit)
           .toList();
       notifyListeners();
     } catch (e) {
@@ -158,7 +157,7 @@ class VisitProvider with ChangeNotifier {
         ],
         'status': newVisit.status,
         'striked_lines':
-            newVisit.strikedLines.map((k, v) => MapEntry(k.toString(), v)),
+        newVisit.strikedLines.map((k, v) => MapEntry(k.toString(), v)),
       });
       _visits.add(newVisit);
       notifyListeners();
@@ -256,7 +255,7 @@ class VisitProvider with ChangeNotifier {
         ],
         'status': updatedVisit.status,
         'striked_lines':
-            updatedVisit.strikedLines.map((k, v) => MapEntry(k.toString(), v)),
+        updatedVisit.strikedLines.map((k, v) => MapEntry(k.toString(), v)),
       };
 
       // // Logowanie danych wysyłanych do API
@@ -279,12 +278,23 @@ class VisitProvider with ChangeNotifier {
       await ApiService.archiveVisit(id);
       _visits = _visits
           .map((visit) =>
-              visit.id == id ? visit.copyWith(isActive: false) : visit)
+      visit.id == id ? visit.copyWith(isActive: false) : visit)
           .toList();
       notifyListeners();
     } catch (e) {
       print('Exception: $e');
       throw Exception('Failed to archive visit');
+    }
+  }
+
+  Future<void> deleteVisit(String id) async {
+    try {
+      await ApiService.deleteVisit(id);
+      _visits.removeWhere((visit) => visit.id == id);
+      notifyListeners();
+    } catch (e) {
+      print('Exception: $e');
+      throw Exception('Failed to delete visit');
     }
   }
 

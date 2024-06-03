@@ -9,8 +9,9 @@ import 'add_car_screen.dart';
 
 class AddVisitScreen extends StatefulWidget {
   final Visit? visit;
+  final DateTime? date; // Add date parameter
 
-  AddVisitScreen({this.visit});
+  AddVisitScreen({this.visit, this.date}); // Update constructor
 
   @override
   _AddVisitScreenState createState() => _AddVisitScreenState();
@@ -19,25 +20,47 @@ class AddVisitScreen extends StatefulWidget {
 class _AddVisitScreenState extends State<AddVisitScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
-  final _descriptionController = TextEditingController();
   final _dateController = TextEditingController();
   final _carController = TextEditingController();
   Car? _selectedCar;
   Mechanic? _selectedMechanic;
+  List<TextEditingController> _descriptionControllers = [];
 
   @override
   void initState() {
     super.initState();
     if (widget.visit != null) {
       _nameController.text = widget.visit!.name;
-      _descriptionController.text = widget.visit!.description;
       _dateController.text = widget.visit!.date;
       _selectedCar = widget.visit!.cars.isNotEmpty ? widget.visit!.cars.first : null;
       _selectedMechanic = widget.visit!.mechanics.isNotEmpty ? widget.visit!.mechanics.first : null;
       if (_selectedCar != null) {
         _carController.text = '${_selectedCar!.brand} ${_selectedCar!.model} (${_selectedCar!.year}) - ${_selectedCar!.licensePlate}';
       }
+      _descriptionControllers = widget.visit!.description.split(',').map((desc) {
+        return TextEditingController(text: desc.trim());
+      }).toList();
+    } else {
+      _descriptionControllers.add(TextEditingController());
+      if (widget.date != null) {
+        _dateController.text = DateFormat('yyyy-MM-dd').format(widget.date!);
+      }
     }
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _dateController.dispose();
+    _carController.dispose();
+    _descriptionControllers.forEach((controller) => controller.dispose());
+    super.dispose();
+  }
+
+  void _addDescriptionField() {
+    setState(() {
+      _descriptionControllers.add(TextEditingController());
+    });
   }
 
   @override
@@ -64,15 +87,10 @@ class _AddVisitScreenState extends State<AddVisitScreen> {
                   return null;
                 },
               ),
-              TextFormField(
-                controller: _descriptionController,
-                decoration: InputDecoration(labelText: 'Description'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter a description';
-                  }
-                  return null;
-                },
+              ..._buildDescriptionFields(),
+              TextButton(
+                onPressed: _addDescriptionField,
+                child: Text('Add Description Line'),
               ),
               TextFormField(
                 controller: _dateController,
@@ -117,13 +135,13 @@ class _AddVisitScreenState extends State<AddVisitScreen> {
                       },
                       itemBuilder: (context, Car car) {
                         return ListTile(
-                          title: Text('${car.brand} ${car.model} (${car.year}) - ${car.licensePlate}'),
+                          title: Text('${car.brand} ${car.model} (${car.year}) - ${car.licensePlate.toUpperCase()}'),
                         );
                       },
                       onSuggestionSelected: (Car car) {
                         setState(() {
                           _selectedCar = car;
-                          _carController.text = '${car.brand} ${car.model} (${car.year}) - ${car.licensePlate}';
+                          _carController.text = '${car.brand} ${car.model} (${car.year}) - ${car.licensePlate.toUpperCase()}';
                         });
                       },
                       validator: (value) => _selectedCar == null ? 'Please select a car' : null,
@@ -161,11 +179,14 @@ class _AddVisitScreenState extends State<AddVisitScreen> {
               ElevatedButton(
                 onPressed: () async {
                   if (_formKey.currentState!.validate()) {
+                    final descriptions = _descriptionControllers.map((controller) => controller.text).toList();
+                    final descriptionString = descriptions.join(', ');
+
                     try {
                       if (widget.visit == null) {
                         await visitProvider.addVisit(
                           _nameController.text,
-                          _descriptionController.text,
+                          descriptionString,
                           _dateController.text,
                           'pending',
                           _selectedCar!,
@@ -175,7 +196,7 @@ class _AddVisitScreenState extends State<AddVisitScreen> {
                         await visitProvider.editVisit(
                           widget.visit!.id,
                           _nameController.text,
-                          _descriptionController.text,
+                          descriptionString,
                           _dateController.text,
                           widget.visit!.status,
                           _selectedCar!,
@@ -199,5 +220,26 @@ class _AddVisitScreenState extends State<AddVisitScreen> {
         ),
       ),
     );
+  }
+
+  List<Widget> _buildDescriptionFields() {
+    return _descriptionControllers
+        .asMap()
+        .map((index, controller) {
+      return MapEntry(index, TextFormField(
+        controller: controller,
+        decoration: InputDecoration(
+          labelText: 'Description ${index + 1}',
+        ),
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return 'Please enter a description';
+          }
+          return null;
+        },
+      ));
+    })
+        .values
+        .toList();
   }
 }
