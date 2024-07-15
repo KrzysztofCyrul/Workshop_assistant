@@ -5,7 +5,6 @@ import '../providers/visit_provider.dart';
 import 'add_visit_screen.dart';
 import '../models/visit.dart';
 import 'visit_archive_screen.dart';
-import 'package:intl/intl.dart';
 import 'visit_calendar_screen.dart';
 
 class VisitScreen extends StatefulWidget {

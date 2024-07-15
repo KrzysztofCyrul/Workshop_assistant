@@ -61,7 +61,7 @@ class CarDetailView(APIView):
         return JsonResponse({'message': 'Car was deleted successfully!'}, status=204)    
     
 class ClientsView(APIView):
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
 
     def get(self, request):
         clients = models.Client.objects.all()
@@ -77,7 +77,7 @@ class ClientsView(APIView):
         return JsonResponse(serializer.errors, status=400)
     
 class ClientDetailView(APIView):
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
 
     def get(self, request, id):
         try:
@@ -111,7 +111,7 @@ class ClientDetailView(APIView):
         return JsonResponse({'message': 'Client was deleted successfully!'}, status=204)
     
 class CompaniesView(APIView):
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
     def get(self, request):
         companies = models.Company.objects.all()
         serializer = serializers.CompanySerializer(companies, many=True)
@@ -126,7 +126,7 @@ class CompaniesView(APIView):
         return JsonResponse(serializer.errors, status=400)
     
 class CompanyDetailView(APIView):
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
     def get(self, request, id):
         try:
             company = models.Company.objects.get(id=id)
@@ -159,7 +159,7 @@ class CompanyDetailView(APIView):
         return JsonResponse({'message': 'Company was deleted successfully!'}, status=204)
 
 class VisitView(APIView):
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
     def get(self, request):
         visits = models.visit.objects.all()
         serializer = serializers.VisitSerializer(visits, many=True)
@@ -174,7 +174,7 @@ class VisitView(APIView):
         return JsonResponse(serializer.errors, status=400)
 
 class VisitDetailView(APIView):
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
     def get(self, request, id):
         try:
             visit = models.Visit.objects.get(id=id)

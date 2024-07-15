@@ -4,10 +4,15 @@ import 'package:http/http.dart' as http;
 import '../models/visit.dart';
 
 class ApiService {
-  static const String baseUrl = "http://192.168.1.11:8000/api";
+  static const String baseUrl = "http://192.168.0.101:8000/api";
 
   static Future<List<Visit>> fetchVisits() async {
-    final response = await http.get(Uri.parse('$baseUrl/visits/'));
+    final response = await http.get(
+      Uri.parse('$baseUrl/visits/'),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    );
 
     if (response.statusCode == 200) {
       List<dynamic> data = json.decode(response.body);
@@ -18,7 +23,12 @@ class ApiService {
   }
 
   static Future<List<Car>> fetchCars() async {
-    final response = await http.get(Uri.parse('$baseUrl/cars/'));
+    final response = await http.get(
+      Uri.parse('$baseUrl/cars/'),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    );
 
     if (response.statusCode == 200) {
       List<dynamic> data = json.decode(response.body);
@@ -29,21 +39,28 @@ class ApiService {
   }
 
   static Future<List<Mechanic>> fetchMechanics() async {
-    final response = await http.get(Uri.parse('$baseUrl/mechanics/'));
+    final response = await http.get(
+      Uri.parse('$baseUrl/mechanics/'),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    );
 
     if (response.statusCode == 200) {
       List<dynamic> data = json.decode(response.body);
       return data.map((json) => Mechanic.fromJson(json)).toList();
     } else {
-      throw Exception('Failed to leoad mechanics');
+      throw Exception('Failed to load mechanics');
     }
   }
 
   static Future<void> updateStatus(String id, String newStatus) async {
     final response = await http.post(
       Uri.parse('$baseUrl/visit/$id'),
+      headers: {
+        'Content-Type': 'application/json',
+      },
       body: json.encode({'status': newStatus}),
-      headers: {'Content-Type': 'application/json'},
     );
 
     if (response.statusCode != 200) {
@@ -51,14 +68,18 @@ class ApiService {
     }
   }
 
-  static Future<void> updateStrikedLines(String id, Map<int, bool> strikedLines) async {
-    final strikedLinesJson = strikedLines.map((key, value) => MapEntry(key.toString(), value));
+  static Future<void> updateStrikedLines(
+      String id, Map<int, bool> strikedLines) async {
+    final strikedLinesJson =
+        strikedLines.map((key, value) => MapEntry(key.toString(), value));
     print('Updating striked lines for visit $id with data: $strikedLinesJson');
 
     final response = await http.post(
       Uri.parse('$baseUrl/visit/update-striked/$id'),
+      headers: {
+        'Content-Type': 'application/json',
+      },
       body: json.encode({'strikedLines': strikedLinesJson}),
-      headers: {'Content-Type': 'application/json'},
     );
 
     if (response.statusCode != 200) {
@@ -71,8 +92,10 @@ class ApiService {
   static Future<void> addVisit(Map<String, dynamic> visitData) async {
     final response = await http.post(
       Uri.parse('$baseUrl/visits/'),
+      headers: {
+        'Content-Type': 'application/json',
+      },
       body: json.encode(visitData),
-      headers: {'Content-Type': 'application/json'},
     );
 
     if (response.statusCode != 201) {
@@ -80,7 +103,8 @@ class ApiService {
     }
   }
 
-  static Future<void> editVisit(String id, Map<String, dynamic> visitData) async {
+  static Future<void> editVisit(
+      String id, Map<String, dynamic> visitData) async {
     final url = '$baseUrl/visit/$id';
     final response = await http.put(
       Uri.parse(url),
@@ -100,6 +124,9 @@ class ApiService {
   static Future<void> deleteVisit(String id) async {
     final response = await http.delete(
       Uri.parse('$baseUrl/visit/$id'),
+      headers: {
+        'Content-Type': 'application/json',
+      },
     );
 
     if (response.statusCode != 204) {
@@ -111,7 +138,9 @@ class ApiService {
     final response = await http.patch(
       Uri.parse('$baseUrl/visit/$id'),
       body: json.encode({'is_active': false}),
-      headers: {'Content-Type': 'application/json'},
+      headers: {
+        'Content-Type': 'application/json',
+      },
     );
 
     if (response.statusCode != 204) {
@@ -122,7 +151,9 @@ class ApiService {
   static Future<void> addCar(Map<String, dynamic> carData) async {
     final response = await http.post(
       Uri.parse('$baseUrl/cars/'),
-      headers: {'Content-Type': 'application/json'},
+      headers: {
+        'Content-Type': 'application/json',
+      },
       body: json.encode(carData),
     );
 

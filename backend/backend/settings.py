@@ -72,7 +72,9 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        # 'rest_framework_simplejwt.authentication.JWTAuthentication',
+        # 'rest_framework.permissions.AllowAny',
+
     ),
 }
 
@@ -111,25 +113,25 @@ SIMPLE_JWT = {
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'db',
-        'USER': 'user',
-        'PASSWORD': 'password',
-        # 'HOST': 'db',
-        # 'PORT': '3306',
-    }
-}
-
 # DATABASES = {
 #     'default': {
 #         'ENGINE': 'django.db.backends.mysql',
-#         'NAME': 'django_mechanic_assistant',
-#         'USER': 'root',
-#         'PASSWORD': '',
+#         'NAME': 'db',
+#         'USER': 'user',
+#         'PASSWORD': 'password',
+#         # 'HOST': 'db',
+#         # 'PORT': '3306',
 #     }
 # }
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'django_mechanic_assistant',
+        'USER': 'root',
+        'PASSWORD': '',
+    }
+}
 
 
 # Password validation
