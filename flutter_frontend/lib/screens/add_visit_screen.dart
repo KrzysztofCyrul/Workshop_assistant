@@ -128,10 +128,10 @@ class _AddVisitScreenState extends State<AddVisitScreen> {
                       ),
                       suggestionsCallback: (pattern) {
                         return visitProvider.cars.where((car) =>
-                        car.brand.toLowerCase().contains(pattern.toLowerCase()) ||
-                            car.model.toLowerCase().contains(pattern.toLowerCase()) ||
-                            car.year.toString().contains(pattern) ||
-                            car.licensePlate.toLowerCase().contains(pattern.toLowerCase()));
+                          car.brand.toLowerCase().contains(pattern.toLowerCase()) ||
+                          car.model.toLowerCase().contains(pattern.toLowerCase()) ||
+                          car.year.toString().contains(pattern) ||
+                          car.licensePlate.toLowerCase().contains(pattern.toLowerCase()));
                       },
                       itemBuilder: (context, Car car) {
                         return ListTile(
@@ -144,7 +144,31 @@ class _AddVisitScreenState extends State<AddVisitScreen> {
                           _carController.text = '${car.brand} ${car.model} (${car.year}) - ${car.licensePlate.toUpperCase()}';
                         });
                       },
-                      validator: (value) => _selectedCar == null ? 'Please select a car' : null,
+                      onSaved: (value) {
+                        if (_selectedCar == null && value != null && value.isNotEmpty) {
+                          _selectedCar = Car(
+                            id: DateTime.now().millisecondsSinceEpoch,
+                            brand: value,
+                            model: '',
+                            year: DateTime.now().year,
+                            vin: '',
+                            licensePlate: '',
+                            client: Client(
+                              id: DateTime.now().millisecondsSinceEpoch,
+                              firstName: '',
+                              email: '',
+                              phone: '',
+                            ),
+                            company: null,
+                          );
+                        }
+                      },
+                      validator: (value) {
+                        if (_selectedCar == null && (value == null || value.isEmpty)) {
+                          return 'Please select a car or enter a brand';
+                        }
+                        return null;
+                      },
                     ),
                   ),
                   IconButton(
@@ -183,6 +207,13 @@ class _AddVisitScreenState extends State<AddVisitScreen> {
                     final descriptionString = descriptions.join(', ');
 
                     try {
+                      if (_selectedCar == null) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Please select a car or enter a car brand')),
+                        );
+                        return;
+                      }
+
                       if (widget.visit == null) {
                         await visitProvider.addVisit(
                           _nameController.text,

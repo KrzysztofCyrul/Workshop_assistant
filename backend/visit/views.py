@@ -10,6 +10,43 @@ import random
 import string
 from .models import Client
 
+def generate_random_clients(request):
+    first_names = ["Krzysztof", "Anna", "Jan", "Maria", "Piotr", "Agnieszka"]
+    last_names = ["Nowak", "Kowalski", "Wiśniewski", "Dąbrowski", "Lewandowski", "Wójcik"]
+    cities = ["Warszawa", "Kraków", "Łódź", "Wrocław", "Poznań", "Gdańsk"]
+    states = ["mazowieckie", "małopolskie", "łódzkie", "dolnośląskie", "wielkopolskie", "pomorskie"]
+
+    for _ in range(10):  # Tworzenie 10 klientów
+        first_name = random.choice(first_names)
+        last_name = random.choice(last_names)
+        email = f"{first_name.lower()}.{last_name.lower()}_{random.randint(1, 100)}@gmail.com"
+        phone = ''.join(random.choices(string.digits, k=9))
+        address = ''.join(random.choices(string.ascii_letters + string.digits, k=random.randint(5, 20)))
+        city = random.choice(cities)
+        state = random.choice(states)
+        zip_code = ''.join(random.choices(string.digits, k=5))
+
+        client = Client.objects.create(
+            first_name=first_name,
+            last_name=last_name,
+            email=email,
+            phone=phone,
+            address=address,
+            city=city,
+            state=state,
+            zip_code=zip_code
+        )
+        client.save()
+
+    return JsonResponse({"message": "Random clients generated successfully."})
+
+
+def sort_clients(request):
+    clients = models.Client.objects.all()
+    sorted_clients = sorted(clients, key=lambda x: x.last_name)
+    serializer = serializers.ClientSerializer(sorted_clients, many=True)
+    return JsonResponse(serializer.data)
+
 class CarsView(APIView):
     # permission_classes = [IsAuthenticated]
 
@@ -327,39 +364,102 @@ class UpdateStrikedLines(APIView):
         except models.Visit.DoesNotExist:
             return JsonResponse({'error': 'Visit not found'}, status=404)
 
-def generate_random_clients(request):
-    first_names = ["Krzysztof", "Anna", "Jan", "Maria", "Piotr", "Agnieszka"]
-    last_names = ["Nowak", "Kowalski", "Wiśniewski", "Dąbrowski", "Lewandowski", "Wójcik"]
-    cities = ["Warszawa", "Kraków", "Łódź", "Wrocław", "Poznań", "Gdańsk"]
-    states = ["mazowieckie", "małopolskie", "łódzkie", "dolnośląskie", "wielkopolskie", "pomorskie"]
+class PartsView(APIView):
+    # permission_classes = [IsAuthenticated]
 
-    for _ in range(10):  # Tworzenie 10 klientów
-        first_name = random.choice(first_names)
-        last_name = random.choice(last_names)
-        email = f"{first_name.lower()}.{last_name.lower()}_{random.randint(1, 100)}@gmail.com"
-        phone = ''.join(random.choices(string.digits, k=9))
-        address = ''.join(random.choices(string.ascii_letters + string.digits, k=random.randint(5, 20)))
-        city = random.choice(cities)
-        state = random.choice(states)
-        zip_code = ''.join(random.choices(string.digits, k=5))
+    def get(self, request):
+        parts = models.Part.objects.all()
+        serializer = serializers.PartSerializer(parts, many=True)
+        return JsonResponse(serializer.data, safe=False)
+    
+    def post(self, request):
+        data = JSONParser().parse(request)
+        serializer = serializers.PartSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return JsonResponse(serializer.data, status=201)
+        return JsonResponse(serializer.errors, status=400)
+    
+class PartDetailView(APIView):
+    # permission_classes = [IsAuthenticated]
 
-        client = Client.objects.create(
-            first_name=first_name,
-            last_name=last_name,
-            email=email,
-            phone=phone,
-            address=address,
-            city=city,
-            state=state,
-            zip_code=zip_code
-        )
-        client.save()
+    def get(self, request, id):
+        try:
+            part = models.Part.objects.get(id=id)
+        except models.Part.DoesNotExist:
+            return JsonResponse({'error': 'Part not found'}, status=404)
+        
+        serializer = serializers.PartSerializer(part)
+        return JsonResponse(serializer.data)
+    
+    def post(self, request, id):
+        try:
+            part = models.Part.objects.get(id=id)
+        except models.Part.DoesNotExist:
+            return JsonResponse({'error': 'Part not found'}, status=404)
+        
+        data = JSONParser().parse(request)
+        serializer = serializers.PartSerializer(part, data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return JsonResponse(serializer.data)
+        return JsonResponse(serializer.errors, status=400)
+    
+    def delete(self, request, id):
+        try:
+            part = models.Part.objects.get(id=id)
+        except models.Part.DoesNotExist:
+            return JsonResponse({'error': 'Part not found'}, status=404)
+        
+        part.delete()
+        return JsonResponse({'message': 'Part was deleted successfully!'}, status=204)
+    
+class ServiceView(APIView):
+    # permission_classes = [IsAuthenticated]
 
-    return JsonResponse({"message": "Random clients generated successfully."})
+    def get(self, request):
+        services = models.Service.objects.all()
+        serializer = serializers.ServiceSerializer(services, many=True)
+        return JsonResponse(serializer.data, safe=False)
+    
+    def post(self, request):
+        data = JSONParser().parse(request)
+        serializer = serializers.ServiceSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return JsonResponse(serializer.data, status=201)
+        return JsonResponse(serializer.errors, status=400)
+    
+class ServiceDetailView(APIView):
+    # permission_classes = [IsAuthenticated]
 
-
-def sort_clients(request):
-    clients = models.Client.objects.all()
-    sorted_clients = sorted(clients, key=lambda x: x.last_name)
-    serializer = serializers.ClientSerializer(sorted_clients, many=True)
-    return JsonResponse(serializer.data)
+    def get(self, request, id):
+        try:
+            service = models.Service.objects.get(id=id)
+        except models.Service.DoesNotExist:
+            return JsonResponse({'error': 'Service not found'}, status=404)
+        
+        serializer = serializers.ServiceSerializer(service)
+        return JsonResponse(serializer.data)
+    
+    def post(self, request, id):
+        try:
+            service = models.Service.objects.get(id=id)
+        except models.Service.DoesNotExist:
+            return JsonResponse({'error': 'Service not found'}, status=404)
+        
+        data = JSONParser().parse(request)
+        serializer = serializers.ServiceSerializer(service, data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return JsonResponse(serializer.data)
+        return JsonResponse(serializer.errors, status=400)
+    
+    def delete(self, request, id):
+        try:
+            service = models.Service.objects.get(id=id)
+        except models.Service.DoesNotExist:
+            return JsonResponse({'error': 'Service not found'}, status=404)
+        
+        service.delete()
+        return JsonResponse({'message': 'Service was deleted successfully!'}, status=204)

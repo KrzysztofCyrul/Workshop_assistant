@@ -2,7 +2,7 @@ from django.db import models
 import string
 import random
 
-# Krotka statusów serwisu
+# Status
 status = (
     ('pending', 'Oczekujące'),
     ('in_progress', 'W trakcie'),
@@ -10,13 +10,12 @@ status = (
     ('archived', 'Zarchiwizowane'),
 )
 
-# Funkcja generująca losowy ciąg znaków
+# Random id generator
 def generate_random_id():
     length = 6
-    # Generuje losowy ciąg składający się z dużych liter i cyfr
     return ''.join(random.choices(string.ascii_uppercase + string.digits, k=length))
 
-# Klasa pola ID, która dziedziczy po klasie CharField
+# Custom ID field
 class CustomIDField(models.CharField):
     def __init__(self, *args, **kwargs):
         kwargs['max_length'] = 6  # Ustawienie stałej długości na 6 znaków
@@ -24,20 +23,18 @@ class CustomIDField(models.CharField):
         kwargs['editable'] = False  # Pole nie powinno być edytowane manualnie
         super().__init__(*args, **kwargs)
 
-# Klasa reprezentująca samochód klienta
 class ClientCar(models.Model):
     brand = models.CharField(max_length=50)
-    model = models.CharField(max_length=50)
-    year = models.IntegerField(null=True)
+    model = models.CharField(max_length=50, null=True, blank=True)
+    year = models.IntegerField(null=True, blank=True)
     vin = models.CharField(max_length=50, null=True, blank=True)
-    license_plate = models.CharField(max_length=50, null=True)
+    license_plate = models.CharField(max_length=50, null=True, blank=True)
     client = models.ForeignKey('Client', on_delete=models.CASCADE, null=True, blank=True)
     company = models.ForeignKey('Company', on_delete=models.CASCADE, null=True, blank=True)
     
     def __str__(self):
         return f'{self.brand} {self.model} {self.license_plate}'
     
-# Klasa reprezentująca klienta
 class Client(models.Model):
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50, null=True, blank=True)
@@ -97,3 +94,17 @@ class Mechanic(models.Model):
     def __str__(self):
         return f'{self.first_name} {self.last_name}'
 
+class Part(models.Model):
+    name = models.CharField(max_length=255)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+
+    def __str__(self):
+        return self.name
+
+class Service(models.Model):
+    name = models.CharField(max_length=255)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    parts = models.ManyToManyField(Part, related_name='services')
+
+    def __str__(self):
+        return self.name

@@ -1,6 +1,6 @@
 # visit/serializers.py
 from rest_framework import serializers
-from .models import ClientCar, Client, Visit, Mechanic, Company
+from .models import ClientCar, Client, Visit, Mechanic, Company, Part, Service
 
 class ClientSerializer(serializers.ModelSerializer):
     class Meta:
@@ -108,3 +108,18 @@ class ClientVisitSerializer(serializers.ModelSerializer):
                 instance.mechanics.add(mechanic)
 
         return instance
+    
+class PartSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Part
+        fields = ['id', 'name', 'price']
+
+class ServiceSerializer(serializers.ModelSerializer):
+    parts = PartSerializer(many=True, read_only=True)
+    part_ids = serializers.PrimaryKeyRelatedField(
+        many=True, queryset=Part.objects.all(), write_only=True, source='parts'
+    )
+
+    class Meta:
+        model = Service
+        fields = ['id', 'name', 'price', 'parts', 'part_ids']

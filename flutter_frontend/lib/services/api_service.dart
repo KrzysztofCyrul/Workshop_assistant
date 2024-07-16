@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import '../models/visit.dart';
 
 class ApiService {
-  static const String baseUrl = "http://192.168.0.101:8000/api";
+  static const String baseUrl = "http://192.168.1.11:8000/api";
 
   static Future<List<Visit>> fetchVisits() async {
     final response = await http.get(
