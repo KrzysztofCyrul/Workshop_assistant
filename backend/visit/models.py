@@ -69,6 +69,7 @@ class Visit(models.Model):
     date = models.DateField()
     name = models.CharField(max_length=50)
     description = models.TextField(null=True, blank=True)
+    service = models.TextField(null=True, blank=True)
     parts = models.TextField(null=True, blank=True)
     price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     cars = models.ManyToManyField('ClientCar', related_name='Services', blank=True)
@@ -99,12 +100,27 @@ class Part(models.Model):
     price = models.DecimalField(max_digits=10, decimal_places=2)
 
     def __str__(self):
-        return self.name
+        return f'{self.name} {self.price}'
 
 class Service(models.Model):
     name = models.CharField(max_length=255)
     price = models.DecimalField(max_digits=10, decimal_places=2)
-    parts = models.ManyToManyField(Part, related_name='services')
+    parts = models.ManyToManyField(Part, blank=True)
 
     def __str__(self):
-        return self.name
+        return f'{self.name} {self.price}'
+    
+class Estimate(models.Model):
+    id = CustomIDField(primary_key=True)
+    date = models.DateField()
+    name = models.CharField(max_length=50)
+    description = models.TextField(null=True, blank=True)
+    parts = models.TextField(null=True, blank=True)
+    price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    cars = models.ManyToManyField('ClientCar', related_name='Estimates', blank=True)
+    mechanics = models.ManyToManyField('Mechanic', related_name='assigned_Estimates', blank=True)
+    status = models.CharField(max_length=50, choices=status, default='pending')
+    striked_lines = models.JSONField(default=dict, blank=True)  # Lista indeksów przekreślonych linii
+
+    def __str__(self):
+        return f'{self.date} {self.id} {self.name}'

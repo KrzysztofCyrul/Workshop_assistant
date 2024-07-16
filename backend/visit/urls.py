@@ -13,14 +13,11 @@ urlpatterns = [
     path('companies/', views.CompaniesView.as_view()),
     path('companies/<int:id>/', views.CompanyDetailView.as_view()),
     
-    path('services/', views.VisitView.as_view()),
-    path('services/<str:id>', views.VisitDetailView.as_view()),
-    
     path('mechanics/', views.MechanicsView.as_view()),
     path('mechanics/<int:id>/', views.MechanicDetailView.as_view()),
     
-    path('visits/', views.ClientVisitView.as_view()),
-    path('visit/<str:pk>', views.ClientVisitDetailView.as_view()),
+    path('visits/', views.VisitView.as_view()),
+    path('visit/<str:pk>', views.VisitDetailView.as_view()),
     path('visit/update-striked/<str:pk>', views.UpdateStrikedLines.as_view(), name='update-striked-lines'),
     
     path('parts/', views.PartsView.as_view()),
@@ -28,6 +25,9 @@ urlpatterns = [
     
     path('services/', views.ServiceView.as_view()),
     path('services/<int:id>/', views.ServiceDetailView.as_view()),
+    
+    path('estimates/', views.EstimateView.as_view()),
+    path('estimates/<str:pk>/', views.EstimateDetailView.as_view()),
 
     path('generate/', views.generate_random_clients),
 ]

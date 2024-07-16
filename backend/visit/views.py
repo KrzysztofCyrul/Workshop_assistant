@@ -194,55 +194,6 @@ class CompanyDetailView(APIView):
         
         company.delete()
         return JsonResponse({'message': 'Company was deleted successfully!'}, status=204)
-
-class VisitView(APIView):
-    # permission_classes = [IsAuthenticated]
-    def get(self, request):
-        visits = models.visit.objects.all()
-        serializer = serializers.VisitSerializer(visits, many=True)
-        return JsonResponse(serializer.data, safe=False)
-    
-    def post(self, request):
-        data = JSONParser().parse(request)
-        serializer = serializers.VisitSerializer(data=data)
-        if serializer.is_valid():
-            serializer.save()
-            return JsonResponse(serializer.data, status=201)
-        return JsonResponse(serializer.errors, status=400)
-
-class VisitDetailView(APIView):
-    # permission_classes = [IsAuthenticated]
-    def get(self, request, id):
-        try:
-            visit = models.Visit.objects.get(id=id)
-        except models.Visit.DoesNotExist:
-            return JsonResponse({'error': 'visit not found'}, status=404)
-        
-        serializer = serializers.VisitSerializer(visit)
-        return JsonResponse(serializer.data)
-    
-    def post(self, request, id):
-        try:
-            visit = models.Visit.objects.get(id=id)
-        except models.Visit.DoesNotExist:
-            return JsonResponse({'error': 'visit not found'}, status=404)
-        
-        data = JSONParser().parse(request)
-        serializer = serializers.VisitSerializer(visit, data=data)
-        if serializer.is_valid():
-            serializer.save()
-            return JsonResponse(serializer.data)
-        return JsonResponse(serializer.errors, status=400)
-    
-    def delete(self, request, id):
-        try:
-            visit = models.Visit.objects.get(id=id)
-        except models.Visit.DoesNotExist:
-            return JsonResponse({'error': 'visit not found'}, status=404)
-        
-        visit.delete()
-        return JsonResponse({'message': 'visit was deleted successfully!'}, status=204)
-
     
 class MechanicsView(APIView):
     # permission_classes = [IsAuthenticated]    
@@ -293,7 +244,7 @@ class MechanicDetailView(APIView):
         mechanic.delete()
         return JsonResponse({'message': 'Mechanic was deleted successfully!'}, status=204) 
     
-class ClientVisitView(APIView):
+class VisitView(APIView):
     # permission_classes = [IsAuthenticated]
     def get(self, request):
         visits = models.Visit.objects.all()
@@ -308,7 +259,7 @@ class ClientVisitView(APIView):
             return JsonResponse(serializer.data, status=201)
         return JsonResponse(serializer.errors, status=400)
     
-class ClientVisitDetailView(APIView):
+class VisitDetailView(APIView):
     # permission_classes = [IsAuthenticated]
     def get(self, request, pk):
         try:
@@ -463,3 +414,53 @@ class ServiceDetailView(APIView):
         
         service.delete()
         return JsonResponse({'message': 'Service was deleted successfully!'}, status=204)
+    
+class EstimateView(APIView):
+    # permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        estimates = models.Estimate.objects.all()
+        serializer = serializers.EstimateSerializer(estimates, many=True)
+        return JsonResponse(serializer.data, safe=False)
+    
+    def post(self, request):
+        data = JSONParser().parse(request)
+        serializer = serializers.EstimateSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return JsonResponse(serializer.data, status=201)
+        return JsonResponse(serializer.errors, status=400)
+    
+class EstimateDetailView(APIView):
+    # permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk):
+        try:
+            estimate = models.Estimate.objects.get(pk=pk)
+        except models.Estimate.DoesNotExist:
+            return JsonResponse({'error': 'Estimate not found'}, status=404)
+        
+        serializer = serializers.EstimateSerializer(estimate)
+        return JsonResponse(serializer.data)
+    
+    def post(self, request, pk):
+        try:
+            estimate = models.Estimate.objects.get(pk=pk)
+        except models.Estimate.DoesNotExist:
+            return JsonResponse({'error': 'Estimate not found'}, status=404)
+        
+        data = JSONParser().parse(request)
+        serializer = serializers.EstimateSerializer(estimate, data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return JsonResponse(serializer.data)
+        return JsonResponse(serializer.errors, status=400)
+    
+    def delete(self, request, pk):
+        try:
+            estimate = models.Estimate.objects.get(pk=pk)
+        except models.Estimate.DoesNotExist:
+            return JsonResponse({'error': 'Estimate not found'}, status=404)
+        
+        estimate.delete()
+        return JsonResponse({'message': 'Estimate was deleted successfully!'}, status=204)

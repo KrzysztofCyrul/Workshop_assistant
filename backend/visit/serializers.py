@@ -1,6 +1,6 @@
 # visit/serializers.py
 from rest_framework import serializers
-from .models import ClientCar, Client, Visit, Mechanic, Company, Part, Service
+from .models import ClientCar, Client, Visit, Mechanic, Company, Part, Service, Estimate
 
 class ClientSerializer(serializers.ModelSerializer):
     class Meta:
@@ -123,3 +123,12 @@ class ServiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Service
         fields = ['id', 'name', 'price', 'parts', 'part_ids']
+        
+class EstimateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Estimate
+        fields = '__all__'
+        
+    def create(self, validated_data):
+        estimate = Estimate.objects.create(**validated_data)
+        return estimate
