@@ -32,8 +32,10 @@ INSTALLED_APPS = [
     'rest_framework',       
     'corsheaders',        
     'rest_framework_simplejwt',
+    'rest_framework_swagger',
     'visit', 
     'accounts',
+    'workshops',
 ]
 
 MIDDLEWARE = [
