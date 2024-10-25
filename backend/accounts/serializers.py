@@ -1,10 +1,5 @@
 from rest_framework import serializers
-from .models import Permission, Role, User
-
-# accounts/serializers/user_serializer.py
-
-from rest_framework import serializers
-from accounts.models import User, Role
+from accounts.models import Permission, User, Role
 
 class UserSerializer(serializers.ModelSerializer):
     roles = serializers.PrimaryKeyRelatedField(many=True, queryset=Role.objects.all(), required=False)
@@ -16,7 +11,7 @@ class UserSerializer(serializers.ModelSerializer):
             'id', 'email', 'password', 'password_confirm', 'first_name', 'last_name',
             'is_active', 'created_at', 'updated_at', 'roles'
         )
-        read_only_fields = ('created_at', 'updated_at', 'is_active', 'roles')
+        read_only_fields = ('created_at', 'updated_at', 'is_active')
         extra_kwargs = {'password': {'write_only': True}}
 
     def validate(self, data):
@@ -48,6 +43,12 @@ class UserSerializer(serializers.ModelSerializer):
             instance.roles.set(roles_data)
 
         return instance
+    
+class UserProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('id', 'email', 'first_name', 'last_name', 'is_active', 'roles')
+        read_only_fields = ('id', 'email', 'is_active', 'roles')
 
     
 class PermissionSerializer(serializers.ModelSerializer):
@@ -61,3 +62,5 @@ class RoleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Role
         fields = ('id', 'name', 'permissions')
+        
+

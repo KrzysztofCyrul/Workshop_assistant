@@ -9,6 +9,7 @@ from . import serializers
 import random
 import string
 from .models import Client
+from accounts.permissions import IsMechanic
 
 def generate_random_clients(request):
     first_names = ["Krzysztof", "Anna", "Jan", "Maria", "Piotr", "Agnieszka"]
@@ -98,7 +99,7 @@ class CarDetailView(APIView):
         return JsonResponse({'message': 'Car was deleted successfully!'}, status=204)    
     
 class ClientsView(APIView):
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsMechanic]
 
     def get(self, request):
         clients = models.Client.objects.all()

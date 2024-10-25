@@ -8,6 +8,3 @@ admin.site.register(Mechanic)
 admin.site.register(Company)
 admin.site.register(Part)
 admin.site.register(Service)
-
-
-# Register your models here.
