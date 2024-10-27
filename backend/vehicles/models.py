@@ -1,5 +1,3 @@
-# vehicles/models.py
-
 import uuid
 from django.db import models
 from clients.models import Client
@@ -18,6 +16,8 @@ class Vehicle(models.Model):
     license_plate = models.CharField(max_length=10)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    mileage = models.PositiveIntegerField(default=0)
+
     
     # Relacja z wpisami serwisowymi (do zdefiniowania później)
     # service_records = models.ManyToManyField(ServiceRecord, related_name='vehicles', blank=True)

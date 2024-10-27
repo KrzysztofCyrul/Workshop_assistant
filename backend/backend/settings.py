@@ -33,12 +33,15 @@ INSTALLED_APPS = [
     'corsheaders',        
     'rest_framework_simplejwt',
     'rest_framework_swagger',
-    'visit', 
     'accounts',
     'workshops',
     'employees',
     'clients',
     'vehicles',
+    'service_records',
+    'appointments',
+    'service_orders',
+    'service_tasks',
 ]
 
 MIDDLEWARE = [
