@@ -1,13 +1,15 @@
 from rest_framework import viewsets, permissions
-from appointments.models import Appointment
-from appointments.serializers import AppointmentSerializer
+from appointments.models import Appointment, RepairItem
+from appointments.serializers import AppointmentSerializer, RepairItemSerializer
 from workshops.models import Workshop
-from accounts.permissions import IsWorkshopOwner, IsAdmin
+from accounts.permissions import IsMechanic, IsWorkshopOwner, IsAdmin
 from rest_framework.exceptions import PermissionDenied
+from rest_framework.permissions import IsAuthenticated
+
 
 class AppointmentViewSet(viewsets.ModelViewSet):
     serializer_class = AppointmentSerializer
-    permission_classes = [permissions.IsAuthenticated, IsWorkshopOwner | IsAdmin]
+    permission_classes = [IsAuthenticated, IsWorkshopOwner | IsAdmin | IsMechanic]
 
     def get_queryset(self):
         workshop_id = self.kwargs['workshop_pk']
@@ -35,3 +37,30 @@ class AppointmentViewSet(viewsets.ModelViewSet):
         else:
             permission_classes = [permissions.IsAuthenticated]
         return [permission() for permission in permission_classes]
+    
+class RepairItemViewSet(viewsets.ModelViewSet):
+    serializer_class = RepairItemSerializer
+    permission_classes = [IsAuthenticated, IsWorkshopOwner | IsAdmin | IsMechanic] 
+
+    def get_queryset(self):
+        workshop_id = self.kwargs['workshop_pk']
+        appointment_id = self.kwargs['appointment_pk']
+        return RepairItem.objects.filter(
+            appointment__id=appointment_id,
+            appointment__workshop__id=workshop_id
+        )
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        workshop_id = self.kwargs['workshop_pk']
+        appointment_id = self.kwargs['appointment_pk']
+        try:
+            appointment = Appointment.objects.get(id=appointment_id, workshop__id=workshop_id)
+        except Appointment.DoesNotExist:
+            raise PermissionDenied("Nie znaleziono wizyty lub brak dostępu do tej wizyty.")
+        context['appointment'] = appointment
+        return context
+
+    def perform_create(self, serializer):
+        appointment = self.get_serializer_context()['appointment']
+        serializer.save(appointment=appointment)

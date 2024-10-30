@@ -5,10 +5,11 @@ from service_orders.models import ServiceOrder
 from workshops.models import Workshop
 from accounts.permissions import IsWorkshopOwner, IsAdmin
 from rest_framework.exceptions import PermissionDenied
+from rest_framework.permissions import IsAuthenticated
 
 class ServiceTaskViewSet(viewsets.ModelViewSet):
     serializer_class = ServiceTaskSerializer
-    permission_classes = [permissions.IsAuthenticated, IsWorkshopOwner | IsAdmin]
+    permission_classes = [IsAuthenticated, IsWorkshopOwner | IsAdmin]
 
     def get_queryset(self):
         workshop_id = self.kwargs['workshop_pk']

@@ -26,7 +26,7 @@ class ServiceTask(models.Model):
         related_name='tasks'
     )
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
-    estimated_time = models.DecimalField(max_digits=5, decimal_places=2)  # W godzinach
+    estimated_time = models.DecimalField(max_digits=5, decimal_places=2) 
     actual_time = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)  # W godzinach
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

@@ -1,7 +1,7 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils import timezone
-from appointments.models import Appointment
+from appointments.models import Appointment, RepairItem
 from service_records.models import ServiceRecord
 
 @receiver(post_save, sender=Appointment)
@@ -18,3 +18,11 @@ def create_service_record(sender, instance, created, **kwargs):
             # Update vehicle mileage
             instance.vehicle.mileage = instance.mileage
             instance.vehicle.save()
+            
+@receiver(post_save, sender=RepairItem)
+def update_appointment_status(sender, instance, **kwargs):
+    appointment = instance.appointment
+    repair_items = appointment.repair_items.all()
+    if repair_items.exists() and all(item.status == 'completed' for item in repair_items):
+        appointment.status = 'completed'
+        appointment.save()
