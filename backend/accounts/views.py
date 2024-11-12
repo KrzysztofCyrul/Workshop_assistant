@@ -12,27 +12,41 @@ from .permissions import IsMechanic, IsWorkshopOwner, IsAdmin, IsClient
 class RegisterView(APIView):
     permission_classes = [AllowAny]
 
-
     def post(self, request):
         email = request.data.get('email')
         password = request.data.get('password')
         first_name = request.data.get('first_name')
         last_name = request.data.get('last_name')
         role_name = request.data.get('role')
+        
+        errors = {}
+
+        if not email:
+            errors['email'] = 'Email jest wymagany.'
+        elif User.objects.filter(email=email).exists():
+            errors['email'] = 'Użytkownik z podanym adresem email już istnieje.'
+
+        if not password:
+            errors['password'] = 'Hasło jest wymagane.'
+        elif len(password) < 8:
+            errors['password'] = 'Hasło musi mieć co najmniej 8 znaków.'
+
+        if not first_name:
+            errors['first_name'] = 'Imię jest wymagane.'
+
+        if not last_name:
+            errors['last_name'] = 'Nazwisko jest wymagane.'
 
         if role_name not in ['mechanic', 'workshop_owner', 'client']:
-            return Response(
-                {'error': 'Nieprawidłowa rola. Wybierz mechanic lub user.'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            errors['role'] = 'Nieprawidłowa rola. Wybierz mechanic, workshop_owner lub client.'
+        else:
+            try:
+                role = Role.objects.get(name=role_name)
+            except Role.DoesNotExist:
+                errors['role'] = 'Wybrana rola nie istnieje w bazie danych.'
 
-        try:
-            role = Role.objects.get(name=role_name)
-        except Role.DoesNotExist:
-            return Response(
-                {'error': 'Wybrana rola nie istnieje w bazie danych.'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        if errors:
+            return Response({'errors': errors}, status=status.HTTP_400_BAD_REQUEST)
 
         user = User.objects.create_user(
             email=email,
@@ -43,9 +57,9 @@ class RegisterView(APIView):
 
         user.roles.add(role)
         user.save()
-        
+
         refresh = RefreshToken.for_user(user)
-        
+
         return Response({
             'status': 'Użytkownik zarejestrowany pomyślnie',
             'access': str(refresh.access_token),

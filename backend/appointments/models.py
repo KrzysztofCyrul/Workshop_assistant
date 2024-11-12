@@ -7,6 +7,7 @@ from vehicles.models import Vehicle
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils import timezone
+from datetime import timedelta
 
 class Appointment(models.Model):
     STATUS_CHOICES = [
@@ -38,7 +39,6 @@ class Appointment(models.Model):
         on_delete=models.CASCADE,
         related_name='appointments'
     )
-    
     assigned_mechanics = models.ManyToManyField(
         Employee,
         related_name='appointments',
@@ -50,14 +50,16 @@ class Appointment(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     mileage = models.PositiveIntegerField(default=0)
+    recommendations = models.TextField(null=True, blank=True)
 
-    
+    estimated_duration = models.DurationField(null=True, blank=True)
+
     def __str__(self):
         return f"Appointment for {self.client} on {self.scheduled_time}"
 
     class Meta:
         ordering = ['-scheduled_time']
-        
+
 class RepairItem(models.Model):
     STATUS_CHOICES = [
         ('pending', 'Do wykonania'),
@@ -81,12 +83,14 @@ class RepairItem(models.Model):
         related_name='completed_repair_items'
     )
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    estimated_duration = models.DurationField(null=True, blank=True)
+    actual_duration = models.DurationField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    order = models.PositiveIntegerField(default=0)  # Dla sortowania elementów
+    order = models.PositiveIntegerField(default=0)
 
     def __str__(self):
-        return f"{self.description} ({self.get_status_display()})"
+        return f"{self.description} ({self.get_status_display()}), assigned to {self.appointment.client}"
 
     class Meta:
         ordering = ['order']

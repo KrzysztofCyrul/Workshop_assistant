@@ -1,0 +1,354 @@
+Opis wizyty,Marka,Model,Rok,Silnik,Czas naprawy (godz.)
+Diagnostyka komputerowa,Audi,A3,2020,1.6 Diesel,0.76
+Diagnostyka komputerowa,Audi,A3,2019,2.0 Benzyna,0.72
+Naprawa układu chłodzenia,Audi,A6,2017,2.0 Benzyna,3.68
+Wymiana świec zapłonowych,Audi,A6,2019,1.6 Diesel,1.17
+Regeneracja turbiny,Audi,A3,2013,2.2 Diesel,4.85
+Usunięcie usterek elektronicznych,Honda,Accord,2017,1.5 Diesel,1.16
+Diagnostyka komputerowa,Audi,A4,2008,1.5 Diesel,0.69
+Diagnostyka komputerowa,Audi,Q5,2017,1.4 Benzyna,0.79
+Naprawa układu kierowniczego,Honda,Accord,2014,1.5 Diesel,4.22
+Wymiana akumulatora,Honda,Accord,2010,1.0 Benzyna,0.54
+Naprawa układu kierowniczego,Honda,CR-V,2008,1.5 Diesel,3.71
+Regulacja zbieżności kół,Audi,A3,2010,1.5 Diesel,1.07
+Naprawa układu klimatyzacji,Audi,A3,2008,1.8 Benzyna,2.71
+Wymiana świec zapłonowych,Audi,A3,2015,1.4 Benzyna,0.61
+Naprawa układu kierowniczego,Honda,Accord,2019,1.5 Diesel,3.9
+Wymiana rozrządu,Honda,Accord,2018,1.4 Benzyna,3.84
+Wymiana tarcz hamulcowych,Audi,A4,2016,2.2 Diesel,1.67
+Wymiana sprzęgła,Honda,Civic,2014,1.4 Benzyna,4.41
+Wymiana tarcz hamulcowych,Honda,Accord,2011,1.5 Diesel,2.19
+Usunięcie usterek elektronicznych,Honda,Accord,2015,1.5 Diesel,1.15
+Naprawa układu chłodzenia,Honda,Accord,2020,1.6 Diesel,3.33
+Wymiana klocków hamulcowych,Audi,Q5,2011,1.6 Benzyna,1.03
+Wymiana oleju silnikowego i filtra,Honda,Civic,2019,1.6 Benzyna,0.8
+Wymiana łożyska koła,Honda,CR-V,2010,1.8 Benzyna,2.25
+Wymiana tarcz hamulcowych,Audi,A3,2020,3.0 Diesel,1.59
+Wymiana łożyska koła,Honda,Accord,2015,1.5 Diesel,2.73
+Wymiana filtrów,Honda,CR-V,2006,1.5 Diesel,0.97
+Wymiana opon,Honda,Civic,2014,1.0 Benzyna,0.58
+Regeneracja turbiny,Audi,A6,2009,1.0 Benzyna,5.32
+Wymiana oleju silnikowego i filtra,Audi,A4,2005,1.0 Benzyna,0.61
+Wymiana rozrządu,Audi,A6,2018,1.4 Benzyna,4.11
+Wymiana amortyzatorów,Audi,Q5,2005,1.6 Diesel,2.56
+Wymiana łożyska koła,Audi,A4,2006,1.6 Benzyna,2.88
+Regulacja zbieżności kół,Honda,Accord,2012,1.8 Benzyna,0.74
+Naprawa układu wydechowego,Honda,Civic,2011,1.2 Benzyna,2.92
+Regulacja zbieżności kół,Audi,A3,2007,1.6 Diesel,0.96
+Naprawa układu klimatyzacji,Honda,Civic,2007,2.2 Diesel,3.92
+Wymiana tarcz hamulcowych,Honda,Civic,2013,2.0 Benzyna,2.2
+Wymiana opon,Honda,Accord,2021,2.2 Diesel,0.59
+Diagnostyka komputerowa,Audi,A4,2020,1.8 Benzyna,0.78
+Naprawa układu chłodzenia,Audi,A6,2015,2.0 Diesel,2.06
+Wymiana akumulatora,Honda,Civic,2012,3.0 Diesel,0.67
+Regulacja zbieżności kół,Honda,Accord,2021,1.4 Benzyna,0.98
+Wymiana amortyzatorów,Audi,A3,2010,1.0 Benzyna,3.61
+Naprawa układu kierowniczego,Audi,A3,2015,1.2 Benzyna,4.4
+Wymiana opon,Honda,Accord,2009,2.2 Diesel,0.9
+Diagnostyka komputerowa,Audi,A6,2018,1.2 Benzyna,0.5
+Wymiana filtrów,Honda,CR-V,2008,1.2 Benzyna,0.94
+Regulacja zbieżności kół,Honda,Accord,2006,1.2 Benzyna,0.62
+Regeneracja turbiny,Audi,A6,2009,2.0 Diesel,5.42
+Wymiana klocków hamulcowych,Honda,Accord,2005,3.0 Diesel,1.32
+Naprawa układu wydechowego,Audi,A4,2019,1.4 Benzyna,1.61
+Wymiana amortyzatorów,Audi,A6,2017,3.0 Diesel,2.27
+Wymiana akumulatora,Honda,Accord,2011,1.4 Benzyna,0.91
+Wymiana opon,Honda,CR-V,2021,1.4 Benzyna,0.87
+Wymiana klocków hamulcowych,Honda,CR-V,2021,1.5 Diesel,1.57
+Wymiana amortyzatorów,Audi,Q5,2020,2.2 Diesel,2.61
+Wymiana amortyzatorów,Audi,A3,2021,1.4 Benzyna,3.68
+Wymiana opon,Honda,Civic,2011,1.8 Benzyna,0.72
+Regeneracja turbiny,Honda,CR-V,2005,1.6 Diesel,5.51
+Wymiana rozrządu,Honda,Civic,2007,3.0 Diesel,4.73
+Wymiana klocków hamulcowych,Honda,Civic,2016,3.0 Diesel,1.26
+Naprawa skrzyni biegów,Honda,Civic,2006,3.0 Diesel,7.1
+Naprawa układu chłodzenia,Audi,Q5,2007,3.0 Diesel,3.96
+Naprawa układu kierowniczego,Audi,A4,2012,1.4 Benzyna,4.84
+Wymiana świec zapłonowych,Audi,A3,2007,1.2 Benzyna,0.77
+Wymiana opon,Honda,Civic,2008,1.2 Benzyna,0.88
+Wymiana rozrządu,Honda,Accord,2020,2.0 Diesel,3.55
+Regeneracja turbiny,Audi,A6,2006,2.0 Benzyna,4.78
+Diagnostyka komputerowa,Honda,Accord,2014,1.6 Benzyna,0.97
+Regulacja zbieżności kół,Audi,A3,2010,2.0 Benzyna,0.81
+Wymiana tarcz hamulcowych,Audi,A3,2014,1.6 Benzyna,1.82
+Wymiana rozrządu,Audi,A4,2007,1.4 Benzyna,3.19
+Naprawa układu chłodzenia,Honda,CR-V,2013,1.6 Benzyna,3.16
+Naprawa układu chłodzenia,Honda,Civic,2017,1.4 Benzyna,3.72
+Diagnostyka komputerowa,Audi,A4,2021,1.8 Benzyna,0.76
+Regulacja zbieżności kół,Audi,A4,2020,1.8 Benzyna,0.51
+Diagnostyka komputerowa,Audi,A6,2006,2.0 Diesel,0.66
+Regeneracja turbiny,Audi,Q5,2008,1.5 Diesel,4.12
+Naprawa skrzyni biegów,Audi,A6,2006,1.2 Benzyna,6.32
+Regeneracja turbiny,Audi,Q5,2018,1.4 Benzyna,5.6
+Wymiana klocków hamulcowych,Honda,CR-V,2021,1.6 Benzyna,1.71
+Regeneracja turbiny,Audi,Q5,2006,1.5 Diesel,5.1
+Usunięcie usterek elektronicznych,Audi,Q5,2006,2.0 Diesel,2.26
+Wymiana filtrów,Audi,Q5,2013,2.0 Diesel,0.7
+Wymiana filtrów,Honda,CR-V,2008,1.6 Benzyna,0.84
+Wymiana filtrów,Audi,A3,2007,1.2 Benzyna,0.81
+Naprawa układu klimatyzacji,Honda,CR-V,2020,1.6 Diesel,2.98
+Regulacja zbieżności kół,Audi,A4,2006,1.4 Benzyna,1.12
+Wymiana amortyzatorów,Audi,Q5,2013,1.8 Benzyna,3.84
+Naprawa skrzyni biegów,Honda,CR-V,2020,2.0 Diesel,5.75
+Usunięcie usterek elektronicznych,Audi,A4,2007,1.8 Benzyna,1.77
+Naprawa układu chłodzenia,Audi,A6,2014,2.0 Benzyna,2.78
+Naprawa układu klimatyzacji,Audi,Q5,2009,1.4 Benzyna,2.14
+Wymiana sprzęgła,Honda,Civic,2010,1.6 Benzyna,5.49
+Wymiana akumulatora,Audi,Q5,2018,2.0 Diesel,0.81
+Wymiana świec zapłonowych,Honda,Accord,2005,2.2 Diesel,0.52
+Wymiana akumulatora,Honda,Accord,2013,3.0 Diesel,0.87
+Wymiana oleju silnikowego i filtra,Audi,A4,2021,1.0 Benzyna,0.94
+Naprawa skrzyni biegów,Audi,A6,2015,1.6 Benzyna,6.93
+Wymiana sprzęgła,Audi,A3,2014,2.0 Benzyna,5.38
+Regeneracja turbiny,Honda,Accord,2007,1.2 Benzyna,5.44
+Wymiana tarcz hamulcowych,Audi,A3,2007,1.2 Benzyna,1.71
+Wymiana opon,Audi,A6,2007,1.6 Diesel,0.9
+Wymiana opon,Honda,CR-V,2011,1.8 Benzyna,0.85
+Wymiana oleju silnikowego i filtra,Audi,A4,2014,1.5 Diesel,0.9
+Wymiana filtrów,Honda,CR-V,2015,2.2 Diesel,0.93
+Wymiana oleju silnikowego i filtra,Honda,Accord,2015,1.5 Diesel,0.51
+Naprawa układu wydechowego,Honda,Civic,2006,2.0 Diesel,2.13
+Wymiana klocków hamulcowych,Honda,Accord,2006,1.2 Benzyna,1.61
+Naprawa układu klimatyzacji,Audi,A4,2014,3.0 Diesel,3.29
+Wymiana opon,Audi,A6,2013,1.8 Benzyna,0.77
+Naprawa układu chłodzenia,Audi,A6,2005,3.0 Diesel,2.95
+Wymiana klocków hamulcowych,Audi,A4,2016,1.5 Diesel,1.36
+Wymiana rozrządu,Honda,Civic,2016,1.2 Benzyna,3.93
+Wymiana świec zapłonowych,Honda,Accord,2008,2.0 Diesel,0.97
+Naprawa układu kierowniczego,Audi,A6,2010,2.0 Benzyna,3.91
+Wymiana filtrów,Audi,A3,2016,1.8 Benzyna,0.87
+Usunięcie usterek elektronicznych,Audi,Q5,2012,1.2 Benzyna,1.64
+Naprawa skrzyni biegów,Honda,Accord,2008,2.2 Diesel,7.96
+Naprawa skrzyni biegów,Honda,Accord,2020,1.8 Benzyna,5.69
+Wymiana opon,Audi,A6,2005,1.5 Diesel,0.79
+Naprawa układu kierowniczego,Audi,A4,2005,1.8 Benzyna,4.71
+Naprawa układu kierowniczego,Audi,Q5,2020,1.8 Benzyna,3.12
+Wymiana sprzęgła,Audi,A4,2011,2.2 Diesel,5.19
+Wymiana klocków hamulcowych,Honda,Civic,2005,1.5 Diesel,1.68
+Wymiana oleju silnikowego i filtra,Audi,A3,2020,2.2 Diesel,0.66
+Regulacja zbieżności kół,Honda,Civic,2012,1.4 Benzyna,1.43
+Naprawa układu chłodzenia,Audi,A6,2020,1.6 Benzyna,2.21
+Wymiana świec zapłonowych,Audi,A6,2016,2.2 Diesel,0.66
+Naprawa układu chłodzenia,Honda,Accord,2007,3.0 Diesel,2.84
+Naprawa układu chłodzenia,Honda,Civic,2021,2.2 Diesel,2.8
+Wymiana amortyzatorów,Honda,Civic,2014,2.2 Diesel,2.97
+Wymiana opon,Honda,Civic,2021,1.5 Diesel,0.84
+Naprawa układu kierowniczego,Audi,A6,2019,3.0 Diesel,4.11
+Naprawa skrzyni biegów,Honda,Accord,2017,1.6 Diesel,6.94
+Wymiana świec zapłonowych,Audi,A4,2014,3.0 Diesel,1.24
+Wymiana tarcz hamulcowych,Audi,Q5,2014,2.2 Diesel,2.36
+Naprawa układu chłodzenia,Audi,A6,2012,2.0 Benzyna,3.58
+Naprawa układu wydechowego,Honda,CR-V,2011,1.6 Diesel,2.52
+Regeneracja turbiny,Audi,A3,2006,2.0 Benzyna,5.39
+Wymiana filtrów,Honda,Civic,2014,1.6 Diesel,0.78
+Wymiana tarcz hamulcowych,Audi,Q5,2005,1.8 Benzyna,1.85
+Naprawa skrzyni biegów,Audi,A6,2021,2.0 Diesel,7.07
+Usunięcie usterek elektronicznych,Audi,Q5,2006,1.2 Benzyna,1.16
+Regeneracja turbiny,Honda,CR-V,2020,2.0 Benzyna,5.12
+Diagnostyka komputerowa,Honda,Civic,2005,1.2 Benzyna,0.89
+Wymiana rozrządu,Audi,A3,2009,1.2 Benzyna,4.1
+Wymiana świec zapłonowych,Honda,Accord,2021,2.2 Diesel,1.28
+Wymiana rozrządu,Audi,Q5,2007,1.6 Benzyna,3.29
+Naprawa układu kierowniczego,Audi,A3,2011,2.0 Diesel,4.61
+Naprawa układu chłodzenia,Honda,Civic,2011,1.8 Benzyna,3.76
+Wymiana klocków hamulcowych,Audi,A3,2016,1.5 Diesel,1.52
+Wymiana rozrządu,Audi,A6,2021,2.2 Diesel,4.47
+Naprawa układu chłodzenia,Audi,A3,2017,2.0 Diesel,3.51
+Wymiana tarcz hamulcowych,Honda,Accord,2006,2.0 Benzyna,2.36
+Wymiana sprzęgła,Honda,Civic,2010,2.2 Diesel,4.94
+Wymiana amortyzatorów,Honda,Civic,2019,1.5 Diesel,2.21
+Naprawa układu kierowniczego,Honda,Civic,2008,1.6 Diesel,3.61
+Wymiana sprzęgła,Honda,Civic,2005,2.0 Diesel,4.92
+Naprawa układu kierowniczego,Honda,Civic,2018,1.6 Benzyna,3.47
+Wymiana tarcz hamulcowych,Audi,A6,2016,2.0 Diesel,2.32
+Regulacja zbieżności kół,Audi,A3,2006,1.6 Benzyna,1.21
+Wymiana świec zapłonowych,Honda,Civic,2019,1.2 Benzyna,0.55
+Wymiana klocków hamulcowych,Audi,A4,2012,2.0 Benzyna,1.77
+Wymiana amortyzatorów,Audi,A4,2019,1.6 Benzyna,2.38
+Wymiana rozrządu,Honda,Civic,2020,1.8 Benzyna,3.4
+Naprawa układu klimatyzacji,Honda,Civic,2021,1.8 Benzyna,3.93
+Usunięcie usterek elektronicznych,Audi,Q5,2016,1.4 Benzyna,1.36
+Wymiana filtrów,Honda,CR-V,2011,1.8 Benzyna,0.84
+Naprawa układu wydechowego,Audi,Q5,2005,2.2 Diesel,1.81
+Wymiana sprzęgła,Honda,Civic,2007,2.2 Diesel,5.01
+Naprawa układu kierowniczego,Audi,A3,2016,1.4 Benzyna,4.3
+Regulacja zbieżności kół,Honda,Accord,2008,3.0 Diesel,1.17
+Wymiana opon,Audi,A6,2018,1.5 Diesel,0.53
+Wymiana świec zapłonowych,Honda,CR-V,2019,1.6 Benzyna,0.64
+Wymiana tarcz hamulcowych,Honda,Accord,2020,2.2 Diesel,1.75
+Diagnostyka komputerowa,Honda,Civic,2020,1.5 Diesel,0.78
+Usunięcie usterek elektronicznych,Honda,Accord,2008,2.0 Benzyna,2.23
+Wymiana klocków hamulcowych,Audi,A6,2010,3.0 Diesel,1.35
+Diagnostyka komputerowa,Audi,Q5,2019,1.6 Benzyna,0.88
+Wymiana filtrów,Honda,Accord,2014,1.4 Benzyna,0.62
+Wymiana amortyzatorów,Honda,CR-V,2010,2.2 Diesel,2.19
+Regeneracja turbiny,Honda,Civic,2021,1.5 Diesel,5.55
+Wymiana akumulatora,Audi,A3,2010,3.0 Diesel,0.94
+Wymiana oleju silnikowego i filtra,Audi,Q5,2009,3.0 Diesel,0.89
+Regulacja zbieżności kół,Audi,A4,2014,1.6 Diesel,0.99
+Wymiana świec zapłonowych,Audi,Q5,2017,1.4 Benzyna,1.46
+Naprawa układu wydechowego,Audi,A4,2007,1.6 Diesel,2.89
+Regulacja zbieżności kół,Honda,Accord,2005,1.2 Benzyna,1.06
+Naprawa skrzyni biegów,Audi,Q5,2006,2.0 Diesel,6.72
+Diagnostyka komputerowa,Honda,CR-V,2019,1.5 Diesel,0.9
+Naprawa układu kierowniczego,Honda,Civic,2021,1.6 Diesel,3.57
+Regulacja zbieżności kół,Honda,Accord,2017,1.2 Benzyna,0.85
+Wymiana klocków hamulcowych,Audi,A4,2007,1.8 Benzyna,1.35
+Wymiana klocków hamulcowych,Honda,Accord,2017,2.0 Diesel,1.4
+Wymiana łożyska koła,Honda,CR-V,2019,2.2 Diesel,2.08
+Diagnostyka komputerowa,Honda,Accord,2010,2.0 Diesel,0.66
+Regulacja zbieżności kół,Honda,Civic,2014,1.4 Benzyna,0.52
+Regulacja zbieżności kół,Audi,Q5,2013,1.6 Diesel,0.87
+Naprawa układu wydechowego,Audi,A4,2009,1.6 Benzyna,2.2
+Wymiana amortyzatorów,Honda,CR-V,2007,1.8 Benzyna,2.75
+Wymiana opon,Audi,A3,2017,3.0 Diesel,0.6
+Regeneracja turbiny,Honda,Civic,2016,1.5 Diesel,4.59
+Wymiana łożyska koła,Audi,A3,2017,1.5 Diesel,2.38
+Wymiana łożyska koła,Honda,Accord,2014,1.4 Benzyna,2.75
+Wymiana amortyzatorów,Honda,CR-V,2019,1.8 Benzyna,3.02
+Usunięcie usterek elektronicznych,Audi,A3,2012,2.0 Benzyna,2.94
+Naprawa układu wydechowego,Audi,A6,2010,2.2 Diesel,2.78
+Wymiana klocków hamulcowych,Honda,Accord,2015,3.0 Diesel,1.42
+Naprawa układu chłodzenia,Honda,CR-V,2013,1.2 Benzyna,3.58
+Regulacja zbieżności kół,Audi,A6,2006,2.2 Diesel,1.08
+Wymiana filtrów,Audi,Q5,2011,1.8 Benzyna,0.54
+Wymiana klocków hamulcowych,Audi,A4,2009,1.6 Diesel,1.06
+Naprawa układu wydechowego,Honda,Civic,2020,1.6 Diesel,2.25
+Naprawa skrzyni biegów,Audi,A4,2018,1.0 Benzyna,5.99
+Naprawa układu chłodzenia,Audi,Q5,2020,1.4 Benzyna,2.59
+Naprawa układu wydechowego,Honda,Civic,2016,1.0 Benzyna,2.76
+Naprawa układu chłodzenia,Honda,CR-V,2006,1.6 Diesel,3.16
+Wymiana sprzęgła,Honda,Accord,2005,2.0 Benzyna,4.68
+Wymiana sprzęgła,Audi,Q5,2017,1.5 Diesel,4.47
+Naprawa układu klimatyzacji,Audi,Q5,2016,1.4 Benzyna,2.06
+Regeneracja turbiny,Audi,A6,2008,1.4 Benzyna,4.28
+Wymiana klocków hamulcowych,Audi,A3,2006,1.0 Benzyna,1.8
+Wymiana akumulatora,Honda,Civic,2005,2.0 Benzyna,0.53
+Wymiana świec zapłonowych,Honda,Accord,2016,2.0 Diesel,0.96
+Wymiana świec zapłonowych,Honda,CR-V,2006,1.5 Diesel,1.44
+Wymiana opon,Honda,Accord,2021,1.8 Benzyna,0.88
+Wymiana klocków hamulcowych,Audi,A6,2019,2.0 Benzyna,1.68
+Wymiana rozrządu,Audi,A3,2020,1.6 Diesel,3.1
+Wymiana amortyzatorów,Audi,Q5,2020,1.6 Diesel,2.35
+Naprawa układu klimatyzacji,Audi,A3,2018,2.0 Benzyna,3.3
+Wymiana łożyska koła,Audi,A3,2020,3.0 Diesel,2.55
+Naprawa układu kierowniczego,Honda,CR-V,2019,2.0 Benzyna,3.84
+Diagnostyka komputerowa,Honda,CR-V,2006,2.2 Diesel,0.54
+Wymiana amortyzatorów,Audi,A4,2017,1.8 Benzyna,3.14
+Diagnostyka komputerowa,Honda,Accord,2020,2.0 Benzyna,0.81
+Wymiana sprzęgła,Honda,CR-V,2018,1.5 Diesel,4.79
+Naprawa układu klimatyzacji,Honda,Accord,2006,1.6 Diesel,3.38
+Wymiana filtrów,Audi,Q5,2019,2.2 Diesel,0.55
+Diagnostyka komputerowa,Audi,A6,2006,1.4 Benzyna,0.53
+Naprawa układu chłodzenia,Audi,A6,2019,1.0 Benzyna,2.62
+Naprawa układu wydechowego,Honda,Accord,2016,1.4 Benzyna,2.3
+Wymiana amortyzatorów,Audi,A4,2011,1.4 Benzyna,3.35
+Naprawa układu kierowniczego,Honda,Civic,2019,1.0 Benzyna,4.31
+Regeneracja turbiny,Honda,Civic,2013,3.0 Diesel,4.74
+Wymiana rozrządu,Honda,CR-V,2021,1.6 Diesel,4.54
+Wymiana rozrządu,Audi,Q5,2010,1.2 Benzyna,3.42
+Wymiana łożyska koła,Honda,Civic,2019,1.5 Diesel,2.72
+Naprawa układu chłodzenia,Honda,CR-V,2005,1.4 Benzyna,2.6
+Naprawa układu wydechowego,Audi,Q5,2017,2.0 Diesel,1.64
+Regulacja zbieżności kół,Honda,CR-V,2021,3.0 Diesel,0.58
+Wymiana oleju silnikowego i filtra,Audi,A6,2020,1.2 Benzyna,0.73
+Wymiana opon,Honda,Civic,2011,1.4 Benzyna,0.98
+Wymiana łożyska koła,Audi,Q5,2012,1.6 Diesel,1.89
+Diagnostyka komputerowa,Honda,Civic,2007,1.6 Diesel,0.75
+Wymiana akumulatora,Audi,A3,2007,1.0 Benzyna,0.64
+Naprawa skrzyni biegów,Honda,CR-V,2017,1.6 Diesel,6.26
+Regulacja zbieżności kół,Honda,Civic,2020,1.2 Benzyna,0.64
+Diagnostyka komputerowa,Audi,A3,2017,3.0 Diesel,0.71
+Regeneracja turbiny,Honda,Civic,2009,3.0 Diesel,5.37
+Naprawa układu wydechowego,Audi,Q5,2017,1.4 Benzyna,2.32
+Naprawa układu klimatyzacji,Audi,A6,2010,1.0 Benzyna,2.91
+Wymiana rozrządu,Honda,Civic,2011,1.6 Diesel,3.9
+Diagnostyka komputerowa,Honda,CR-V,2011,2.0 Diesel,0.61
+Wymiana opon,Audi,A4,2006,1.2 Benzyna,0.85
+Wymiana klocków hamulcowych,Honda,CR-V,2006,1.0 Benzyna,1.63
+Wymiana klocków hamulcowych,Audi,Q5,2014,1.6 Benzyna,1.99
+Wymiana akumulatora,Audi,A4,2011,3.0 Diesel,0.59
+Wymiana oleju silnikowego i filtra,Honda,Civic,2009,1.2 Benzyna,0.93
+Wymiana klocków hamulcowych,Honda,CR-V,2016,1.8 Benzyna,1.39
+Wymiana rozrządu,Audi,A4,2013,1.6 Benzyna,3.72
+Wymiana łożyska koła,Honda,Accord,2006,1.8 Benzyna,1.68
+Wymiana oleju silnikowego i filtra,Audi,A6,2005,1.6 Diesel,0.69
+Naprawa układu chłodzenia,Audi,A4,2019,1.5 Diesel,3.45
+Naprawa układu chłodzenia,Honda,CR-V,2021,2.0 Diesel,4.0
+Naprawa układu klimatyzacji,Honda,Accord,2008,2.2 Diesel,3.58
+Wymiana klocków hamulcowych,Audi,A4,2005,2.0 Diesel,1.9
+Wymiana opon,Audi,Q5,2017,1.2 Benzyna,0.89
+Naprawa układu klimatyzacji,Honda,Accord,2013,2.0 Benzyna,2.0
+Regulacja zbieżności kół,Audi,A3,2015,1.5 Diesel,0.94
+Wymiana rozrządu,Honda,CR-V,2019,1.5 Diesel,4.63
+Naprawa układu wydechowego,Audi,A6,2011,1.6 Benzyna,2.01
+Naprawa układu kierowniczego,Honda,Accord,2012,1.4 Benzyna,3.19
+Regeneracja turbiny,Honda,Civic,2021,1.4 Benzyna,4.5
+Wymiana amortyzatorów,Honda,Civic,2021,1.5 Diesel,3.26
+Naprawa układu wydechowego,Honda,Civic,2009,1.2 Benzyna,1.86
+Wymiana klocków hamulcowych,Audi,A3,2005,2.0 Diesel,1.73
+Wymiana amortyzatorów,Audi,A6,2013,1.0 Benzyna,2.59
+Wymiana łożyska koła,Audi,Q5,2019,1.4 Benzyna,2.96
+Wymiana filtrów,Audi,A4,2020,1.2 Benzyna,0.98
+Naprawa układu klimatyzacji,Honda,Accord,2008,1.8 Benzyna,2.99
+Wymiana łożyska koła,Audi,A3,2008,1.6 Diesel,2.28
+Wymiana amortyzatorów,Honda,Accord,2011,1.6 Diesel,3.93
+Naprawa układu klimatyzacji,Honda,CR-V,2015,1.2 Benzyna,2.8
+Usunięcie usterek elektronicznych,Audi,Q5,2013,2.0 Benzyna,2.6
+Naprawa układu klimatyzacji,Honda,Accord,2013,2.0 Benzyna,2.35
+Wymiana amortyzatorów,Audi,A4,2017,1.8 Benzyna,3.41
+Naprawa układu klimatyzacji,Audi,A4,2008,1.8 Benzyna,2.23
+Wymiana klocków hamulcowych,Honda,Civic,2014,2.2 Diesel,1.44
+Regulacja zbieżności kół,Honda,Accord,2006,1.6 Diesel,1.43
+Regulacja zbieżności kół,Honda,Accord,2011,1.2 Benzyna,0.79
+Wymiana filtrów,Honda,Civic,2010,3.0 Diesel,0.81
+Wymiana świec zapłonowych,Audi,A3,2014,1.2 Benzyna,0.97
+Wymiana opon,Honda,Civic,2020,1.0 Benzyna,0.84
+Diagnostyka komputerowa,Honda,CR-V,2008,1.6 Benzyna,0.96
+Wymiana klocków hamulcowych,Audi,Q5,2016,2.0 Benzyna,1.44
+Wymiana oleju silnikowego i filtra,Audi,A4,2006,1.8 Benzyna,0.67
+Diagnostyka komputerowa,Honda,CR-V,2021,1.2 Benzyna,0.88
+Wymiana filtrów,Honda,Civic,2017,2.0 Diesel,0.67
+Wymiana klocków hamulcowych,Honda,CR-V,2018,1.0 Benzyna,1.45
+Regulacja zbieżności kół,Honda,CR-V,2021,1.8 Benzyna,0.53
+Naprawa układu kierowniczego,Honda,CR-V,2015,1.0 Benzyna,4.51
+Wymiana filtrów,Honda,Accord,2019,2.0 Diesel,0.67
+Wymiana klocków hamulcowych,Honda,Civic,2007,1.0 Benzyna,1.24
+Wymiana rozrządu,Audi,A3,2012,1.5 Diesel,3.96
+Naprawa układu chłodzenia,Audi,Q5,2016,1.0 Benzyna,3.34
+Wymiana sprzęgła,Audi,Q5,2012,1.2 Benzyna,4.03
+Wymiana oleju silnikowego i filtra,Honda,Accord,2020,1.0 Benzyna,0.58
+Wymiana świec zapłonowych,Audi,A4,2014,1.5 Diesel,0.68
+Naprawa układu chłodzenia,Honda,Civic,2020,1.8 Benzyna,3.95
+Naprawa układu klimatyzacji,Honda,CR-V,2007,1.2 Benzyna,2.36
+Naprawa układu kierowniczego,Honda,CR-V,2006,1.4 Benzyna,3.99
+Wymiana tarcz hamulcowych,Honda,Accord,2021,1.8 Benzyna,2.09
+Wymiana oleju silnikowego i filtra,Audi,A4,2013,2.0 Diesel,0.72
+Wymiana sprzęgła,Honda,CR-V,2009,2.0 Benzyna,5.19
+Wymiana opon,Honda,CR-V,2015,1.2 Benzyna,0.96
+Naprawa skrzyni biegów,Honda,Accord,2009,1.8 Benzyna,5.32
+Wymiana klocków hamulcowych,Honda,CR-V,2016,1.6 Benzyna,1.49
+Diagnostyka komputerowa,Honda,Civic,2012,1.6 Benzyna,0.65
+Naprawa układu kierowniczego,Audi,A4,2011,2.2 Diesel,4.58
+Usunięcie usterek elektronicznych,Honda,CR-V,2016,1.0 Benzyna,1.8
+Wymiana oleju silnikowego i filtra,Honda,Accord,2013,1.6 Benzyna,0.65
+Wymiana amortyzatorów,Audi,Q5,2012,2.0 Benzyna,3.25
+Regeneracja turbiny,Audi,A4,2007,1.0 Benzyna,4.1
+Naprawa skrzyni biegów,Honda,Civic,2006,1.6 Diesel,7.8
+Wymiana sprzęgła,Audi,A6,2011,1.5 Diesel,4.06
+Usunięcie usterek elektronicznych,Audi,A3,2005,2.0 Benzyna,1.04
+Wymiana oleju silnikowego i filtra,Audi,A3,2021,1.0 Benzyna,0.56
+Diagnostyka komputerowa,Audi,A6,2010,1.6 Benzyna,0.92
+Wymiana akumulatora,Honda,Civic,2015,1.6 Diesel,0.64
+Naprawa układu chłodzenia,Honda,CR-V,2016,1.6 Diesel,2.79
+Naprawa układu kierowniczego,Audi,A6,2012,2.0 Benzyna,3.73
+Naprawa układu chłodzenia,Audi,A4,2013,2.0 Benzyna,2.53
+Wymiana akumulatora,Honda,Civic,2019,1.8 Benzyna,0.72
+Wymiana filtrów,Honda,Accord,2009,1.6 Benzyna,0.63
+Naprawa układu chłodzenia,Honda,Civic,2019,2.2 Diesel,3.01
+Wymiana rozrządu,Audi,A6,2019,1.6 Benzyna,4.36
+Regeneracja turbiny,Audi,A3,2007,1.6 Diesel,4.07
+Naprawa skrzyni biegów,Honda,Civic,2005,1.6 Benzyna,5.78
+Naprawa układu klimatyzacji,Honda,Civic,2021,1.6 Diesel,3.18
+Wymiana sprzęgła,Honda,Accord,2014,1.2 Benzyna,5.27
+Wymiana akumulatora,Honda,Accord,2018,1.8 Benzyna,0.94

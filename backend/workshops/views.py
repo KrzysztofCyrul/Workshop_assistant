@@ -7,14 +7,10 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 
 class WorkshopViewSet(viewsets.ModelViewSet):
     serializer_class = WorkshopSerializer
-    permission_classes = [IsAuthenticated, IsWorkshopOwner | IsAdmin]
+    permission_classes = [IsAuthenticated, IsWorkshopOwner | IsAdmin | IsMechanic]
 
     def get_queryset(self):
-        user = self.request.user
-        if user.is_superuser:
-            return Workshop.objects.all()
-        else:
-            return Workshop.objects.filter(owner=user)
+        return Workshop.objects.all()
 
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)

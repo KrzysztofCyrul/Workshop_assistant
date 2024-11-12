@@ -12,6 +12,7 @@ class Vehicle(models.Model):
     make = models.CharField(max_length=50)
     model = models.CharField(max_length=50)
     year = models.PositiveIntegerField()
+    engine_type = models.CharField(max_length=50, blank=True)
     vin = models.CharField(max_length=17, unique=True) 
     license_plate = models.CharField(max_length=10)
     created_at = models.DateTimeField(auto_now_add=True)

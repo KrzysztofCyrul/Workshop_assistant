@@ -1,3 +1,4 @@
+from django.utils import timezone
 from rest_framework import serializers
 from accounts.models import Role, User
 from workshops.models import Branch
@@ -47,3 +48,28 @@ class EmployeeSerializer(serializers.ModelSerializer):
         employee = Employee.objects.create(workshop=workshop, **validated_data)
         employee.roles.set(roles_data)
         return employee
+    
+class EmployeeAssignmentSerializer(serializers.ModelSerializer):
+    user_full_name = serializers.CharField(source='user.get_full_name', read_only=True)
+
+    class Meta:
+        model = Employee
+        fields = ['id', 'user_full_name', 'position', 'hire_date', 'status']
+        
+    def create(self, validated_data):
+        user = self.context['user']
+        workshop = self.context['workshop']
+        
+        hire_date = timezone.now().date()
+        
+        return Employee.objects.create(
+            user=user,
+            workshop=workshop,
+            hire_date=hire_date,
+            **validated_data
+        )
+
+class EmployeeStatusUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Employee
+        fields = ['status']

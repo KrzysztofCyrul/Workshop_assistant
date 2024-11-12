@@ -1,10 +1,15 @@
+from pyexpat.errors import messages
+from django.shortcuts import get_object_or_404, redirect
 from rest_framework import viewsets, permissions
 from appointments.models import Appointment, RepairItem
 from appointments.serializers import AppointmentSerializer, RepairItemSerializer
+from ai_module.signals import get_appointment_recommendations
 from workshops.models import Workshop
 from accounts.permissions import IsMechanic, IsWorkshopOwner, IsAdmin
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework import status, views
 
 
 class AppointmentViewSet(viewsets.ModelViewSet):
@@ -64,3 +69,30 @@ class RepairItemViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         appointment = self.get_serializer_context()['appointment']
         serializer.save(appointment=appointment)
+        
+class GenerateRecommendationsAPIView(views.APIView):
+    permission_classes = [IsAuthenticated, IsWorkshopOwner | IsAdmin | IsMechanic] 
+
+    def post(self, request, appointment_id):
+        appointment = get_object_or_404(Appointment, id=appointment_id)
+        repair_items = appointment.repair_items.all()
+        appointment_description = appointment.notes or "Brak opisu wizyty."
+
+        if not repair_items:
+            return Response(
+                {"detail": "Wizyta nie ma przypisanych żadnych prac do wykonania."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        recommendations = get_appointment_recommendations(appointment_description, repair_items)
+
+        if recommendations:
+            appointment.recommendations = recommendations
+            appointment.save()
+            serializer = AppointmentSerializer(appointment)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response(
+                {"detail": "Nie udało się wygenerować rekomendacji."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )

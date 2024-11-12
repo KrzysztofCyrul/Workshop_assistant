@@ -1,8 +1,11 @@
+import os
 from pathlib import Path
 import pymysql
 from datetime import timedelta
+from dotenv import load_dotenv
 
 pymysql.install_as_MySQLdb()
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -42,8 +45,8 @@ INSTALLED_APPS = [
     'appointments',
     'service_orders',
     'service_tasks',
-    'drf_spectacular',
-    'drf_spectacular_sidecar',
+    'drf_yasg',
+    'ai_module',
 ]
 
 MIDDLEWARE = [
@@ -89,27 +92,17 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
     ),
-    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
-
 }
 
-SPECTACULAR_SETTINGS = {
-    'TITLE': 'Twoja API',
-    'DESCRIPTION': 'Opis API',
-    'VERSION': '1.0.0',
-    'SERVE_INCLUDE_SCHEMA': False,
-    'SWAGGER_UI_SETTINGS': {
-        'persistAuthorization': True,  # Umożliwia zachowanie tokenu w Swagger UI po odświeżeniu strony
-    },
-    'SECURITY': [
-        {
-            'BearerAuth': {
-                'type': 'http',
-                'scheme': 'bearer',
-                'bearerFormat': 'JWT'  # lub inny format, jeśli używasz innego tokenu
-            }
+SWAGGER_SETTINGS = {
+    'SECURITY_DEFINITIONS': {
+        'Bearer': {
+            'type': 'apiKey',
+            'name': 'Authorization',
+            'in': 'header'
         }
-    ],
+    },
+    'USE_SESSION_AUTH': False,
 }
 
 
@@ -211,3 +204,8 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000  # or any other value that suits your needs
+
+# Import api key form .env file
+API_KEY = os.getenv('API_KEY')

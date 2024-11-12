@@ -4,7 +4,14 @@ from django.conf import settings
 from workshops.models import Workshop, Branch
 from accounts.models import Role
 
+
 class Employee(models.Model):
+    STATUS_CHOICES = [
+        ('PENDING', 'Pending'),
+        ('APPROVED', 'Approved'),
+        ('REJECTED', 'Rejected'),
+    ]
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -27,11 +34,13 @@ class Employee(models.Model):
     hire_date = models.DateField()
     salary = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     roles = models.ManyToManyField(Role, blank=True)
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='PENDING')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
     def __str__(self):
         return f"{self.user.get_full_name()} - {self.position} at {self.workshop.name}"
+
 
 class ScheduleEntry(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)

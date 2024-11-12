@@ -1,4 +1,5 @@
-from django.db.models.signals import post_save
+from datetime import timedelta
+from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from django.utils import timezone
 from appointments.models import Appointment, RepairItem
@@ -18,7 +19,7 @@ def create_service_record(sender, instance, created, **kwargs):
             # Update vehicle mileage
             instance.vehicle.mileage = instance.mileage
             instance.vehicle.save()
-            
+                
 @receiver(post_save, sender=RepairItem)
 def update_appointment_status(sender, instance, **kwargs):
     appointment = instance.appointment

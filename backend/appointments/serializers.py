@@ -26,7 +26,7 @@ class RepairItemSerializer(serializers.ModelSerializer):
             'completed_by', 'completed_by_id', 'status',
             'created_at', 'updated_at', 'order'
         )
-        read_only_fields = ('id', 'appointment', 'created_at', 'updated_at')
+        read_only_fields = ('id', 'appointment', 'estimated_duration', 'created_at', 'updated_at')
 
     def validate(self, attrs):
         appointment = self.context['appointment']
@@ -56,7 +56,7 @@ class AppointmentSerializer(serializers.ModelSerializer):
         model = Appointment
         fields = (
             'id', 'workshop', 'branch', 'branch_id', 'client', 'client_id', 'vehicle', 'vehicle_id', 'assigned_mechanics', 
-            'mileage', 'scheduled_time', 'status', 'notes', 'created_at', 'updated_at', 'repair_items'  # Dodajemy 'repair_items'
+            'mileage', 'scheduled_time', 'status', 'notes', 'created_at', 'updated_at', 'repair_items' 
         )
         read_only_fields = ('id', 'workshop', 'client', 'vehicle', 'branch', 'created_at', 'updated_at')
 
