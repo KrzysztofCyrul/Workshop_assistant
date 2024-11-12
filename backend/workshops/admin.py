@@ -3,7 +3,7 @@ from workshops.models import Workshop, Branch
 
 @admin.register(Workshop)
 class WorkshopAdmin(admin.ModelAdmin):
-    list_display = ('name', 'owner', 'address', 'created_at')
+    list_display = ('id','name', 'owner', 'address', 'created_at')
     search_fields = ('name', 'owner__email', 'address')
 
 @admin.register(Branch)

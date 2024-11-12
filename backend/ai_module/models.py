@@ -6,7 +6,7 @@ class TrainingData(models.Model):
     model = models.CharField(max_length=50)
     year = models.PositiveIntegerField()
     engine = models.CharField(max_length=50)
-    actual_duration_hours = models.FloatField()
+    actual_duration_hours = models.DurationField()
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

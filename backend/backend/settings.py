@@ -3,6 +3,7 @@ from pathlib import Path
 import pymysql
 from datetime import timedelta
 from dotenv import load_dotenv
+from celery.schedules import crontab
 
 pymysql.install_as_MySQLdb()
 load_dotenv()
@@ -209,3 +210,19 @@ DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000  # or any other value that suits your need
 
 # Import api key form .env file
 API_KEY = os.getenv('API_KEY')
+
+CELERY_BROKER_URL = 'redis://localhost:6379/0'  # Używamy Redis jako brokera
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+
+from celery.schedules import crontab
+
+CELERY_BEAT_SCHEDULE = {
+    'train-model-every-week': {
+        'task': 'ai_module.tasks.train_model_task',
+        'schedule': crontab(day_of_week='sun', hour=0, minute=0),
+    },
+    'update-client-segments-every-week': {
+        'task': 'ai_module.tasks.update_client_segments_task',
+        'schedule': crontab(day_of_week='mon', hour=0, minute=0),
+    },
+}

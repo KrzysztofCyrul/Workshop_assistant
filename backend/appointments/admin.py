@@ -5,7 +5,7 @@ from ai_module.signals import get_appointment_recommendations
 
 @admin.register(Appointment)
 class AppointmentAdmin(admin.ModelAdmin):
-    list_display = ('client', 'vehicle', 'scheduled_time', 'status')
+    list_display = ('client', 'vehicle', 'scheduled_time', 'status', 'estimated_duration' ,'total_cost')
     search_fields = ('client__first_name', 'client__last_name', 'vehicle__license_plate', 'status')
     readonly_fields = ('estimated_duration',)
     list_filter = ('status', 'scheduled_time')

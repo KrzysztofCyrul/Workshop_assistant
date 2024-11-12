@@ -1,3 +1,4 @@
+from decimal import Decimal
 import uuid
 from django.db import models
 from employees.models import Employee
@@ -51,11 +52,23 @@ class Appointment(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     mileage = models.PositiveIntegerField(default=0)
     recommendations = models.TextField(null=True, blank=True)
-
     estimated_duration = models.DurationField(null=True, blank=True)
+    total_cost = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
 
     def __str__(self):
         return f"Appointment for {self.client} on {self.scheduled_time}"
+    
+    def calculate_total_cost(self):
+        repair_items = self.repair_items.all()
+        total_cost = sum(item.cost for item in repair_items)
+
+        # Apply client's discount
+        discount_rate = Decimal(self.client.discount) / Decimal(100)
+        discount_amount = total_cost * discount_rate
+        total_cost_after_discount = total_cost - discount_amount
+
+        self.total_cost = total_cost_after_discount
+        self.save()
 
     class Meta:
         ordering = ['-scheduled_time']
@@ -87,7 +100,9 @@ class RepairItem(models.Model):
     actual_duration = models.DurationField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    cost = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     order = models.PositiveIntegerField(default=0)
+
 
     def __str__(self):
         return f"{self.description} ({self.get_status_display()}), assigned to {self.appointment.client}"
