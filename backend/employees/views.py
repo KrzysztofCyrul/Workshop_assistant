@@ -115,16 +115,28 @@ class RequestAssignmentView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, workshop_id):
+        # Pobierz warsztat na podstawie ID lub zwróć 404
         workshop = get_object_or_404(Workshop, id=workshop_id)
+
+        # Sprawdź, czy użytkownik już wysłał prośbę lub jest przypisany
+        if Employee.objects.filter(user=request.user, workshop=workshop).exists():
+            return Response(
+                {"detail": "You have already sent a request or are assigned to this workshop."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Serializacja danych
         serializer = EmployeeAssignmentSerializer(
             data=request.data,
             context={'user': request.user, 'workshop': workshop}
         )
         
+        # Walidacja i zapis
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         
+        # Błędy walidacji
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class ApproveAssignmentView(APIView):

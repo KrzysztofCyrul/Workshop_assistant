@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from accounts.models import Permission, User, Role
+from employees.serializers import EmployeeSerializer
 
 class UserSerializer(serializers.ModelSerializer):
     roles = serializers.PrimaryKeyRelatedField(many=True, queryset=Role.objects.all(), required=False)
@@ -45,10 +46,15 @@ class UserSerializer(serializers.ModelSerializer):
         return instance
     
 class UserProfileSerializer(serializers.ModelSerializer):
+    roles = serializers.SerializerMethodField()
+    employee_profiles = EmployeeSerializer(many=True, read_only=True)
+
     class Meta:
         model = User
-        fields = ('id', 'email', 'first_name', 'last_name', 'is_active', 'roles')
-        read_only_fields = ('id', 'email', 'is_active', 'roles')
+        fields = ['id', 'email', 'first_name', 'last_name', 'roles', 'employee_profiles']
+
+    def get_roles(self, obj):
+        return list(obj.roles.values_list('name', flat=True))
 
     
 class PermissionSerializer(serializers.ModelSerializer):

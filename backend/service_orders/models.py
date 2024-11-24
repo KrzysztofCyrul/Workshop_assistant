@@ -1,6 +1,6 @@
 import uuid
 from django.db import models
-from workshops.models import Workshop, Branch
+from workshops.models import Workshop
 from appointments.models import Appointment
 from clients.models import Client
 from vehicles.models import Vehicle
@@ -24,13 +24,6 @@ class ServiceOrder(models.Model):
     workshop = models.ForeignKey(
         Workshop,
         on_delete=models.CASCADE,
-        related_name='service_orders'
-    )
-    branch = models.ForeignKey(
-        Branch,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
         related_name='service_orders'
     )
     client = models.ForeignKey(

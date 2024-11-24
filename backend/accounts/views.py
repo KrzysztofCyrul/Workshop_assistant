@@ -68,21 +68,27 @@ class RegisterView(APIView):
 
 class LoginView(APIView):
     permission_classes = [AllowAny]
-    
+
     def post(self, request):
         email = request.data.get('email')
         password = request.data.get('password')
         user = authenticate(request, email=email, password=password)
-        
-        if user is not None:
-            refresh = RefreshToken.for_user(user)
-            return Response({
-                'status': 'Zalogowano pomyślnie',
-                'access': str(refresh.access_token),
-                'refresh': str(refresh)
-            })
-        else:
-            return Response({'error': 'Nieprawidłowe dane uwierzytelniające'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if user is None:
+            if User.objects.filter(email=email).exists():
+                return Response({'error': 'Nieprawidłowe hasło lub użytkownik jest nieaktywny'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': 'Użytkownik o podanym adresie email nie istnieje'}, status=status.HTTP_404_NOT_FOUND)
+
+        if not user.is_active:
+            return Response({'error': 'Konto jest nieaktywne'}, status=status.HTTP_403_FORBIDDEN)
+
+        refresh = RefreshToken.for_user(user)
+        return Response({
+            'status': 'Zalogowano pomyślnie',
+            'access': str(refresh.access_token),
+            'refresh': str(refresh)
+        })
+
 
 class LogoutView(APIView):
     def post(self, request):
@@ -109,12 +115,14 @@ class UserProfileView(APIView):
     permission_classes = [IsAuthenticated, IsMechanic | IsWorkshopOwner | IsAdmin | IsClient]
 
     def get(self, request):
-        serializer = UserProfileSerializer(request.user)
+        user = request.user
+        serializer = UserProfileSerializer(user)
         return Response(serializer.data)
 
     def put(self, request):
+        # Jeśli chcesz ograniczyć możliwość edycji profilu tylko do określonych ról
         self.permission_classes = [IsAuthenticated, IsAdmin | IsClient]
-        
+
         if not self.check_permissions(request):
             return Response({"error": "Brak dostępu do edycji profilu"}, status=status.HTTP_403_FORBIDDEN)
 
@@ -123,3 +131,10 @@ class UserProfileView(APIView):
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+class RoleListView(APIView):
+    permission_classes = [IsAuthenticated, IsAdmin | IsWorkshopOwner | IsMechanic]
+
+    def get(self, request):
+        roles = Role.objects.all().values('id', 'name')
+        return Response(roles)

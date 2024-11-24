@@ -1,7 +1,7 @@
 import uuid
 from django.db import models
 from django.conf import settings
-from workshops.models import Workshop, Branch
+from workshops.models import Workshop
 from accounts.models import Role
 
 
@@ -21,13 +21,6 @@ class Employee(models.Model):
     workshop = models.ForeignKey(
         Workshop,
         on_delete=models.CASCADE,
-        related_name='employees'
-    )
-    branch = models.ForeignKey(
-        Branch,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
         related_name='employees'
     )
     position = models.CharField(max_length=100)

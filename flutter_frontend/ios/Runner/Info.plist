@@ -45,5 +45,10 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSFaceIDUsageDescription</key>
+	<string>Potrzebujemy dostępu do Face ID, aby zapewnić bezpieczeństwo tokenów.</string>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>Potrzebujemy dostępu do lokalnej sieci w celu przechowywania danych.</string>
+
 </dict>
 </plist>

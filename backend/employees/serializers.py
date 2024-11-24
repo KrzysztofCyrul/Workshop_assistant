@@ -1,10 +1,7 @@
 from django.utils import timezone
 from rest_framework import serializers
 from accounts.models import Role, User
-from workshops.models import Branch
 from employees.models import Employee, ScheduleEntry
-from accounts.serializers import UserSerializer
-from workshops.serializers import BranchSerializer
 
 class ScheduleEntrySerializer(serializers.ModelSerializer):
     class Meta:
@@ -17,14 +14,13 @@ class ScheduleEntrySerializer(serializers.ModelSerializer):
         
 class EmployeeSerializer(serializers.ModelSerializer):
     user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
-    branch = serializers.PrimaryKeyRelatedField(queryset=Branch.objects.all(), required=False, allow_null=True)
     roles = serializers.PrimaryKeyRelatedField(many=True, queryset=Role.objects.all(), required=False)
     schedule_entries = ScheduleEntrySerializer(many=True, read_only=True)
 
     class Meta:
         model = Employee
         fields = (
-            'id', 'user', 'workshop', 'branch', 'position',
+            'id', 'user', 'workshop', 'position',
             'hire_date', 'salary', 'roles', 'schedule_entries',
             'created_at', 'updated_at'
         )
@@ -41,10 +37,6 @@ class EmployeeSerializer(serializers.ModelSerializer):
         if Employee.objects.filter(user=user, workshop=workshop).exists():
             raise serializers.ValidationError("Ten użytkownik jest już pracownikiem tego warsztatu.")
 
-        branch = validated_data.get('branch')
-        if branch and branch.workshop != workshop:
-            raise serializers.ValidationError("Wybrany oddział nie należy do tego warsztatu.")
-
         employee = Employee.objects.create(workshop=workshop, **validated_data)
         employee.roles.set(roles_data)
         return employee
@@ -54,21 +46,42 @@ class EmployeeAssignmentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Employee
-        fields = ['id', 'user_full_name', 'position', 'hire_date', 'status']
-        
+        fields = ['id', 'user_full_name', 'status']
+
     def create(self, validated_data):
         user = self.context['user']
         workshop = self.context['workshop']
-        
-        hire_date = timezone.now().date()
-        
+
+        # Domyślna data zatrudnienia z aktualną datą i godziną
+        hire_date = timezone.now()
+
+        # Sprawdzenie, czy użytkownik już wysłał prośbę
+        if Employee.objects.filter(user=user, workshop=workshop).exists():
+            raise serializers.ValidationError(
+                {"detail": "You have already sent a request or are assigned to this workshop."}
+            )
+
+        # Tworzenie prośby z domyślnym stanowiskiem i datą
         return Employee.objects.create(
             user=user,
             workshop=workshop,
-            hire_date=hire_date,
+            hire_date=hire_date,  # Ustawiamy aktualną datę i godzinę
+            position="Mechanik",  # Ustawiamy domyślne stanowisko
+            status='PENDING',  # Ustawiamy domyślny status
             **validated_data
         )
 
+    def validate(self, attrs):
+        user = self.context['user']
+        workshop = self.context['workshop']
+
+        # Sprawdzanie konfliktów
+        if Employee.objects.filter(user=user, workshop=workshop).exists():
+            raise serializers.ValidationError(
+                {"detail": "You are already assigned or have a pending request for this workshop."}
+            )
+        return attrs
+    
 class EmployeeStatusUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Employee

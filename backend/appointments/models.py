@@ -2,7 +2,7 @@ from decimal import Decimal
 import uuid
 from django.db import models
 from employees.models import Employee
-from workshops.models import Workshop, Branch
+from workshops.models import Workshop
 from clients.models import Client
 from vehicles.models import Vehicle
 from django.db.models.signals import post_save
@@ -21,13 +21,6 @@ class Appointment(models.Model):
     workshop = models.ForeignKey(
         Workshop,
         on_delete=models.CASCADE,
-        related_name='appointments'
-    )
-    branch = models.ForeignKey(
-        Branch,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
         related_name='appointments'
     )
     client = models.ForeignKey(
