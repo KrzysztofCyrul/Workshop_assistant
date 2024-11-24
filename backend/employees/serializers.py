@@ -22,7 +22,7 @@ class EmployeeSerializer(serializers.ModelSerializer):
         fields = (
             'id', 'user', 'workshop', 'position',
             'hire_date', 'salary', 'roles', 'schedule_entries',
-            'created_at', 'updated_at'
+            'created_at', 'updated_at', 'status'
         )
         read_only_fields = ('id', 'created_at', 'updated_at', 'workshop', 'schedule_entries')
 
