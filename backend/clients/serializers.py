@@ -6,6 +6,6 @@ class ClientSerializer(serializers.ModelSerializer):
         model = Client
         fields = (
             'id', 'workshop', 'first_name', 'last_name', 'email',
-            'phone', 'address', 'created_at', 'updated_at'
+            'phone', 'address','segment', 'created_at', 'updated_at'
         )
         read_only_fields = ('id', 'workshop', 'created_at', 'updated_at')

@@ -6,7 +6,7 @@ class VehicleSerializer(serializers.ModelSerializer):
         model = Vehicle
         fields = (
             'id', 'client', 'make', 'model', 'year',
-            'vin', 'license_plate', 'created_at', 'updated_at'
+            'vin', 'engine_type', 'license_plate', 'created_at', 'updated_at'
         )
         read_only_fields = ('id', 'client', 'created_at', 'updated_at')
 

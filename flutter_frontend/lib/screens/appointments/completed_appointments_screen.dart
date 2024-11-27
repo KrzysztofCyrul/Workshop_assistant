@@ -1,5 +1,3 @@
-// lib/screens/appointments/appointments_screen.dart
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
@@ -7,29 +5,27 @@ import '../../models/appointment.dart';
 import '../../services/appointment_service.dart';
 import 'package:intl/intl.dart';
 import 'appointment_details_screen.dart';
-import 'add_appointment_screen.dart';
-import 'completed_appointments_screen.dart'; // Import nowego ekranu
 
-class AppointmentsScreen extends StatefulWidget {
-  static const routeName = '/appointments';
+class CompletedAppointmentsScreen extends StatefulWidget {
+  static const routeName = '/completed-appointments';
 
-  const AppointmentsScreen({super.key});
+  const CompletedAppointmentsScreen({super.key});
 
   @override
-  _AppointmentsScreenState createState() => _AppointmentsScreenState();
+  _CompletedAppointmentsScreenState createState() => _CompletedAppointmentsScreenState();
 }
 
-class _AppointmentsScreenState extends State<AppointmentsScreen> {
-  late Future<List<Appointment>> _appointmentsFuture;
+class _CompletedAppointmentsScreenState extends State<CompletedAppointmentsScreen> {
+  late Future<List<Appointment>> _completedAppointmentsFuture;
   String? _workshopId;
 
   @override
   void initState() {
     super.initState();
-    _appointmentsFuture = _fetchAppointments();
+    _completedAppointmentsFuture = _fetchCompletedAppointments();
   }
 
-  Future<List<Appointment>> _fetchAppointments() async {
+  Future<List<Appointment>> _fetchCompletedAppointments() async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final user = authProvider.user;
 
@@ -37,7 +33,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
       throw Exception('Brak danych użytkownika');
     }
 
-    bool isMechanic = user.roles.contains('mechanic') || user.roles.contains('workshop_owner');
+    bool isMechanic = user.roles.contains('mechanic');
     bool isAssignedToWorkshop = user.employeeProfiles.isNotEmpty;
 
     if (isMechanic && isAssignedToWorkshop) {
@@ -50,11 +46,13 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
         _workshopId!,
       );
 
-      // Filtruj tylko niezakończone wizyty
-      appointments = appointments.where((appointment) => appointment.status.toLowerCase() != 'completed').toList();
+      // Filtruj tylko zakończone wizyty
+      appointments = appointments
+          .where((appointment) => appointment.status.toLowerCase() == 'completed')
+          .toList();
 
-      // Sortuj zlecenia zgodnie z wymaganiami
-      appointments = _sortAppointments(appointments);
+      // Sortuj według daty zakończenia (najpierw najnowsze)
+      appointments.sort((a, b) => b.scheduledTime.compareTo(a.scheduledTime));
 
       return appointments;
     } else {
@@ -62,79 +60,20 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
     }
   }
 
-  List<Appointment> _sortAppointments(List<Appointment> appointments) {
-    DateTime now = DateTime.now();
-
-    appointments.sort((a, b) {
-      // Zaległe zadania
-      bool aOverdue = a.scheduledTime.isBefore(now) && a.status.toLowerCase() != 'completed';
-      bool bOverdue = b.scheduledTime.isBefore(now) && b.status.toLowerCase() != 'completed';
-
-      if (aOverdue && !bOverdue) return -1;
-      if (!aOverdue && bOverdue) return 1;
-
-      // Dzisiejsze zadania
-      bool aToday = _isSameDay(a.scheduledTime, now);
-      bool bToday = _isSameDay(b.scheduledTime, now);
-
-      if (aToday && !bToday) return -1;
-      if (!aToday && bToday) return 1;
-
-      // Przyszłe zadania
-      return a.scheduledTime.compareTo(b.scheduledTime);
-    });
-
-    return appointments;
-  }
-
-  bool _isSameDay(DateTime date1, DateTime date2) {
-    return date1.year == date2.year &&
-        date1.month == date2.month &&
-        date1.day == date2.day;
-  }
-
-  Future<void> _refreshAppointments() async {
+  Future<void> _refreshCompletedAppointments() async {
     setState(() {
-      _appointmentsFuture = _fetchAppointments();
+      _completedAppointmentsFuture = _fetchCompletedAppointments();
     });
-  }
-
-  void _navigateToAddAppointment() async {
-    final result = await Navigator.pushNamed(
-      context,
-      AddAppointmentScreen.routeName,
-    );
-
-    if (result == true) {
-      // Jeśli zlecenie zostało dodane, odśwież listę
-      _refreshAppointments();
-    }
-  }
-
-  void _navigateToCompletedAppointments() {
-    Navigator.pushNamed(context, CompletedAppointmentsScreen.routeName);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Zlecenia'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.check_circle),
-            tooltip: 'Zakończone zlecenia',
-            onPressed: _navigateToCompletedAppointments,
-          ),
-          IconButton(
-            icon: const Icon(Icons.add),
-            tooltip: 'Dodaj zlecenie',
-            onPressed: _navigateToAddAppointment,
-          ),
-        ],
+        title: const Text('Zakończone Zlecenia'),
       ),
       body: FutureBuilder<List<Appointment>>(
-        future: _appointmentsFuture,
+        future: _completedAppointmentsFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -152,7 +91,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                     ),
                     const SizedBox(height: 20),
                     ElevatedButton.icon(
-                      onPressed: _refreshAppointments,
+                      onPressed: _refreshCompletedAppointments,
                       icon: const Icon(Icons.refresh),
                       label: const Text('Ponów próbę'),
                     ),
@@ -163,41 +102,36 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
             return const Center(
               child: Text(
-                'Brak zleceń do wyświetlenia',
+                'Brak zakończonych zleceń do wyświetlenia',
                 style: TextStyle(fontSize: 16),
               ),
             );
           } else {
-            final appointments = snapshot.data!;
+            final completedAppointments = snapshot.data!;
             return RefreshIndicator(
-              onRefresh: _refreshAppointments,
+              onRefresh: _refreshCompletedAppointments,
               child: ListView.separated(
                 padding: const EdgeInsets.all(8.0),
-                itemCount: appointments.length,
+                itemCount: completedAppointments.length,
                 separatorBuilder: (context, index) => const Divider(),
                 itemBuilder: (context, index) {
-                  return _buildAppointmentItem(appointments[index]);
+                  return _buildCompletedAppointmentItem(completedAppointments[index]);
                 },
               ),
             );
           }
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _navigateToAddAppointment,
-        child: const Icon(Icons.add),
-        tooltip: 'Dodaj zlecenie',
-      ),
     );
   }
 
-  Widget _buildAppointmentItem(Appointment appointment) {
+  Widget _buildCompletedAppointmentItem(Appointment appointment) {
     return Card(
       elevation: 3,
       margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       child: ListTile(
-        leading: const Icon(Icons.event, size: 40, color: Colors.blue),
+        leading: const Icon(Icons.check_circle, size: 40, color: Colors.green),
         title: Text(
           'Wizyta: ${appointment.vehicle.make} ${appointment.vehicle.model}',
           style: const TextStyle(fontWeight: FontWeight.bold),

@@ -7,7 +7,7 @@ class Appointment {
   final String workshopId;
   final Client client;
   final Vehicle vehicle;
-  final List<String> assignedMechanics;
+  final List<String> assignedMechanics; // List of mechanic IDs
   final int mileage;
   final DateTime scheduledTime;
   final String status;
@@ -40,7 +40,7 @@ class Appointment {
       assignedMechanics: List<String>.from(json['assigned_mechanics'] ?? []),
       mileage: json['mileage'] ?? 0,
       scheduledTime: DateTime.parse(json['scheduled_time']),
-      status: json['status'] ?? '',
+      status: json['status'] ?? 'scheduled',
       notes: json['notes'],
       createdAt: DateTime.parse(json['created_at']),
       updatedAt: DateTime.parse(json['updated_at']),
@@ -49,5 +49,19 @@ class Appointment {
               .toList() ??
           [],
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'workshop': workshopId,
+      'client': client.toJson(),
+      'vehicle': vehicle.toJson(),
+      'assigned_mechanics': assignedMechanics,
+      'mileage': mileage,
+      'scheduled_time': scheduledTime.toIso8601String(),
+      'status': status,
+      'notes': notes,
+      'repair_items': repairItems.map((item) => item.toJson()).toList(),
+    };
   }
 }

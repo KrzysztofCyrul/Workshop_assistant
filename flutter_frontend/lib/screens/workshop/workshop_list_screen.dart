@@ -6,6 +6,8 @@ import '../../services/workshop_service.dart';
 
 class WorkshopListScreen extends StatefulWidget {
   static const routeName = '/workshop-list';
+
+  const WorkshopListScreen({super.key});
   @override
   _WorkshopListScreenState createState() => _WorkshopListScreenState();
 }
@@ -27,7 +29,7 @@ class _WorkshopListScreenState extends State<WorkshopListScreen> {
     try {
       await WorkshopService.requestAssignment(workshopId, accessToken);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Prośba o dołączenie została wysłana')),
+        const SnackBar(content: Text('Prośba o dołączenie została wysłana')),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -41,7 +43,7 @@ class _WorkshopListScreenState extends State<WorkshopListScreen> {
     final workshopProvider = Provider.of<WorkshopProvider>(context);
     return Scaffold(
       appBar: AppBar(
-        title: Text('Lista warsztatów'),
+        title: const Text('Lista warsztatów'),
       ),
       body: RefreshIndicator(
         onRefresh: _fetchWorkshops,
@@ -54,7 +56,7 @@ class _WorkshopListScreenState extends State<WorkshopListScreen> {
               subtitle: Text(workshop.address),
               trailing: ElevatedButton(
                 onPressed: () => _requestAssignment(workshop.id),
-                child: Text('Dołącz'),
+                child: const Text('Dołącz'),
               ),
             );
           },

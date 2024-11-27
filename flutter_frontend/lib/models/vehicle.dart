@@ -8,6 +8,7 @@ class Vehicle {
   final String licensePlate;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final int mileage;
 
   Vehicle({
     required this.id,
@@ -19,6 +20,7 @@ class Vehicle {
     required this.licensePlate,
     required this.createdAt,
     required this.updatedAt,
+    required this.mileage,
   });
 
   factory Vehicle.fromJson(Map<String, dynamic> json) {
@@ -32,6 +34,22 @@ class Vehicle {
       licensePlate: json['license_plate'] ?? '',
       createdAt: DateTime.parse(json['created_at']),
       updatedAt: DateTime.parse(json['updated_at']),
+      mileage: json['mileage'] ?? 0,
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'client': clientId,
+      'make': make,
+      'model': model,
+      'year': year,
+      'vin': vin,
+      'license_plate': licensePlate,
+      'created_at': createdAt.toIso8601String(),
+      'updated_at': updatedAt.toIso8601String(),
+      'mileage': mileage,
+    };
   }
 }

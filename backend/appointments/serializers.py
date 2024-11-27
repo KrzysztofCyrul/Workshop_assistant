@@ -16,11 +16,12 @@ class RepairItemSerializer(serializers.ModelSerializer):
         allow_null=True,
         required=False
     )
+    appointment = serializers.PrimaryKeyRelatedField(read_only=True)  # Upewnij się, że jest tylko do odczytu
 
     class Meta:
         model = RepairItem
         fields = (
-            'id', 'appointment', 'description', 'is_completed',
+            'id', 'appointment', 'description', 'is_completed', 'estimated_duration', 'actual_duration', 'cost',
             'completed_by', 'completed_by_id', 'status',
             'created_at', 'updated_at', 'order'
         )
@@ -37,7 +38,9 @@ class RepairItemSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         appointment = self.context['appointment']
+        validated_data.pop('appointment', None)  # Usuwa 'appointment' z validated_data
         return RepairItem.objects.create(appointment=appointment, **validated_data)
+
 
 
 class AppointmentSerializer(serializers.ModelSerializer):

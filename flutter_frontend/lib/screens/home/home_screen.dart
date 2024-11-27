@@ -1,53 +1,74 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../../providers/auth_provider.dart';
-import '../appointments/appointments_screen.dart';
-import '../workshop/workshop_list_screen.dart';
+import '../../routes/app_routes.dart';
+import '../appointments/add_appointment_screen.dart';
+import '../clients/clients_screen.dart';
 
-class HomeScreen extends StatefulWidget {
+
+class HomeScreen extends StatelessWidget {
   static const routeName = '/home';
 
-  @override
-  _HomeScreenState createState() => _HomeScreenState();
-}
+  HomeScreen({Key? key}) : super(key: key);
 
-class _HomeScreenState extends State<HomeScreen> {
-  @override
-  void initState() {
-    super.initState();
-
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final user = authProvider.user;
-
-    if (user != null) {
-      bool isMechanic = user.roles.contains('mechanic');
-      bool isAssignedToWorkshop = user.employeeProfiles.any(
-        (employee) => employee.status == 'APPROVED',
-      );
-
-      if (isMechanic) {
-        if (isAssignedToWorkshop) {
-          // Mechanik przypisany do warsztatu - przekieruj na ekran zleceń
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            Navigator.pushReplacementNamed(
-                context, AppointmentsScreen.routeName);
-          });
-        } else {
-          // Mechanik nieprzypisany do warsztatu - przekieruj do listy warsztatów
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            Navigator.pushReplacementNamed(
-                context, WorkshopListScreen.routeName);
-          });
-        }
+  void _navigateToAddAppointment(BuildContext context) {
+    Navigator.of(context).pushNamed(AddAppointmentScreen.routeName).then((result) {
+      if (result == true) {
+        // Opcjonalnie odśwież listę zleceń lub wykonaj inne działania
       }
-    }
+    });
+  }
+
+  void _navigateToClients(BuildContext context) {
+    Navigator.of(context).pushNamed(ClientsScreen.routeName);
+  }
+
+  void _navigateToVehicles(BuildContext context) {
+    Navigator.of(context).pushNamed('/vehicles');
+  }
+
+  void _navigateToAppointments(BuildContext context) {
+    Navigator.of(context).pushNamed('/appointments');
   }
 
   @override
   Widget build(BuildContext context) {
-    // Możesz zwrócić pusty Scaffold lub ekran ładowania
     return Scaffold(
-      body: Center(child: CircularProgressIndicator()),
+      appBar: AppBar(
+        title: const Text('Home'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.add),
+            onPressed: () => _navigateToAddAppointment(context),
+          ),
+          IconButton(
+            icon: const Icon(Icons.people),
+            onPressed: () => _navigateToClients(context), // Przycisk do klientów
+          ),
+        ],
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            ElevatedButton(
+              onPressed: () => _navigateToAddAppointment(context),
+              child: const Text('Dodaj Zlecenie'),
+            ),
+            ElevatedButton(
+              onPressed: () => _navigateToClients(context),
+              child: const Text('Klienci'),
+            ),
+            ElevatedButton(
+              onPressed: () => _navigateToVehicles(context),
+              child: const Text('Pojazdy'),
+            ),
+            ElevatedButton(
+              onPressed: () => _navigateToAppointments(context),
+              child: const Text('Zlecenia'),
+            ),
+            // Add more buttons for other screens as needed
+          ],
+        ),
+      ),
     );
   }
 }

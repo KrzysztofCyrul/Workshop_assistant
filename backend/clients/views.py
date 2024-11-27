@@ -2,12 +2,12 @@ from rest_framework import viewsets, permissions
 from clients.models import Client
 from clients.serializers import ClientSerializer
 from workshops.models import Workshop
-from accounts.permissions import IsWorkshopOwner, IsAdmin
+from accounts.permissions import IsWorkshopOwner, IsAdmin, IsMechanic
 from rest_framework.permissions import IsAuthenticated
 
 class ClientViewSet(viewsets.ModelViewSet):
     serializer_class = ClientSerializer
-    permission_classes = [IsAuthenticated, IsWorkshopOwner | IsAdmin]
+    permission_classes = [IsAuthenticated, IsWorkshopOwner | IsMechanic | IsAdmin]
 
     def get_queryset(self):
         workshop_id = self.kwargs['workshop_pk']

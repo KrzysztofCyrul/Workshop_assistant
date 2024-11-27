@@ -16,8 +16,8 @@ class VehicleServiceHistoryView(generics.ListAPIView):
         workshop_id = self.kwargs['workshop_pk']
         vehicle_id = self.kwargs['vehicle_pk']
 
-        if not Workshop.objects.filter(id=workshop_id, owner=self.request.user).exists() and not self.request.user.is_superuser:
-            raise PermissionDenied("Nie masz dostępu do tego warsztatu.")
+        # if not Workshop.objects.filter(id=workshop_id, owner=self.request.user).exists() and not self.request.user.is_superuser:
+        #     raise PermissionDenied("Nie masz dostępu do tego warsztatu.")
 
         try:
             vehicle = Vehicle.objects.get(id=vehicle_id, client__workshop__id=workshop_id)
@@ -34,8 +34,8 @@ class ClientServiceHistoryView(generics.ListAPIView):
         workshop_id = self.kwargs['workshop_pk']
         client_id = self.kwargs['client_pk']
 
-        if not Workshop.objects.filter(id=workshop_id, owner=self.request.user).exists() and not self.request.user.is_superuser:
-            raise PermissionDenied("Nie masz dostępu do tego warsztatu.")
+        # if not Workshop.objects.filter(id=workshop_id, owner=self.request.user).exists() and not self.request.user.is_superuser:
+        #     raise PermissionDenied("Nie masz dostępu do tego warsztatu.")
 
         try:
             client = Client.objects.get(id=client_id, workshop__id=workshop_id)

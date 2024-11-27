@@ -67,8 +67,12 @@ class RepairItemViewSet(viewsets.ModelViewSet):
         return context
 
     def perform_create(self, serializer):
-        appointment = self.get_serializer_context()['appointment']
-        serializer.save(appointment=appointment)
+        serializer.save()
+
+    def partial_update(self, request, *args, **kwargs):
+        kwargs['partial'] = True
+        return self.update(request, *args, **kwargs)
+
         
 class GenerateRecommendationsAPIView(views.APIView):
     permission_classes = [IsAuthenticated, IsWorkshopOwner | IsAdmin | IsMechanic] 
