@@ -91,10 +91,19 @@ class LoginView(APIView):
 
 
 class LogoutView(APIView):
+    permission_classes = [AllowAny]
+
     def post(self, request):
-        logout(request)
-        return Response({'status': 'Wylogowano pomyślnie'})
-    
+        refresh_token = request.data.get('refresh_token')
+        if refresh_token:
+            try:
+                token = RefreshToken(refresh_token)
+                token.blacklist()
+                logout(request)
+                return Response({'status': 'Wylogowano pomyślnie'}, status=status.HTTP_205_RESET_CONTENT)
+            except Exception as e:
+                return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'error': 'Brak tokenu odświeżania'}, status=status.HTTP_400_BAD_REQUEST)
    
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()

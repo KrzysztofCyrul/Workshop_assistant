@@ -9,7 +9,11 @@ class EmployeeDetailsScreen extends StatelessWidget {
   final String workshopId;
   final String employeeId;
 
-  const EmployeeDetailsScreen({Key? key, required this.workshopId, required this.employeeId}) : super(key: key);
+  const EmployeeDetailsScreen({
+    Key? key,
+    required this.workshopId,
+    required this.employeeId,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -55,41 +59,34 @@ class EmployeeDetailsScreen extends StatelessWidget {
                   final employee = provider.employee!;
                   return Padding(
                     padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('ID: ${employee.id}', style: const TextStyle(fontSize: 18)),
-                        const SizedBox(height: 8),
-                        Text('Użytkownik ID: ${employee.userId}'),
-                        const SizedBox(height: 8),
-                        Text('Warsztat ID: ${employee.workshopId}'),
-                        const SizedBox(height: 8),
-                        Text('Stanowisko: ${employee.position}'),
-                        const SizedBox(height: 8),
-                        Text('Status: ${employee.status}'),
-                        const SizedBox(height: 8),
-                        Text('Data Zatrudnienia: ${employee.hireDate}'),
-                        const SizedBox(height: 8),
-                        Text('Wynagrodzenie: ${employee.salary ?? 'Brak'}'),
-                        const SizedBox(height: 16),
-                        DropdownButtonFormField<String>(
-                          value: employee.status,
-                          decoration: const InputDecoration(
-                            labelText: 'Status',
-                            border: OutlineInputBorder(),
-                          ),
-                          items: const [
-                            DropdownMenuItem(value: 'PENDING', child: Text('Pending')),
-                            DropdownMenuItem(value: 'APPROVED', child: Text('Approved')),
-                            DropdownMenuItem(value: 'REJECTED', child: Text('Rejected')),
+                    child: Card(
+                      elevation: 4,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12.0),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Szczegóły Pracownika',
+                              style: Theme.of(context).textTheme.titleLarge,
+                            ),
+                            const Divider(),
+                            _buildDetailRow('ID', employee.id),
+                            _buildDetailRow('Użytkownik ID', employee.userId),
+                            _buildDetailRow('Warsztat ID', employee.workshopId),
+                            _buildDetailRow('Stanowisko', employee.position),
+                            _buildDetailRow('Status', employee.status),
+                            _buildDetailRow('Data Zatrudnienia', employee.hireDate),
+                            _buildDetailRow(
+                              'Wynagrodzenie',
+                              employee.salary != null ? '${employee.salary} PLN' : 'Brak',
+                            ),
                           ],
-                          onChanged: (value) {
-                            if (value != null) {
-                              _updateEmployeeStatus(context, accessToken, workshopId, employeeId, value);
-                            }
-                          },
                         ),
-                      ],
+                      ),
                     ),
                   );
                 }
@@ -101,18 +98,25 @@ class EmployeeDetailsScreen extends StatelessWidget {
     );
   }
 
-  Future<void> _updateEmployeeStatus(BuildContext context, String accessToken, String workshopId, String employeeId, String status) async {
-    try {
-      await Provider.of<EmployeeProvider>(context, listen: false).updateEmployeeStatus(
-        accessToken,
-        workshopId,
-        employeeId,
-        status,
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Błąd podczas aktualizacji statusu: $e')),
-      );
-    }
+  Widget _buildDetailRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            flex: 2,
+            child: Text(
+              '$label:',
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ),
+          Expanded(
+            flex: 3,
+            child: Text(value),
+          ),
+        ],
+      ),
+    );
   }
 }

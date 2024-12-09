@@ -67,7 +67,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Zaplanowane Zlecenia'),
+        title: const Text('Aktualne'),
         actions: [
           IconButton(
             icon: const Icon(Icons.check_circle),

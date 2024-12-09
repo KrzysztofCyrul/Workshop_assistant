@@ -57,4 +57,39 @@ class VehicleService {
       throw Exception('Błąd podczas pobierania szczegółów pojazdu: ${response.statusCode} - ${response.body}');
     }
   }
+
+ static Future<void> createVehicle({
+  required String accessToken,
+  required String workshopId,
+  required String clientId,
+  required String make,
+  required String model,
+  required int year,
+  required String vin,
+  required String licensePlate,
+  required int mileage,
+}) async {
+  final url = Uri.parse('$baseUrl/workshops/$workshopId/clients/$clientId/vehicles/');
+  final response = await http.post(
+    url,
+    headers: {
+      'Authorization': 'Bearer $accessToken',
+      'Content-Type': 'application/json',
+    },
+    body: json.encode({
+      'make': make,
+      'model': model,
+      'year': year,
+      'vin': vin,
+      'license_plate': licensePlate,
+      'mileage': mileage,
+    }),
+  );
+
+  if (response.statusCode != 201) {
+    throw Exception('Błąd podczas dodawania pojazdu: ${response.body}');
+  }
+}
+
+
 }

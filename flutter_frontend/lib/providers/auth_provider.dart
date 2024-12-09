@@ -40,13 +40,19 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
+  
   Future<void> logout() async {
     if (_refreshToken != null) {
-      await AuthService.logout(_refreshToken!);
-      _accessToken = null;
-      _refreshToken = null;
-      _user = null;
-      notifyListeners();
+      try {
+        await AuthService.logout(_refreshToken!);
+        _accessToken = null;
+        _refreshToken = null;
+        notifyListeners();
+      } catch (e) {
+        throw Exception('Błąd wylogowania: $e');
+      }
+    } else {
+      throw Exception('Brak tokenu odświeżania');
     }
   }
 }

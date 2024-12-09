@@ -8,8 +8,11 @@ import 'routes/app_routes.dart';
 import 'screens/auth/login_screen.dart';
 import 'providers/employee_provider.dart';
 import 'screens/appointments/appointments_screen.dart';
+import 'utils/colors.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await SegmentColors.loadColors();
   runApp(
     MultiProvider(
       providers: [

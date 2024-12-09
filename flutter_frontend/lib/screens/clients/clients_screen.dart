@@ -1,11 +1,11 @@
-// lib/screens/clients/clients_screen.dart
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/client_provider.dart';
 import '../../models/client.dart';
-import '../../screens/clients/client_details_screen.dart'; // Import ClientDetailsScreen
+import '../../screens/clients/client_details_screen.dart';
+import '../../utils/colors.dart';
+import 'add_client_screen.dart';
 
 class ClientsScreen extends StatefulWidget {
   static const routeName = '/clients';
@@ -67,6 +67,21 @@ class _ClientsScreenState extends State<ClientsScreen> {
     }).toList();
   }
 
+  Color _getSegmentColor(String? segment) {
+    switch (segment) {
+      case 'A':
+        return SegmentColors.segmentA;
+      case 'B':
+        return SegmentColors.segmentB;
+      case 'C':
+        return SegmentColors.segmentC;
+      case 'D':
+        return SegmentColors.segmentD;
+      default:
+        return Colors.grey;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final clientProvider = Provider.of<ClientProvider>(context);
@@ -74,6 +89,18 @@ class _ClientsScreenState extends State<ClientsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Klienci'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.person_add),
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => AddClientScreen(),
+              )
+              );
+            },
+          ),
+        ],
       ),
       body: RefreshIndicator(
         onRefresh: _loadClients,
@@ -157,7 +184,19 @@ class _ClientsScreenState extends State<ClientsScreen> {
                                     ),
                                     title: Text('${client.firstName} ${client.lastName}'),
                                     subtitle: Text(
-                                      'Email: ${client.email}\nSegment: ${client.segment ?? 'Brak segmentu'}',
+                                      'Email: ${client.email}\nTelefon: ${client.phone ?? 'Brak'}',
+                                    ),
+                                    trailing: CircleAvatar(
+                                      radius: 12,
+                                      backgroundColor: _getSegmentColor(client.segment),
+                                      child: Text(
+                                        client.segment ?? '-',
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 12,
+                                        ),
+                                      ),
                                     ),
                                     isThreeLine: true,
                                     onTap: () => _navigateToClientDetails(client),

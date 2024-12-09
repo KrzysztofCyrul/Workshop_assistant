@@ -44,30 +44,34 @@ class AuthService {
     final url = Uri.parse('$baseUrl$logoutEndpoint');
     final response = await http.post(
       url,
-      body: {
-        'refresh_token': refreshToken,
+      headers: {
+        'Content-Type': 'application/json',
       },
+      body: jsonEncode({
+        'refresh_token': refreshToken,
+      }),
     );
 
-    if (response.statusCode != 204) {
-      throw Exception('Błąd wylogowania');
+    if (response.statusCode != 205) {
+      final errorData = jsonDecode(response.body);
+      throw Exception('Błąd wylogowania: ${errorData['error'] ?? 'Nieznany błąd'}');
     }
   }
 
   static Future<Map<String, dynamic>> getUserProfile(String accessToken) async {
-  final url = Uri.parse('$baseUrl/user/profile/');
-  final response = await http.get(
-    url,
-    headers: {
-      'Authorization': 'Bearer $accessToken',
-    },
-  );
+    final url = Uri.parse('$baseUrl/user/profile/');
+    final response = await http.get(
+      url,
+      headers: {
+        'Authorization': 'Bearer $accessToken',
+      },
+    );
 
-  if (response.statusCode == 200) {
-    return jsonDecode(response.body);
-  } else {
-    throw Exception('Błąd pobierania profilu użytkownika');
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Błąd pobierania profilu użytkownika');
+    }
   }
-}
 
 }

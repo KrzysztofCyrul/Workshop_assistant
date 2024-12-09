@@ -26,4 +26,37 @@ class ClientProvider with ChangeNotifier {
       notifyListeners();
     }
   }
+
+Future<void> addClient(String accessToken, String workshopId, {
+  required String firstName,
+  required String lastName,
+  required String email,
+  String? phone,
+  String? address,
+  String? segment,
+}) async {
+  _isLoading = true;
+  _errorMessage = null;
+  notifyListeners();
+
+  try {
+    await ClientService.createClient(
+      accessToken: accessToken,
+      workshopId: workshopId,
+      firstName: firstName,
+      lastName: lastName,
+      email: email,
+      phone: phone,
+      address: address,
+      segment: segment,
+    );
+    notifyListeners();
+  } catch (e) {
+    _errorMessage = 'Błąd podczas dodawania klienta: $e';
+  } finally {
+    _isLoading = false;
+    notifyListeners();
+  }
+}
+
 }

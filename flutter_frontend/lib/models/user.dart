@@ -29,4 +29,6 @@ class User {
           : [],
     );
   }
+
+  get clients => null;
 }

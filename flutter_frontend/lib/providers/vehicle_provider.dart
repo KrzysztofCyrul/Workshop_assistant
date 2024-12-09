@@ -60,4 +60,42 @@ class VehicleProvider with ChangeNotifier {
       notifyListeners();
     }
   }
+
+ Future<void> addVehicle(
+  String accessToken,
+  String workshopId, {
+  required String clientId,
+  required String make,
+  required String model,
+  required int year,
+  required String vin,
+  required String licensePlate,
+  required int mileage,
+}) async {
+  _isLoading = true;
+  _errorMessage = null;
+  notifyListeners();
+
+  try {
+    await VehicleService.createVehicle(
+      accessToken: accessToken,
+      workshopId: workshopId,
+      clientId: clientId,
+      make: make,
+      model: model,
+      year: year,
+      vin: vin,
+      licensePlate: licensePlate,
+      mileage: mileage,
+    );
+    notifyListeners();
+  } catch (e) {
+    _errorMessage = 'Błąd podczas dodawania pojazdu: $e';
+  } finally {
+    _isLoading = false;
+    notifyListeners();
+  }
+}
+
+
 }

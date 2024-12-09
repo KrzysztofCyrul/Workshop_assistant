@@ -8,6 +8,7 @@ import '../screens/appointments/completed_appointments_screen.dart';
 import '../screens/appointments/canceled_appointments_screen.dart';
 import '../screens/appointments/appointment_details_screen.dart';
 import '../screens/appointments/add_appointment_screen.dart';
+import '../screens/settings/settings_screen.dart';
 import '../screens/workshop/workshop_list_screen.dart';
 import '../screens/clients/clients_screen.dart';
 import '../screens/clients/client_details_screen.dart';
@@ -15,6 +16,8 @@ import '../screens/employee/employee_details_screen.dart';
 import '../screens/vehicles/vehicle_list_screen.dart';
 import '../screens/vehicles/client_vehicle_list_screen.dart';
 import '../screens/vehicles/vehicle_details_screen.dart';
+import '../screens/clients/add_client_screen.dart';
+import '../screens/vehicles/add_vehicle_screen.dart';
 
 class AppRoutes {
   static final routes = <String, WidgetBuilder>{
@@ -36,6 +39,7 @@ class AppRoutes {
     AddAppointmentScreen.routeName: (context) => const AddAppointmentScreen(),
     WorkshopListScreen.routeName: (context) => const WorkshopListScreen(),
     ClientsScreen.routeName: (context) => const ClientsScreen(),
+    AddClientScreen.routeName: (context) => AddClientScreen(),
     EmployeeDetailsScreen.routeName: (context) {
           final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
           final workshopId = args['workshopId']!;
@@ -46,6 +50,11 @@ class AppRoutes {
           final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
           final workshopId = args['workshopId']!;
           return VehicleListScreen(workshopId: workshopId);
+        },
+        AddVehicleScreen.routeName: (context) {
+          final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+          final workshopId = args['workshopId']!;
+          return AddVehicleScreen(workshopId: workshopId);
         },
         ClientVehicleListScreen.routeName: (context) {
           final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
@@ -64,5 +73,6 @@ class AppRoutes {
           final client = args['client'] as Client;
           return ClientDetailsScreen(client: client);
         },
+        SettingsScreen.routeName: (context) => SettingsScreen(),
   };
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
+import '../vehicles/add_vehicle_screen.dart';
 import '../workshop/workshop_list_screen.dart';
 import '../appointments/add_appointment_screen.dart';
 import '../clients/clients_screen.dart';
@@ -8,6 +9,8 @@ import '../appointments/appointments_screen.dart';
 import '../employee/employee_details_screen.dart';
 import '../vehicles/vehicle_list_screen.dart';
 import '../vehicles/client_vehicle_list_screen.dart';
+import '../settings/settings_screen.dart';
+import '../clients/add_client_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   static const routeName = '/home';
@@ -24,6 +27,12 @@ class HomeScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Panel Główny'),
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () => _logout(context),
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -54,17 +63,33 @@ class HomeScreen extends StatelessWidget {
         'icon': Icons.add_circle_outline,
         'action': () => _navigateToAddAppointment(context),
       },
+            {
+        'title': 'Zlecenia',
+        'icon': Icons.assignment,
+        'action': () => _navigateToAppointments(context),
+      },
+
+      {
+        'title': 'Dodaj Klienta',
+        'icon': Icons.person_add,
+        'action': () => _navigateToAddClient(context),
+      },
       {
         'title': 'Klienci',
         'icon': Icons.people,
         'action': () => _navigateToClients(context),
       },
       {
-        'title': 'Zlecenia',
-        'icon': Icons.assignment,
-        'action': () => _navigateToAppointments(context),
+        'title': 'Dodaj Pojazd',
+        'icon': Icons.directions_car,
+        'action': () => _navigateToAddVehicle(context, workshopId, ''),
       },
       {
+        'title': 'Lista Pojazdów',
+        'icon': Icons.directions_car,
+        'action': () => _navigateToVehicleList(context, workshopId),
+      },
+            {
         'title': 'Szczegóły Pracownika',
         'icon': Icons.person,
         'action': employeeId != null
@@ -72,10 +97,10 @@ class HomeScreen extends StatelessWidget {
             : null,
       },
       {
-        'title': 'Lista Pojazdów',
-        'icon': Icons.directions_car,
-        'action': () => _navigateToVehicleList(context, workshopId),
-      },
+        'title': 'Ustawienia',
+        'icon': Icons.settings,
+        'action': () => _navigateToSettings(context),
+      }
     ];
 
     return GridView.builder(
@@ -164,5 +189,35 @@ class HomeScreen extends StatelessWidget {
         'clientId': clientId,
       },
     );
+  }
+
+  void _navigateToSettings(BuildContext context) {
+    Navigator.of(context).pushNamed(SettingsScreen.routeName);
+  }
+
+  void _navigateToAddClient(BuildContext context) {
+    Navigator.of(context).pushNamed(AddClientScreen.routeName);
+  }
+
+  void _navigateToAddVehicle(BuildContext context, String workshopId, String clientId) {
+    Navigator.of(context).pushNamed(
+      AddVehicleScreen.routeName,
+      arguments: {
+        'workshopId': workshopId,
+        'clientId': clientId,
+      },
+    );
+  }
+
+  void _logout(BuildContext context) async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    try {
+      await authProvider.logout();
+      Navigator.of(context).pushReplacementNamed('/login'); // Navigate to login screen
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Błąd wylogowania: $e')),
+      );
+    }
   }
 }

@@ -1,3 +1,4 @@
+import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:multi_select_flutter/multi_select_flutter.dart';
@@ -9,6 +10,7 @@ import '../../providers/auth_provider.dart';
 import '../../services/client_service.dart';
 import '../../services/vehicle_service.dart';
 import '../../services/employee_service.dart';
+import '../../utils/colors.dart';
 
 class AddAppointmentScreen extends StatefulWidget {
   static const routeName = '/add-appointment';
@@ -55,6 +57,21 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
   void initState() {
     super.initState();
     _fetchInitialData();
+  }
+
+  Color _getSegmentColor(String? segment) {
+    switch (segment) {
+      case 'A':
+        return SegmentColors.segmentA;
+      case 'B':
+        return SegmentColors.segmentB;
+      case 'C':
+        return SegmentColors.segmentC;
+      case 'D':
+        return SegmentColors.segmentD;
+      default:
+        return SegmentColors.defaultColor;
+    }
   }
 
   Future<void> _fetchInitialData() async {
@@ -222,49 +239,78 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                           children: [
                             Text('Informacje Klienta', style: Theme.of(context).textTheme.titleMedium),
                             const SizedBox(height: 16.0),
-                            DropdownButtonFormField<Client>(
-                              decoration: const InputDecoration(
-                                labelText: 'Klient',
-                                border: OutlineInputBorder(),
-                              ),
-                              items: _clients.map((client) {
-                                return DropdownMenuItem<Client>(
-                                  value: client,
-                                  child: Text('${client.firstName} ${client.lastName}'),
-                                );
-                              }).toList(),
-                              onChanged: (value) {
-                                setState(() {
-                                  _selectedClient = value;
-                                  _vehicles = [];
-                                  _selectedVehicle = null;
-                                });
-                                if (value != null) {
-                                  _fetchVehicles(value.id);
-                                }
-                              },
-                              validator: (value) => value == null ? 'Wybierz klienta' : null,
-                            ),
-                            const SizedBox(height: 16.0),
-                            if (_selectedClient != null)
-                              DropdownButtonFormField<Vehicle>(
-                                decoration: const InputDecoration(
-                                  labelText: 'Pojazd',
-                                  border: OutlineInputBorder(),
+DropdownSearch<Client>(
+  popupProps: PopupProps.menu(
+    showSearchBox: true,
+    searchFieldProps: TextFieldProps(
+      decoration: const InputDecoration(
+        labelText: 'Szukaj klienta',
+        prefixIcon: Icon(Icons.search),
+        border: OutlineInputBorder(),
+      ),
+    ),
+    itemBuilder: (context, client, isSelected) => ListTile(
+      leading: CircleAvatar(
+        backgroundColor: _getSegmentColor(client.segment),
+        child: Text(
+          client.segment ?? '-',
+          style: const TextStyle(color: Colors.white),
+        ),
+      ),
+      title: Text('${client.firstName} ${client.lastName}'),
+      subtitle: Text('Telefon: ${client.phone ?? 'Brak'}'),
+    ),
+  ),
+  selectedItem: _selectedClient,
+  asyncItems: (String filter) async {
+    return _clients
+        .where((client) =>
+            client.firstName.toLowerCase().contains(filter.toLowerCase()) ||
+            client.lastName.toLowerCase().contains(filter.toLowerCase()) ||
+            (client.phone?.contains(filter) ?? false))
+        .toList();
+  },
+  itemAsString: (client) => '${client.firstName} ${client.lastName} - ${client.phone ?? 'Brak'}',
+  dropdownDecoratorProps: const DropDownDecoratorProps(
+    dropdownSearchDecoration: InputDecoration(
+      labelText: 'Klient',
+      border: OutlineInputBorder(),
+    ),
+  ),
+  onChanged: (value) async {
+    setState(() {
+      _selectedClient = value;
+      _vehicles = [];
+      _selectedVehicle = null; // Resetuj wybrany pojazd
+    });
+    if (value != null) {
+      await _fetchVehicles(value.id);
+    }
+  },
+  validator: (value) => value == null ? 'Wybierz klienta' : null,
+),
+
+                              const SizedBox(height: 16.0),
+                              if (_selectedClient != null)
+                                DropdownButtonFormField<Vehicle>(
+                                  decoration: const InputDecoration(
+                                    labelText: 'Pojazd',
+                                    border: OutlineInputBorder(),
+                                  ),
+                                  items: _vehicles.map((vehicle) {
+                                    return DropdownMenuItem<Vehicle>(
+                                      value: vehicle,
+                                      child: Text('${vehicle.make} ${vehicle.model}'),
+                                    );
+                                  }).toList(),
+                                  value: _selectedVehicle, // Ustaw aktualnie wybrany pojazd
+                                  onChanged: (value) {
+                                    setState(() {
+                                      _selectedVehicle = value;
+                                    });
+                                  },
+                                  validator: (value) => value == null ? 'Wybierz pojazd' : null,
                                 ),
-                                items: _vehicles.map((vehicle) {
-                                  return DropdownMenuItem<Vehicle>(
-                                    value: vehicle,
-                                    child: Text('${vehicle.make} ${vehicle.model}'),
-                                  );
-                                }).toList(),
-                                onChanged: (value) {
-                                  setState(() {
-                                    _selectedVehicle = value;
-                                  });
-                                },
-                                validator: (value) => value == null ? 'Wybierz pojazd' : null,
-                              ),
                           ],
                         ),
                       ),
