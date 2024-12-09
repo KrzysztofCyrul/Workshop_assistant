@@ -4,6 +4,7 @@ import '../../models/appointment.dart';
 import '../../models/repair_item.dart';
 import '../../services/appointment_service.dart';
 import '../../providers/auth_provider.dart';
+import '../service_records/service_history_screen.dart';
 import 'add_repair_item_dialog.dart';
 import 'package:intl/intl.dart';
 
@@ -25,6 +26,7 @@ class AppointmentDetailsScreen extends StatefulWidget {
 
 class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
   late Future<Appointment> _appointmentFuture;
+  Appointment? _currentAppointment; // Przechowujemy załadowaną wizytę
 
   @override
   void initState() {
@@ -42,6 +44,9 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
         widget.workshopId,
         widget.appointmentId,
       );
+      _currentAppointment = appointment;
+      // Odśwież ekran, żeby zaktualizować AppBar z ikoną historii
+      setState(() {});
       return appointment;
     } catch (e) {
       throw Exception('Błąd podczas pobierania szczegółów zlecenia: $e');
@@ -74,10 +79,8 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
     String? actualDuration;
 
     if (isCompleted) {
-      // Jeśli element jest oznaczany jako zakończony, poproś o wprowadzenie rzeczywistego czasu trwania
       actualDuration = await _showActualDurationDialog();
       if (actualDuration == null) {
-        // Użytkownik anulował wprowadzenie czasu, nie aktualizuj statusu
         return;
       }
     }
@@ -91,7 +94,6 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
         isCompleted: isCompleted,
         actualDuration: actualDuration,
       );
-      // Po udanej aktualizacji, odśwież dane
       setState(() {
         _appointmentFuture = _fetchAppointmentDetails();
       });
@@ -99,7 +101,6 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
         const SnackBar(content: Text('Status elementu naprawy został zaktualizowany')),
       );
     } catch (e) {
-      // Obsłuż błąd, np. wyświetl komunikat
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Błąd podczas aktualizacji statusu')),
       );
@@ -182,7 +183,6 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
     );
   }
 
-  // Funkcja pomocnicza do formatowania Duration na string w formacie "HH:MM:SS"
   String _formatDurationForBackend(Duration duration) {
     String twoDigits(int n) => n.toString().padLeft(2, '0');
     String hours = twoDigits(duration.inHours);
@@ -191,7 +191,6 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
     return '$hours:$minutes:$seconds';
   }
 
-  // Funkcja pomocnicza do pobierania etykiety statusu
   String _getStatusLabel(String status) {
     switch (status) {
       case 'pending':
@@ -205,7 +204,6 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
     }
   }
 
-  // Funkcja pomocnicza do formatowania Duration
   String _formatDuration(Duration duration) {
     String twoDigits(int n) => n.toString().padLeft(2, '0');
     String hours = twoDigits(duration.inHours);
@@ -310,34 +308,48 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    Theme.of(context);
+    // Wyliczamy dynamicznie akcje w AppBar w zależności od tego, czy mamy załadowane dane.
+List<Widget> appBarActions = [];
+
+// Jeśli mamy dane o wizycie, dodaj ikonę historii jako pierwszą:
+if (_currentAppointment != null) {
+  appBarActions.add(
+    IconButton(
+      icon: const Icon(Icons.history),
+      tooltip: 'Historia pojazdu',
+      onPressed: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => VehicleServiceHistoryScreen(
+              workshopId: widget.workshopId,
+              vehicleId: _currentAppointment!.vehicle.id,
+            ),
+          ),
+        );
+      },
+    ),
+  );
+}
+
+// Na końcu dodaj ikonę plusa:
+appBarActions.add(
+  IconButton(
+    icon: const Icon(Icons.add),
+    tooltip: 'Dodaj element naprawy',
+    onPressed: _navigateToAddRepairItem,
+  ),
+);
 
     return Scaffold(
       appBar: AppBar(
-        title: FutureBuilder<Appointment>(
-          future: _appointmentFuture,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Text('Ładowanie...');
-            } else if (snapshot.hasError) {
-              return const Text('Błąd');
-            } else if (!snapshot.hasData) {
-              return const Text('Brak danych');
-            } else {
-              final appointment = snapshot.data!;
-              return Text(
-                '${DateFormat('dd-MM-yyyy').format(appointment.scheduledTime.toLocal())} - ${appointment.vehicle.make} ${appointment.vehicle.model}',
-              );
-            }
-          },
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            tooltip: 'Dodaj element naprawy',
-            onPressed: _navigateToAddRepairItem,
-          ),
-        ],
+        title: _currentAppointment == null
+            ? const Text('Ładowanie...')
+            : Text(
+                '${DateFormat('dd-MM-yyyy').format(_currentAppointment!.scheduledTime.toLocal())} '
+                '- ${_currentAppointment!.vehicle.make} ${_currentAppointment!.vehicle.model}',
+              ),
+        actions: appBarActions,
       ),
       body: FutureBuilder<Appointment>(
         future: _appointmentFuture,
@@ -381,7 +393,7 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Zwijana sekcja szczegółów zlecenia
+                  // Szczegóły zlecenia
                   Card(
                     elevation: 2,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -443,7 +455,7 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
                     ),
                   ),
                   const SizedBox(height: 16.0),
-                  // Zwijana sekcja szczegółów pojazdu
+                  // Szczegóły pojazdu
                   Card(
                     elevation: 2,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -466,7 +478,7 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
                     ),
                   ),
                   const SizedBox(height: 16.0),
-                  // Zwijana sekcja szczegółów klienta
+                  // Szczegóły klienta
                   Card(
                     elevation: 2,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),

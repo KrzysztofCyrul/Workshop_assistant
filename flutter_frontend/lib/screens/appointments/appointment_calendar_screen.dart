@@ -5,7 +5,6 @@ import 'package:syncfusion_flutter_calendar/calendar.dart';
 import '../../providers/auth_provider.dart';
 import '../../models/appointment.dart' as workshop_appointment;
 import '../../services/appointment_service.dart';
-import '../../utils/colors.dart';
 import 'appointment_details_screen.dart';
 import 'add_appointment_screen.dart';
 
@@ -26,10 +25,10 @@ class _AppointmentCalendarScreenState extends State<AppointmentCalendarScreen> {
   final CalendarController _calendarController = CalendarController();
 
   // Ustawienia widoku i nawigacji kalendarza
-  bool _showDatePickerButton = true;
-  bool _allowViewNavigation = true;
-  bool _showCurrentTimeIndicator = true;
-  bool _showLeadingAndTrailingDates = true;
+  final bool _showDatePickerButton = true;
+  final bool _allowViewNavigation = true;
+  final bool _showCurrentTimeIndicator = true;
+  final bool _showLeadingAndTrailingDates = true;
 
   @override
   void initState() {
@@ -150,7 +149,7 @@ class _AppointmentCalendarScreenState extends State<AppointmentCalendarScreen> {
       ),
       child: SfCalendar(
         controller: _calendarController,
-        dataSource: WorkshopAppointmentDataSource(appointments, MechanicColor()),
+        dataSource: WorkshopAppointmentDataSource(appointments),
         allowedViews: const [
           CalendarView.day,
           CalendarView.week,
@@ -352,11 +351,9 @@ String _getMonthDate(int month) {
 }
 
 class WorkshopAppointmentDataSource extends CalendarDataSource {
-  final MechanicColor mechanicColor;
 
   WorkshopAppointmentDataSource(
     List<workshop_appointment.Appointment> source,
-    this.mechanicColor,
   ) {
     appointments = source;
   }
@@ -409,15 +406,6 @@ class WorkshopAppointmentDataSource extends CalendarDataSource {
       default:
         defaultColor = Colors.blue;
         break;
-    }
-
-    // Jeśli są przypisani mechanicy, sprawdź kolor pierwszego
-    if (apt.assignedMechanics.isNotEmpty) {
-      final firstMechanicId = apt.assignedMechanics.first;
-      final mechColor = mechanicColor.getMechanicColor(firstMechanicId);
-      if (mechColor != null) {
-        return mechColor;
-      }
     }
 
     // Jeśli brak przypisanego koloru mechanika lub brak mechaników, użyj domyślnego

@@ -19,6 +19,7 @@ import '../screens/vehicles/vehicle_details_screen.dart';
 import '../screens/clients/add_client_screen.dart';
 import '../screens/vehicles/add_vehicle_screen.dart';
 import '../screens/appointments/appointment_calendar_screen.dart';
+import '../screens/service_records/service_history_screen.dart';
 
 class AppRoutes {
   static final routes = <String, WidgetBuilder>{
@@ -76,5 +77,11 @@ class AppRoutes {
       return ClientDetailsScreen(client: client);
     },
     SettingsScreen.routeName: (context) => SettingsScreen(),
+    VehicleServiceHistoryScreen.routeName: (context) {
+      final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+      final workshopId = args['workshopId']!;
+      final vehicleId = args['vehicleId']!;
+      return VehicleServiceHistoryScreen(workshopId: workshopId, vehicleId: vehicleId);
+    },
   };
 }

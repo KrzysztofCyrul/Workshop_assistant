@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_frontend/providers/vehicle_provider.dart';
 import 'package:provider/provider.dart';
+import 'providers/service_record_provider.dart';
 import 'providers/auth_provider.dart';
 import 'providers/workshop_provider.dart';
 import 'providers/client_provider.dart';
@@ -21,7 +22,7 @@ Future<void> main() async {
         ChangeNotifierProvider(create: (_) => ClientProvider()),
         ChangeNotifierProvider(create: (_) => EmployeeProvider()),
         ChangeNotifierProvider(create: (_) => VehicleProvider()),
-        
+        ChangeNotifierProvider(create: (_) => ServiceRecordProvider()),        
       ],
       child: const MyApp(),
     ),
