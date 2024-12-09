@@ -1,5 +1,4 @@
-// lib/screens/appointments/appointment_details_screen.dart
-
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/appointment.dart';
@@ -108,81 +107,100 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
     }
   }
 
-  Future<String?> _showActualDurationDialog() async {
-    final _durationFormKey = GlobalKey<FormState>();
-    int? _hours;
-    int? _minutes;
+Future<String?> _showActualDurationDialog() async {
+  int selectedHours = 0;
+  int selectedMinutes = 0;
 
-    return showDialog<String>(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Wprowadź rzeczywisty czas trwania'),
-          content: Form(
-            key: _durationFormKey,
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextFormField(
-                    decoration: const InputDecoration(labelText: 'Godziny'),
-                    keyboardType: TextInputType.number,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Wprowadź godziny';
-                      }
-                      if (int.tryParse(value) == null) {
-                        return 'Wprowadź poprawną liczbę';
-                      }
-                      return null;
-                    },
-                    onSaved: (value) {
-                      _hours = int.parse(value!);
-                    },
+  final hours = List.generate(24, (index) => index);
+  final minutes = List.generate(60, (index) => index);
+
+  return showModalBottomSheet<String>(
+    context: context,
+    builder: (context) {
+      return SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 16),
+            const Text(
+              'Wybierz czas trwania usługi',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              height: 200, // wysokość obszaru z pickerami
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text('Godziny', style: TextStyle(fontWeight: FontWeight.bold)),
+                        Expanded(
+                          child: CupertinoPicker(
+                            scrollController: FixedExtentScrollController(initialItem: 0),
+                            itemExtent: 32,
+                            magnification: 1.2,
+                            onSelectedItemChanged: (index) {
+                              selectedHours = hours[index];
+                            },
+                            children: hours.map((h) => Center(child: Text(h.toString()))).toList(),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
+                  Expanded(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text('Minuty', style: TextStyle(fontWeight: FontWeight.bold)),
+                        Expanded(
+                          child: CupertinoPicker(
+                            scrollController: FixedExtentScrollController(initialItem: 0),
+                            itemExtent: 32,
+                            magnification: 1.2,
+                            onSelectedItemChanged: (index) {
+                              selectedMinutes = minutes[index];
+                            },
+                            children: minutes.map((m) => Center(child: Text(m.toString()))).toList(),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(null),
+                  child: const Text('Anuluj'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    final duration = Duration(hours: selectedHours, minutes: selectedMinutes);
+                    final durationString = _formatDurationForBackend(duration);
+                    Navigator.of(context).pop(durationString);
+                  },
+                  child: const Text('Zapisz'),
                 ),
                 const SizedBox(width: 16),
-                Expanded(
-                  child: TextFormField(
-                    decoration: const InputDecoration(labelText: 'Minuty'),
-                    keyboardType: TextInputType.number,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Wprowadź minuty';
-                      }
-                      if (int.tryParse(value) == null) {
-                        return 'Wprowadź poprawną liczbę';
-                      }
-                      return null;
-                    },
-                    onSaved: (value) {
-                      _minutes = int.parse(value!);
-                    },
-                  ),
-                ),
               ],
             ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(null),
-              child: const Text('Anuluj'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                if (_durationFormKey.currentState!.validate()) {
-                  _durationFormKey.currentState!.save();
-                  final duration = Duration(hours: _hours!, minutes: _minutes!);
-                  final durationString = _formatDurationForBackend(duration);
-                  Navigator.of(context).pop(durationString);
-                }
-              },
-              child: const Text('Zapisz'),
-            ),
+            const SizedBox(height: 16),
           ],
-        );
-      },
-    );
-  }
+        ),
+      );
+    },
+  );
+}
+
+
+
 
   // Funkcja pomocnicza do formatowania Duration na string w formacie "HH:MM:SS"
   String _formatDurationForBackend(Duration duration) {
@@ -224,83 +242,92 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
   }
 
   Widget _buildSectionTitle(String title) {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8.0),
-        child: Text(
-          title,
-          style: const TextStyle(
-            fontSize: 20.0,
-            fontWeight: FontWeight.bold,
-          ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Text(
+        title,
+        style: const TextStyle(
+          fontSize: 20.0,
+          fontWeight: FontWeight.bold,
         ),
       ),
     );
   }
 
-  Widget _buildDetailRow(String label, String value) {
+  Widget _buildDetailRow(String label, String value, {IconData? icon}) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2.0),
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
       child: Row(
         children: [
+          if (icon != null)
+            Padding(
+              padding: const EdgeInsets.only(right: 8.0),
+              child: Icon(icon, size: 20, color: Theme.of(context).primaryColor),
+            ),
           Expanded(
-            flex: 3,
             child: Text(
-              '$label:',
-              style: const TextStyle(fontWeight: FontWeight.bold),
+              label,
+              style: const TextStyle(fontWeight: FontWeight.w600),
             ),
           ),
           Expanded(
-            flex: 7,
-            child: Text(value),
+            child: Text(
+              value,
+              style: const TextStyle(color: Colors.grey),
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildRepairItem(RepairItem item) {
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 4.0),
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      child: ListTile(
-        leading: Icon(
+Widget _buildRepairItem(RepairItem item) {
+  return Card(
+    margin: const EdgeInsets.symmetric(vertical: 8.0),
+    elevation: 2,
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    child: ListTile(
+      title: Text(
+        item.description,
+        style: TextStyle(
+          decoration: item.isCompleted ? TextDecoration.lineThrough : null,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 4),
+          Text('Status: ${_getStatusLabel(item.status)}'),
+          Text('Koszt: ${item.cost.toStringAsFixed(2)} PLN'),
+          if (item.estimatedDuration != null)
+            Text('Szacowany czas: ${_formatDuration(item.estimatedDuration!)}'),
+          if (item.actualDuration != null)
+            Text('Rzeczywisty czas: ${_formatDuration(item.actualDuration!)}'),
+          if (item.completedBy != null)
+            Text('Wykonane przez: ${item.completedBy}'),
+        ],
+      ),
+      trailing: GestureDetector(
+        onTap: () {
+          _updateRepairItemStatus(item, !item.isCompleted);
+        },
+        child: Icon(
           item.isCompleted ? Icons.check_circle : Icons.radio_button_unchecked,
           color: item.isCompleted ? Colors.green : Colors.grey,
+          size: 32,
         ),
-        title: Text(
-          '${item.description} (Priorytet: ${item.order})',
-          style: TextStyle(
-            decoration: item.isCompleted ? TextDecoration.lineThrough : null,
-          ),
-        ),
-        trailing: Checkbox(
-          value: item.isCompleted,
-          onChanged: (value) {
-            _updateRepairItemStatus(item, value!);
-          },
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Status: ${_getStatusLabel(item.status)}'),
-            Text('Wykonane przez: ${item.completedBy ?? 'N/D'}'),
-            Text('Szacowany czas: ${item.estimatedDuration != null ? _formatDuration(item.estimatedDuration!) : 'N/D'}'),
-            Text('Rzeczywisty czas: ${item.actualDuration != null ? _formatDuration(item.actualDuration!) : 'N/D'}'),
-            Text('Koszt: ${item.cost} zł'),
-            Text('Data utworzenia: ${DateFormat('dd-MM-yyyy HH:mm').format(item.createdAt.toLocal())}'),
-            Text('Data aktualizacji: ${DateFormat('dd-MM-yyyy HH:mm').format(item.updatedAt.toLocal())}'),
-          ],
-        ),
-        isThreeLine: true,
       ),
-    );
-  }
+      isThreeLine: true,
+    ),
+  );
+}
+
 
   @override
   Widget build(BuildContext context) {
+    Theme.of(context);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Szczegóły Zlecenia'),
@@ -310,6 +337,7 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
             tooltip: 'Dodaj element naprawy',
             onPressed: _navigateToAddRepairItem,
           ),
+          
         ],
       ),
       body: FutureBuilder<Appointment>(
@@ -349,88 +377,128 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
             final appointment = snapshot.data!;
             final totalCost = _calculateTotalCost(appointment.repairItems);
             final totalEstimatedDuration = _calculateTotalEstimatedDuration(appointment.repairItems);
-            return Padding(
+            return SingleChildScrollView(
               padding: const EdgeInsets.all(16.0),
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Informacje o pojeździe
-                    _buildSectionTitle('Pojazd'),
-                    Card(
-                      elevation: 2,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                      child: Padding(
-                        padding: const EdgeInsets.all(12.0),
-                        child: Column(
-                          children: [
-                            _buildDetailRow('Marka', appointment.vehicle.make),
-                            _buildDetailRow('Model', appointment.vehicle.model),
-                            _buildDetailRow('Rok', appointment.vehicle.year.toString()),
-                            _buildDetailRow('VIN', appointment.vehicle.vin),
-                            _buildDetailRow('Rejestracja', appointment.vehicle.licensePlate),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16.0),
-                    // Informacje o kliencie
-                    _buildSectionTitle('Klient'),
-                    Card(
-                      elevation: 2,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                      child: Padding(
-                        padding: const EdgeInsets.all(12.0),
-                        child: Column(
-                          children: [
-                            _buildDetailRow('Imię', appointment.client.firstName),
-                            _buildDetailRow('Nazwisko', appointment.client.lastName),
-                            _buildDetailRow('Email', appointment.client.email),
-                            _buildDetailRow('Telefon', appointment.client.phone ?? 'Brak'),
-                            _buildDetailRow('Adres', appointment.client.address ?? 'Brak'),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16.0),
-                    // Informacje o zleceniu
-                    _buildSectionTitle('Szczegóły Zlecenia'),
-                    Card(
-                      elevation: 2,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                      child: Padding(
-                        padding: const EdgeInsets.all(12.0),
-                        child: Column(
-                          children: [
-                            _buildDetailRow('Data', DateFormat('dd-MM-yyyy HH:mm').format(appointment.scheduledTime.toLocal())),
-                            _buildDetailRow('Status', appointment.status),
-                            _buildDetailRow('Przebieg', '${appointment.mileage} km'),
-                            _buildDetailRow('Notatki', appointment.notes ?? 'Brak'),
-                            _buildDetailRow('Całkowity koszt', '${totalCost.toStringAsFixed(2)} zł'),
-                            _buildDetailRow('Szacowany czas', _formatDuration(totalEstimatedDuration)),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16.0),
-                    // Elementy naprawy
-                    _buildSectionTitle('Elementy Naprawy'),
-                    appointment.repairItems.isEmpty
-                        ? const Padding(
-                            padding: EdgeInsets.all(8.0),
-                            child: Text('Brak elementów naprawy.'),
-                          )
-                        : ListView.builder(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            itemCount: appointment.repairItems.length,
-                            itemBuilder: (context, index) {
-                              final item = appointment.repairItems[index];
-                              return _buildRepairItem(item);
-                            },
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Informacje o zleceniu
+                  _buildSectionTitle('Szczegóły Zlecenia'),
+                  Card(
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        children: [
+                          _buildDetailRow(
+                            'Data',
+                            DateFormat('dd-MM-yyyy HH:mm').format(appointment.scheduledTime.toLocal()),
+                            icon: Icons.calendar_today,
                           ),
-                  ],
-                ),
+                          _buildDetailRow(
+                            'Status',
+                            _getStatusLabel(appointment.status),
+                            icon: Icons.info,
+                          ),
+                          _buildDetailRow(
+                            'Przebieg',
+                            '${appointment.mileage} km',
+                            icon: Icons.speed,
+                          ),
+                          _buildDetailRow(
+                            'Szacowany czas',
+                            _formatDuration(totalEstimatedDuration),
+                            icon: Icons.timer,
+                          ),
+                          _buildDetailRow(
+                            'Całkowity koszt',
+                            '${totalCost.toStringAsFixed(2)} PLN',
+                            icon: Icons.attach_money,
+                          ),
+                          if (appointment.notes != null && appointment.notes!.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 8.0),
+                              child: Align(
+                                alignment: Alignment.centerLeft,
+                                child: Text(
+                                  'Notatki:',
+                                  style: const TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                            ),
+                          if (appointment.notes != null && appointment.notes!.isNotEmpty)
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                appointment.notes!,
+                                style: const TextStyle(color: Colors.grey),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16.0),
+                  // Informacje o pojeździe
+                  _buildSectionTitle('Pojazd'),
+                  Card(
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        children: [
+                          _buildDetailRow('Marka', appointment.vehicle.make),
+                          _buildDetailRow('Model', appointment.vehicle.model),
+                          _buildDetailRow('Rok', appointment.vehicle.year.toString()),
+                          _buildDetailRow('VIN', appointment.vehicle.vin),
+                          _buildDetailRow('Rejestracja', appointment.vehicle.licensePlate),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16.0),
+                  // Informacje o kliencie
+                  _buildSectionTitle('Klient'),
+                  Card(
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        children: [
+                          _buildDetailRow(
+                            'Imię i nazwisko',
+                            '${appointment.client.firstName} ${appointment.client.lastName}',
+                            icon: Icons.person,
+                          ),
+                          _buildDetailRow('Email', appointment.client.email, icon: Icons.email),
+                          _buildDetailRow('Telefon', appointment.client.phone ?? 'Brak', icon: Icons.phone),
+                          if (appointment.client.address != null)
+                            _buildDetailRow('Adres', appointment.client.address!, icon: Icons.map),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16.0),
+                  // Elementy naprawy
+                  _buildSectionTitle('Elementy Naprawy'),
+                  appointment.repairItems.isEmpty
+                      ? const Padding(
+                          padding: EdgeInsets.all(8.0),
+                          child: Text('Brak elementów naprawy.'),
+                        )
+                      : ListView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: appointment.repairItems.length,
+                          itemBuilder: (context, index) {
+                            final item = appointment.repairItems[index];
+                            return _buildRepairItem(item);
+                          },
+                        ),
+                ],
               ),
             );
           }

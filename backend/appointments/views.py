@@ -3,7 +3,7 @@ from django.shortcuts import get_object_or_404, redirect
 from rest_framework import viewsets, permissions
 from appointments.models import Appointment, RepairItem
 from appointments.serializers import AppointmentSerializer, RepairItemSerializer
-from ai_module.signals import get_appointment_recommendations
+# from ai_module.signals import get_appointment_recommendations
 from workshops.models import Workshop
 from accounts.permissions import IsMechanic, IsWorkshopOwner, IsAdmin
 from rest_framework.exceptions import PermissionDenied
@@ -36,8 +36,12 @@ class AppointmentViewSet(viewsets.ModelViewSet):
         appointment.save()
         return Response({"detail": "Wizyta została anulowana."}, status=status.HTTP_200_OK)
     
+    def partial_update(self, request, *args, **kwargs):
+        kwargs['partial'] = True
+        return super().partial_update(request, *args, **kwargs)
+    
     def get_permissions(self):
-        if self.action in ['update', 'partial_update', 'destroy']:
+        if self.action in ['update', 'patch' 'partial_update', 'destroy']:
             permission_classes = [permissions.IsAuthenticated, IsWorkshopOwner | IsAdmin]
         else:
             permission_classes = [permissions.IsAuthenticated]
@@ -73,6 +77,12 @@ class RepairItemViewSet(viewsets.ModelViewSet):
         kwargs['partial'] = True
         return self.update(request, *args, **kwargs)
 
+    def get_permissions(self):
+        if self.action in ['patch','update', 'partial_update', 'destroy']:
+            permission_classes = [IsAuthenticated, IsWorkshopOwner | IsAdmin | IsMechanic]
+        else:
+            permission_classes = [IsAuthenticated]
+        return [permission() for permission in permission_classes]
         
 class GenerateRecommendationsAPIView(views.APIView):
     permission_classes = [IsAuthenticated, IsWorkshopOwner | IsAdmin | IsMechanic] 
@@ -88,15 +98,15 @@ class GenerateRecommendationsAPIView(views.APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        recommendations = get_appointment_recommendations(appointment_description, repair_items)
+        # recommendations = get_appointment_recommendations(appointment_description, repair_items)
 
-        if recommendations:
-            appointment.recommendations = recommendations
-            appointment.save()
-            serializer = AppointmentSerializer(appointment)
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        else:
-            return Response(
-                {"detail": "Nie udało się wygenerować rekomendacji."},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+        # if recommendations:
+        #     appointment.recommendations = recommendations
+        #     appointment.save()
+        #     serializer = AppointmentSerializer(appointment)
+        #     return Response(serializer.data, status=status.HTTP_200_OK)
+        # else:
+        #     return Response(
+        #         {"detail": "Nie udało się wygenerować rekomendacji."},
+        #         status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        #     )

@@ -14,9 +14,8 @@ from django.utils import timezone
 from django.db.models import Sum, Avg, Max, Min
 from django.core.management.base import BaseCommand
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.ensemble import GradientBoostingClassifier
-from sklearn.model_selection import StratifiedKFold, cross_validate, GridSearchCV
-from sklearn.metrics import classification_report, confusion_matrix, roc_curve, auc
+from sklearn.model_selection import StratifiedKFold, GridSearchCV
+from sklearn.metrics import classification_report, confusion_matrix
 from imblearn.over_sampling import SMOTE
 from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import Pipeline
@@ -37,19 +36,36 @@ class Command(BaseCommand):
 
             for client in clients:
                 try:
-                    appointments = client.appointments.filter(status='completed')
-                    canceled_appointments = client.appointments.filter(status='canceled')
+                    # Pobranie wszystkich wizyt klienta
+                    appointments = client.appointments.all()
+                    completed_appointments = appointments.filter(status='completed')
+                    canceled_appointments = appointments.filter(status='canceled')
 
-                    frequency = appointments.count()
-                    monetary_value = appointments.aggregate(total_spent=Sum('total_cost'))['total_spent'] or 0
-                    avg_cost = appointments.aggregate(avg_spent=Avg('total_cost'))['avg_spent'] or 0
-                    first_appointment_date = appointments.aggregate(first_date=Min('scheduled_time'))['first_date']
-                    last_appointment_date = appointments.aggregate(last_date=Max('scheduled_time'))['last_date']
+                    # Obliczanie cech związanych z wizytami
+                    frequency = completed_appointments.count()
+                    monetary_value = completed_appointments.aggregate(total_spent=Sum('total_cost'))['total_spent'] or 0
+                    avg_cost = completed_appointments.aggregate(avg_spent=Avg('total_cost'))['avg_spent'] or 0
+                    canceled_count = canceled_appointments.count()
+                    total_appointments = frequency + canceled_count
+
+                    cancellation_rate = canceled_count / total_appointments if total_appointments > 0 else 0
+
+                    first_appointment_date = completed_appointments.aggregate(first_date=Min('scheduled_time'))['first_date']
+                    last_appointment_date = completed_appointments.aggregate(last_date=Max('scheduled_time'))['last_date']
 
                     recency = (today - last_appointment_date.date()).days if last_appointment_date else (today - client.created_at.date()).days
                     time_since_first_visit = (today - first_appointment_date.date()).days if first_appointment_date else 0
-                    canceled_count = canceled_appointments.count()
-                    cancellation_rate = canceled_count / (frequency + canceled_count) if (frequency + canceled_count) > 0 else 0
+
+                    # Dodanie cech: vehicle_year i vehicle_mileage
+                    vehicles = client.vehicles.all()
+                    if vehicles.exists():
+                        # Wybieramy najnowszy pojazd
+                        latest_vehicle = vehicles.order_by('-year').first()
+                        vehicle_year = latest_vehicle.year
+                        vehicle_mileage = latest_vehicle.mileage
+                    else:
+                        vehicle_year = None
+                        vehicle_mileage = None
 
                     data.append({
                         'client_id': client.id,
@@ -57,28 +73,39 @@ class Command(BaseCommand):
                         'frequency': frequency,
                         'monetary_value': monetary_value,
                         'avg_cost': avg_cost,
-                        'time_since_first_visit': time_since_first_visit,
                         'canceled_count': canceled_count,
                         'cancellation_rate': cancellation_rate,
+                        'time_since_first_visit': time_since_first_visit,
+                        'vehicle_year': vehicle_year,
+                        'vehicle_mileage': vehicle_mileage,
                         'segment': client.segment
                     })
                 except Exception as e:
                     self.stdout.write(self.style.ERROR(f"Błąd podczas przetwarzania klienta {client.id}: {e}"))
 
             df = pd.DataFrame(data)
+            # Uzupełnianie brakujących wartości
+            df['vehicle_year'] = df['vehicle_year'].fillna(df['vehicle_year'].median())
+            df['vehicle_mileage'] = df['vehicle_mileage'].fillna(df['vehicle_mileage'].median())
+
+            df['recency'] = df['recency'].fillna(365)
+            df['frequency'] = df['frequency'].fillna(0)
+            df['monetary_value'] = df['monetary_value'].fillna(0)
+            df['avg_cost'] = df['avg_cost'].fillna(0)
+            df['canceled_count'] = df['canceled_count'].fillna(0)
+            df['cancellation_rate'] = df['cancellation_rate'].fillna(0)
+            df['time_since_first_visit'] = df['time_since_first_visit'].fillna(365)
+
             self.stdout.write(self.style.SUCCESS(f"Przygotowano dane dla {len(data)} klientów"))
             self.stdout.write(self.style.NOTICE(f"Rozkład klas:\n{df['segment'].value_counts()}"))
             return df
 
         def balance_data(X, y):
             self.stdout.write(self.style.NOTICE("Rozpoczynanie balansowania danych z SMOTE..."))
-            min_class_size = y.value_counts().min()
-            k_neighbors = max(min(min_class_size - 1, 5), 1)
-
-            smote = SMOTE(k_neighbors=k_neighbors, random_state=42)
+            smote = SMOTE(random_state=42)
             try:
                 X_resampled, y_resampled = smote.fit_resample(X, y)
-                self.stdout.write(self.style.SUCCESS(f"Balansowanie zakończone. SMOTE zastosowano z k_neighbors={k_neighbors}"))
+                self.stdout.write(self.style.SUCCESS("Balansowanie zakończone. SMOTE zastosowano."))
             except Exception as e:
                 self.stdout.write(self.style.ERROR(f"Błąd podczas balansowania danych: {e}"))
                 raise e
@@ -87,6 +114,7 @@ class Command(BaseCommand):
 
         def plot_confusion_matrix(y_true, y_pred, labels, title):
             cm = confusion_matrix(y_true, y_pred, labels=labels)
+            plt.figure(figsize=(8,6))
             sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=labels, yticklabels=labels)
             plt.xlabel('Predicted Label')
             plt.ylabel('True Label')
@@ -96,28 +124,40 @@ class Command(BaseCommand):
         def train_advanced_model():
             self.stdout.write(self.style.NOTICE("Rozpoczęto trening modelu..."))
             df = prepare_dataset()
-            features = ['recency', 'frequency', 'monetary_value', 'avg_cost', 'time_since_first_visit', 'canceled_count', 'cancellation_rate']
+
+            # Definicja cech
+            features = ['recency', 'frequency', 'monetary_value', 'avg_cost', 'canceled_count',
+                        'cancellation_rate', 'time_since_first_visit', 'vehicle_year', 'vehicle_mileage']
             X = df[features]
             y = df['segment']
 
+            # Uzupełnienie brakujących wartości
+            X = X.fillna(X.median())
+
+            # Balansowanie danych
             X_balanced, y_balanced = balance_data(X, y)
 
+            # Definicja pipeline z skalowaniem i klasyfikatorem
             pipeline = Pipeline([
                 ('scaler', StandardScaler()),
                 ('classifier', RandomForestClassifier(random_state=42))
             ])
 
+            # Definicja siatki parametrów dla GridSearchCV
             param_grid = {
                 'classifier__n_estimators': [50, 100, 200],
                 'classifier__max_depth': [10, 20, 30],
-                'classifier__min_samples_split': [2, 5, 10]
+                'classifier__min_samples_split': [2, 5, 10],
+                'classifier__min_samples_leaf': [1, 2, 4]
             }
 
             grid_search = GridSearchCV(
                 pipeline,
                 param_grid,
                 scoring='accuracy',
-                cv=StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+                cv=StratifiedKFold(n_splits=5, shuffle=True, random_state=42),
+                n_jobs=-1,
+                verbose=1
             )
 
             try:
@@ -129,28 +169,19 @@ class Command(BaseCommand):
                 self.stdout.write(self.style.ERROR(f"Błąd podczas Grid Search: {e}"))
                 raise e
 
-            best_model.fit(X_balanced, y_balanced)
-
+            # Predykcja na zbiorze treningowym (po balansowaniu)
             y_pred = best_model.predict(X_balanced)
             self.stdout.write(self.style.NOTICE("Raport klasyfikacji:"))
             self.stdout.write(classification_report(y_balanced, y_pred))
 
+            # Plotowanie macierzy konfuzji
             plot_confusion_matrix(y_balanced, y_pred, labels=np.unique(y_balanced), title="Macierz konfuzji")
 
-            if hasattr(best_model, "predict_proba"):
-                y_probs = best_model.predict_proba(X_balanced)
-                fpr, tpr, _ = roc_curve(y_balanced, y_probs[:, 1], pos_label=1)
-                roc_auc = auc(fpr, tpr)
-                plt.plot(fpr, tpr, label=f'ROC Curve (AUC = {roc_auc:.2f})')
-                plt.xlabel('False Positive Rate')
-                plt.ylabel('True Positive Rate')
-                plt.title('ROC Curve')
-                plt.legend()
-                plt.show()
-
+            # Zapisanie modelu
             model_path = os.path.join(os.path.dirname(__file__), 'advanced_client_segment_classifier.joblib')
             joblib.dump(best_model, model_path)
 
+            # Zapisanie metadanych
             metadata = {
                 'best_params': grid_search.best_params_,
                 'features': features,

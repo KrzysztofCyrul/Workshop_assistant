@@ -20,8 +20,8 @@ class AddRepairItemDialog extends StatefulWidget {
 class _AddRepairItemDialogState extends State<AddRepairItemDialog> {
   final _formKey = GlobalKey<FormState>();
   String? _description;
-  String _status = 'pending'; // Domyślny status
-  int _order = 0; // Domyślny priorytet
+  String _status = 'pending';
+  int _order = 0;
   double? _cost;
   bool _isLoading = false;
 

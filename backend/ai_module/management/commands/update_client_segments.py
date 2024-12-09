@@ -11,7 +11,7 @@ from clients.models import Client
 
 SEGMENT_DISCOUNTS = {
     'A': 10.00,  # 10% rabatu
-    'B': 5.00,  # 5% rabatu
+    'B': 5.00,   # 5% rabatu
     'C': 2.00,   # 2% rabatu
     'D': 0.00,   # Brak rabatu
 }
@@ -46,14 +46,25 @@ class Command(BaseCommand):
             time_since_first_visit = (
                 (today - first_appointment_date.date()).days
                 if first_appointment_date
-                else 0
+                else 365  # Używamy 365 jako domyślnej wartości
             )
             canceled_count = canceled_appointments.count()
+            total_appointments = frequency + canceled_count
             cancellation_rate = (
-                canceled_count / (frequency + canceled_count)
-                if (frequency + canceled_count) > 0
+                canceled_count / total_appointments
+                if total_appointments > 0
                 else 0
             )
+
+            # Pobieranie danych o pojeździe
+            vehicles = client.vehicles.all()
+            if vehicles.exists():
+                latest_vehicle = vehicles.order_by('-year').first()
+                vehicle_year = latest_vehicle.year
+                vehicle_mileage = latest_vehicle.mileage
+            else:
+                vehicle_year = today.year - 10 
+                vehicle_mileage = 100000 
 
             features = {
                 'recency': recency,
@@ -61,12 +72,26 @@ class Command(BaseCommand):
                 'monetary_value': monetary_value,
                 'avg_cost': avg_cost,
                 'canceled_count': canceled_count,
-                'time_since_first_visit': time_since_first_visit,
                 'cancellation_rate': cancellation_rate,
+                'time_since_first_visit': time_since_first_visit,
+                'vehicle_year': vehicle_year,
+                'vehicle_mileage': vehicle_mileage,
             }
 
             # Upewnij się, że cechy są w odpowiedniej kolejności
-            return [features[feature] for feature in feature_order]
+            feature_values = [features.get(feature, 0) for feature in feature_order]
+
+            # Zamiana brakujących wartości na medianę lub inną wartość domyślną
+            for i, value in enumerate(feature_values):
+                if pd.isnull(value):
+                    if feature_order[i] == 'vehicle_year':
+                        feature_values[i] = today.year - 10  # Domyślnie 10-letni pojazd
+                    elif feature_order[i] == 'vehicle_mileage':
+                        feature_values[i] = 100000          # Domyślny przebieg
+                    else:
+                        feature_values[i] = 0
+
+            return feature_values
 
         def update_client_segments():
             model_path = os.path.join(os.path.dirname(__file__), 'advanced_client_segment_classifier.joblib')
@@ -98,6 +123,9 @@ class Command(BaseCommand):
                 try:
                     features = prepare_features(client, feature_order)
                     X_new = pd.DataFrame([features], columns=feature_order)
+
+                    # Uzupełnienie brakujących wartości
+                    X_new = X_new.fillna(X_new.median())
 
                     predicted_segment = model.predict(X_new)[0]
                     client.segment = predicted_segment

@@ -93,11 +93,11 @@ class RepairItem {
       'description': description,
       'status': status,
       'order': order,
-      'cost': cost.toString(),
-      'estimated_duration':
-          estimatedDuration != null ? _formatDuration(estimatedDuration) : null,
-      'actual_duration':
-          actualDuration != null ? _formatDuration(actualDuration) : null,
+      'cost': cost,
+      'estimated_duration': estimatedDuration?.inMinutes,
+      'actual_duration': actualDuration?.inMinutes,
     };
   }
+
+  String get formattedCost => '${cost.toStringAsFixed(2)} PLN';
 }

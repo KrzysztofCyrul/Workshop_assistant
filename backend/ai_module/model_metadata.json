@@ -1,0 +1,15 @@
+{
+    "features": [
+        "recency",
+        "frequency",
+        "monetary_value",
+        "avg_cost",
+        "canceled_count",
+        "time_since_first_visit",
+        "cancellation_rate",
+        "vehicle_year",
+        "vehicle_mileage"
+    ],
+    "best_params": null,
+    "accuracy": 0.9666666666666667
+}

@@ -5,7 +5,6 @@ import '../models/repair_item.dart';
 import '../utils/constants.dart';
 
 class AppointmentService {
-  // Metoda pobierająca listę zleceń dla warsztatu
   static Future<List<Appointment>> getAppointments(
       String accessToken, String workshopId) async {
     final url = Uri.parse('$baseUrl/workshops/$workshopId/appointments/');
@@ -25,16 +24,20 @@ class AppointmentService {
     }
   }
 
-
-  // Metoda tworząca nowe zlecenie
-  static Future<void> createAppointment(
-    String accessToken,
-    String workshopId,
-    String clientId,
-    String vehicleId,
-    DateTime scheduledTime,
+  static Future<void> createAppointment({
+    required String accessToken,
+    required String workshopId,
+    required String clientId,
+    required String vehicleId,
+    required DateTime scheduledTime,
     String? notes,
-  ) async {
+    int mileage = 0,
+    String? recommendations,
+    Duration? estimatedDuration,
+    double? totalCost,
+    // List<String>? assignedMechanicIds,
+    String status = 'scheduled',
+  }) async {
     final url = Uri.parse('$baseUrl/workshops/$workshopId/appointments/');
     final response = await http.post(
       url,
@@ -43,10 +46,18 @@ class AppointmentService {
         'Content-Type': 'application/json',
       },
       body: json.encode({
-        'client': clientId,
-        'vehicle': vehicleId,
-        'scheduled_time': scheduledTime.toUtc().toIso8601String(),
+        'client_id': clientId,
+        'vehicle_id': vehicleId,
+        'scheduled_time': scheduledTime.toIso8601String(),
         'notes': notes,
+        'mileage': mileage,
+        'recommendations': recommendations,
+        'estimated_duration': estimatedDuration != null
+            ? estimatedDuration.inMinutes
+            : null,
+        'total_cost': totalCost,
+        // 'assigned_mechanics': assignedMechanicIds,
+        'status': status,
       }),
     );
 
@@ -55,7 +66,29 @@ class AppointmentService {
     }
   }
 
-// Metoda tworząca nowy element naprawy
+static Future<void> updateAppointmentStatus({
+    required String accessToken,
+    required String workshopId,
+    required String appointmentId,
+    required String status,
+  }) async {
+    final url = Uri.parse('$baseUrl/workshops/$workshopId/appointments/$appointmentId/');
+    final response = await http.patch(
+      url,
+      headers: {
+        'Authorization': 'Bearer $accessToken',
+        'Content-Type': 'application/json',
+      },
+      body: json.encode({'status': status}),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Błąd podczas aktualizacji statusu: ${response.body}');
+    }
+  }
+
+
+
   static Future<void> createRepairItem(
     String accessToken,
     String workshopId,
@@ -86,8 +119,6 @@ class AppointmentService {
       throw Exception('Błąd podczas tworzenia elementu naprawy: ${response.body}');
     }
   }
-
-
 
 // Funkcja pomocnicza do konwersji Duration na String w formacie HH:MM:SS
 static String _durationToString(Duration duration) {
@@ -164,9 +195,7 @@ static String _durationToString(Duration duration) {
     final url = Uri.parse(
         '$baseUrl/workshops/$workshopId/appointments/$appointmentId/repair-items/$repairItemId/');
 
-    // Ponieważ metoda PATCH zwraca błąd 405, użyjemy metody PUT
-    // Przy metodzie PUT musimy przesłać wszystkie wymagane pola
-    // Najpierw pobierzemy aktualne dane elementu naprawy
+
     final existingRepairItem = await getRepairItemDetails(
       accessToken,
       workshopId,

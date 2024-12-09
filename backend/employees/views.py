@@ -8,21 +8,18 @@ from workshops.models import Workshop
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from accounts.permissions import IsWorkshopOwner
+from accounts.permissions import IsWorkshopOwner, IsAdmin, IsMechanic
 
 
 class EmployeeViewSet(viewsets.ModelViewSet):
     serializer_class = EmployeeSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsWorkshopOwner | IsAdmin | IsMechanic]
     
     def get_queryset(self):
         workshop_id = self.kwargs['workshop_pk']
         workshop = Workshop.objects.get(id=workshop_id)
-        user = self.request.user
-        if user.is_superuser or workshop.owner == user:
-            return Employee.objects.filter(workshop=workshop)
-        else:
-            raise PermissionDenied("Nie masz uprawnień do przeglądania pracowników tego warsztatu.")
+        return Employee.objects.filter(workshop=workshop)
+
     
     def get_serializer_context(self):
         context = super().get_serializer_context()

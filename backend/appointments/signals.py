@@ -63,9 +63,9 @@ def update_total_time(sender, instance, **kwargs):
     appointment.save()
 
 SEGMENT_DISCOUNTS = {
-    'A': 20.00,  # 20% rabatu
-    'B': 10.00,  # 10% rabatu
-    'C': 5.00,   # 5% rabatu
+    'A': 10.00,  # 20% rabatu
+    'B': 5.00,  # 10% rabatu
+    'C': 2.00,   # 5% rabatu
     'D': 0.00,   # Brak rabatu
 }
 

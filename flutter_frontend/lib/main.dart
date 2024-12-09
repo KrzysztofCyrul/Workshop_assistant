@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_frontend/providers/vehicle_provider.dart';
 import 'package:provider/provider.dart';
 import 'providers/auth_provider.dart';
 import 'providers/workshop_provider.dart';
 import 'providers/client_provider.dart';
 import 'routes/app_routes.dart';
 import 'screens/auth/login_screen.dart';
-import 'screens/appointments/home_appointments_screen.dart';
+import 'providers/employee_provider.dart';
+import 'screens/appointments/appointments_screen.dart';
 
 void main() {
   runApp(
@@ -14,6 +16,8 @@ void main() {
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => WorkshopProvider()),
         ChangeNotifierProvider(create: (_) => ClientProvider()),
+        ChangeNotifierProvider(create: (_) => EmployeeProvider()),
+        ChangeNotifierProvider(create: (_) => VehicleProvider()),
       ],
       child: const MyApp(),
     ),
@@ -34,7 +38,7 @@ class MyApp extends StatelessWidget {
       ),
       routes: AppRoutes.routes,
       initialRoute: authProvider.isAuthenticated
-          ? HomeAppointmentsScreen.routeName
+          ? AppointmentsScreen.routeName
           : LoginScreen.routeName,
     );
   }

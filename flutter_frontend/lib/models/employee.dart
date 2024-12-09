@@ -1,6 +1,7 @@
 class Employee {
   final String id;
   final String userId;
+  final String userFullName;
   final String workshopId;
   final String position;
   final String status;
@@ -10,6 +11,7 @@ class Employee {
   Employee({
     required this.id,
     required this.userId,
+    required this.userFullName,
     required this.workshopId,
     required this.position,
     required this.status,
@@ -21,6 +23,7 @@ class Employee {
     return Employee(
       id: json['id'],
       userId: json['user'],
+      userFullName: json['user_full_name'],
       workshopId: json['workshop'],
       position: json['position'] ?? '',
       status: json['status'] ?? '',

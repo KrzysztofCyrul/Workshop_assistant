@@ -53,23 +53,21 @@ class AppointmentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Appointment
-        fields = (
-            'id', 'workshop', 'client', 'client_id', 'vehicle', 'vehicle_id', 'assigned_mechanics', 
-            'mileage', 'scheduled_time', 'status', 'notes', 'created_at', 'updated_at', 'repair_items' 
-        )
+        fields = '__all__'
+        
         read_only_fields = ('id', 'workshop', 'client', 'vehicle', 'created_at', 'updated_at')
 
-    def validate(self, attrs):
-        workshop = self.context['workshop']
-        client = attrs.get('client')
-        vehicle = attrs.get('vehicle')
-        if client.workshop != workshop:
-            raise serializers.ValidationError("Klient nie należy do tego warsztatu.")
+    def validate(self, data):
+        client = data.get('client')
+        workshop = data.get('workshop')
 
-        if vehicle.client != client:
-            raise serializers.ValidationError("Pojazd nie należy do wybranego klienta.")
+        # if client is None:
+        #     raise serializers.ValidationError("Klient nie istnieje.")
 
-        return attrs
+        # if client.workshop != workshop:
+        #     raise serializers.ValidationError("Klient nie jest powiązany z tym warsztatem.")
+
+        return data
 
     def update(self, instance, validated_data):
         previous_status = instance.status
@@ -82,6 +80,6 @@ class AppointmentSerializer(serializers.ModelSerializer):
         return instance
 
     def validate_mileage(self, value):
-        if value < self.instance.vehicle.mileage:
-            raise serializers.ValidationError("Przebieg nie może być mniejszy niż aktualny przebieg pojazdu.")
+        if self.instance and self.instance.vehicle and value < self.instance.vehicle.mileage:
+            raise serializers.ValidationError("Mileage cannot be less than the current vehicle mileage.")
         return value

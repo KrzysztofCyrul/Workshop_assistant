@@ -5,30 +5,27 @@ import '../../models/appointment.dart';
 import '../../services/appointment_service.dart';
 import 'package:intl/intl.dart';
 import 'appointment_details_screen.dart';
-import 'add_appointment_screen.dart';
-import 'completed_appointments_screen.dart';
-import 'canceled_appointments_screen.dart';
 
-class AppointmentsScreen extends StatefulWidget {
-  static const routeName = '/appointments';
+class CanceledAppointmentsScreen extends StatefulWidget {
+  static const routeName = '/canceled-appointments';
 
-  const AppointmentsScreen({super.key});
+  const CanceledAppointmentsScreen({super.key});
 
   @override
-  _AppointmentsScreenState createState() => _AppointmentsScreenState();
+  _CanceledAppointmentsScreenState createState() => _CanceledAppointmentsScreenState();
 }
 
-class _AppointmentsScreenState extends State<AppointmentsScreen> {
-  late Future<List<Appointment>> _scheduledAppointmentsFuture;
+class _CanceledAppointmentsScreenState extends State<CanceledAppointmentsScreen> {
+  late Future<List<Appointment>> _canceledAppointmentsFuture;
   String? _workshopId;
 
   @override
   void initState() {
     super.initState();
-    _scheduledAppointmentsFuture = _fetchScheduledAppointments();
+    _canceledAppointmentsFuture = _fetchCanceledAppointments();
   }
 
-  Future<List<Appointment>> _fetchScheduledAppointments() async {
+  Future<List<Appointment>> _fetchCanceledAppointments() async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final user = authProvider.user;
 
@@ -36,10 +33,11 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
       throw Exception('Brak danych użytkownika');
     }
 
-    bool isMechanic = user.roles.contains('mechanic') || user.roles.contains('workshop_owner');
+    bool isMechanic = user.roles.contains('mechanic');
     bool isAssignedToWorkshop = user.employeeProfiles.isNotEmpty;
 
     if (isMechanic && isAssignedToWorkshop) {
+      // Pobierz workshopId z employeeProfiles
       final employee = user.employeeProfiles.first;
       _workshopId = employee.workshopId;
 
@@ -48,7 +46,12 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
         _workshopId!,
       );
 
-      appointments = appointments.where((appointment) => appointment.status.toLowerCase() == 'scheduled').toList();
+      // Filtruj tylko anulowane wizyty
+      appointments = appointments
+          .where((appointment) => appointment.status.toLowerCase() == 'canceled')
+          .toList();
+
+      // Sortuj według daty zakończenia (najpierw najnowsze)
       appointments.sort((a, b) => b.scheduledTime.compareTo(a.scheduledTime));
 
       return appointments;
@@ -57,9 +60,9 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
     }
   }
 
-  Future<void> _refreshScheduledAppointments() async {
+  Future<void> _refreshCanceledAppointments() async {
     setState(() {
-      _scheduledAppointmentsFuture = _fetchScheduledAppointments();
+      _canceledAppointmentsFuture = _fetchCanceledAppointments();
     });
   }
 
@@ -67,27 +70,10 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Zaplanowane Zlecenia'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.check_circle),
-            tooltip: 'Zakończone zlecenia',
-            onPressed: _navigateToCompletedAppointments,
-          ),
-          IconButton(
-            icon: const Icon(Icons.cancel),
-            tooltip: 'Anulowane zlecenia',
-            onPressed: _navigateToCanceledAppointments,
-          ),
-          IconButton(
-            icon: const Icon(Icons.add),
-            tooltip: 'Dodaj zlecenie',
-            onPressed: _navigateToAddAppointment,
-          ),
-        ],
+        title: const Text('Zakończone Zlecenia'),
       ),
       body: FutureBuilder<List<Appointment>>(
-        future: _scheduledAppointmentsFuture,
+        future: _canceledAppointmentsFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -105,7 +91,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                     ),
                     const SizedBox(height: 20),
                     ElevatedButton.icon(
-                      onPressed: _refreshScheduledAppointments,
+                      onPressed: _refreshCanceledAppointments,
                       icon: const Icon(Icons.refresh),
                       label: const Text('Ponów próbę'),
                     ),
@@ -116,41 +102,36 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
             return const Center(
               child: Text(
-                'Brak zaplanowanych zleceń.',
+                'Brak zakończonych zleceń do wyświetlenia',
                 style: TextStyle(fontSize: 16),
               ),
             );
           } else {
-            final appointments = snapshot.data!;
+            final canceledAppointments = snapshot.data!;
             return RefreshIndicator(
-              onRefresh: _refreshScheduledAppointments,
+              onRefresh: _refreshCanceledAppointments,
               child: ListView.separated(
                 padding: const EdgeInsets.all(8.0),
-                itemCount: appointments.length,
+                itemCount: canceledAppointments.length,
                 separatorBuilder: (context, index) => const Divider(),
                 itemBuilder: (context, index) {
-                  return _buildAppointmentItem(appointments[index]);
+                  return _buildCanceledAppointmentItem(canceledAppointments[index]);
                 },
               ),
             );
           }
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _navigateToAddAppointment,
-        child: const Icon(Icons.add),
-        tooltip: 'Dodaj zlecenie',
-      ),
     );
   }
 
-  Widget _buildAppointmentItem(Appointment appointment) {
+  Widget _buildCanceledAppointmentItem(Appointment appointment) {
     return Card(
       elevation: 3,
       margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       child: ListTile(
-        leading: const Icon(Icons.event, size: 40, color: Colors.blue),
+        leading: const Icon(Icons.cancel, size: 40, color: Colors.red),
         title: Text(
           'Wizyta: ${appointment.vehicle.make} ${appointment.vehicle.model}',
           style: const TextStyle(fontWeight: FontWeight.bold),
@@ -194,70 +175,13 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
             },
           );
         },
-        onLongPress: () => _showChangeStatusPopup(appointment),
       ),
     );
   }
 
-  void _showChangeStatusPopup(Appointment appointment) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Zmień status wizyty'),
-          content: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              IconButton(
-                icon: const Icon(Icons.check_circle, color: Colors.green),
-                onPressed: () {
-                  _updateAppointmentStatus(appointment, 'completed');
-                  Navigator.pop(context);
-                },
-                tooltip: 'Zakończone',
-              ),
-              IconButton(
-                icon: const Icon(Icons.cancel, color: Colors.red),
-                onPressed: () {
-                  _updateAppointmentStatus(appointment, 'canceled');
-                  Navigator.pop(context);
-                },
-                tooltip: 'Anulowane',
-              ),
-              IconButton(
-                icon: const Icon(Icons.pending, color: Colors.orange),
-                onPressed: () {
-                  _updateAppointmentStatus(appointment, 'pending');
-                  Navigator.pop(context);
-                },
-                tooltip: 'Oczekujące',
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
- void _updateAppointmentStatus(Appointment appointment, String newStatus) async {
-  try {
-    await AppointmentService.updateAppointmentStatus(
-      appointmentId: appointment.id,
-      status: newStatus,
-      accessToken: Provider.of<AuthProvider>(context, listen: false).accessToken!,
-      workshopId: _workshopId!,
-    );
-    _refreshScheduledAppointments();
-  } catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Nie udało się zmienić statusu: $e')),
-    );
-  }
-}
-
   Color _getStatusColor(String status) {
     switch (status.toLowerCase()) {
-      case 'completed':
+      case 'canceled':
         return Colors.green;
       case 'pending':
         return Colors.orange;
@@ -266,24 +190,5 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
       default:
         return Colors.grey;
     }
-  }
-
-  void _navigateToAddAppointment() async {
-    final result = await Navigator.pushNamed(
-      context,
-      AddAppointmentScreen.routeName,
-    );
-
-    if (result == true) {
-      _refreshScheduledAppointments();
-    }
-  }
-
-  void _navigateToCompletedAppointments() {
-    Navigator.pushNamed(context, CompletedAppointmentsScreen.routeName);
-  }
-
-  void _navigateToCanceledAppointments() {
-    Navigator.pushNamed(context, CanceledAppointmentsScreen.routeName);
   }
 }

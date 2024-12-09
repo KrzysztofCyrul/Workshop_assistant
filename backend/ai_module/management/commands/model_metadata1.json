@@ -1,0 +1,1 @@
+{"best_params": {"classifier__max_depth": 10, "classifier__min_samples_split": 2, "classifier__n_estimators": 200}, "features": ["recency", "frequency", "monetary_value", "avg_cost", "time_since_first_visit", "canceled_count", "cancellation_rate"], "accuracy": 0.9124137931034483}
