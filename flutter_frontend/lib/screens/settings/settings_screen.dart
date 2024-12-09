@@ -23,6 +23,7 @@ class SettingsScreen extends StatelessWidget {
           children: [
             GeneralSettingsScreen(),
             SegmentColorsScreen(),
+
           ],
         ),
       ),

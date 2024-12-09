@@ -11,6 +11,7 @@ import '../vehicles/vehicle_list_screen.dart';
 import '../vehicles/client_vehicle_list_screen.dart';
 import '../settings/settings_screen.dart';
 import '../clients/add_client_screen.dart';
+import '../appointments/appointment_calendar_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   static const routeName = '/home';
@@ -31,6 +32,10 @@ class HomeScreen extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () => _logout(context),
+          ),
+          IconButton(
+            icon: const Icon(Icons.calendar_month),
+            onPressed: () => _navgiateToCalendar(context),
           ),
         ],
       ),
@@ -207,6 +212,10 @@ class HomeScreen extends StatelessWidget {
         'clientId': clientId,
       },
     );
+  }
+
+  void _navgiateToCalendar(BuildContext context) {
+    Navigator.of(context).pushNamed(AppointmentCalendarScreen.routeName);
   }
 
   void _logout(BuildContext context) async {

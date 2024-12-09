@@ -418,13 +418,13 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
                                 icon: Icons.attach_money,
                               ),
                               if (appointment.notes != null && appointment.notes!.isNotEmpty)
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                                const Padding(
+                                  padding: EdgeInsets.symmetric(vertical: 8.0),
                                   child: Align(
                                     alignment: Alignment.centerLeft,
                                     child: Text(
                                       'Notatki:',
-                                      style: const TextStyle(fontWeight: FontWeight.bold),
+                                      style: TextStyle(fontWeight: FontWeight.bold),
                                     ),
                                   ),
                                 ),

@@ -18,6 +18,7 @@ import '../screens/vehicles/client_vehicle_list_screen.dart';
 import '../screens/vehicles/vehicle_details_screen.dart';
 import '../screens/clients/add_client_screen.dart';
 import '../screens/vehicles/add_vehicle_screen.dart';
+import '../screens/appointments/appointment_calendar_screen.dart';
 
 class AppRoutes {
   static final routes = <String, WidgetBuilder>{
@@ -37,42 +38,43 @@ class AppRoutes {
       );
     },
     AddAppointmentScreen.routeName: (context) => const AddAppointmentScreen(),
+    AppointmentCalendarScreen.routeName: (context) => const AppointmentCalendarScreen(),
     WorkshopListScreen.routeName: (context) => const WorkshopListScreen(),
     ClientsScreen.routeName: (context) => const ClientsScreen(),
     AddClientScreen.routeName: (context) => AddClientScreen(),
     EmployeeDetailsScreen.routeName: (context) {
-          final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
-          final workshopId = args['workshopId']!;
-          final employeeId = args['employeeId']!;
-          return EmployeeDetailsScreen(workshopId: workshopId, employeeId: employeeId);
-        },
-        VehicleListScreen.routeName: (context) {
-          final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
-          final workshopId = args['workshopId']!;
-          return VehicleListScreen(workshopId: workshopId);
-        },
-        AddVehicleScreen.routeName: (context) {
-          final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
-          final workshopId = args['workshopId']!;
-          return AddVehicleScreen(workshopId: workshopId);
-        },
-        ClientVehicleListScreen.routeName: (context) {
-          final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
-          final workshopId = args['workshopId']!;
-          final clientId = args['clientId']!;
-          return ClientVehicleListScreen(workshopId: workshopId, clientId: clientId);
-        },
-        VehicleDetailsScreen.routeName: (context) {
-          final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
-          final workshopId = args['workshopId']!;
-          final vehicleId = args['vehicleId']!;
-          return VehicleDetailsScreen(workshopId: workshopId, vehicleId: vehicleId);
-        },
-        ClientDetailsScreen.routeName: (context) {
-          final args = ModalRoute.of(context)!.settings.arguments as Map<dynamic, dynamic>;
-          final client = args['client'] as Client;
-          return ClientDetailsScreen(client: client);
-        },
-        SettingsScreen.routeName: (context) => SettingsScreen(),
+      final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+      final workshopId = args['workshopId']!;
+      final employeeId = args['employeeId']!;
+      return EmployeeDetailsScreen(workshopId: workshopId, employeeId: employeeId);
+    },
+    VehicleListScreen.routeName: (context) {
+      final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+      final workshopId = args['workshopId']!;
+      return VehicleListScreen(workshopId: workshopId);
+    },
+    AddVehicleScreen.routeName: (context) {
+      final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+      final workshopId = args['workshopId']!;
+      return AddVehicleScreen(workshopId: workshopId);
+    },
+    ClientVehicleListScreen.routeName: (context) {
+      final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+      final workshopId = args['workshopId']!;
+      final clientId = args['clientId']!;
+      return ClientVehicleListScreen(workshopId: workshopId, clientId: clientId);
+    },
+    VehicleDetailsScreen.routeName: (context) {
+      final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+      final workshopId = args['workshopId']!;
+      final vehicleId = args['vehicleId']!;
+      return VehicleDetailsScreen(workshopId: workshopId, vehicleId: vehicleId);
+    },
+    ClientDetailsScreen.routeName: (context) {
+      final args = ModalRoute.of(context)!.settings.arguments as Map<dynamic, dynamic>;
+      final client = args['client'] as Client;
+      return ClientDetailsScreen(client: client);
+    },
+    SettingsScreen.routeName: (context) => SettingsScreen(),
   };
 }
