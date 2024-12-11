@@ -5,7 +5,8 @@ import '../../providers/auth_provider.dart';
 import '../../providers/vehicle_provider.dart';
 import '../../providers/client_provider.dart';
 import '../../models/client.dart';
-import '../clients/add_client_screen.dart'; // Import the AddClientScreen
+import '../clients/add_client_screen.dart';
+import '../../utils/colors.dart';
 
 class AddVehicleScreen extends StatefulWidget {
   static const routeName = '/add-vehicle';
@@ -39,6 +40,21 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
   void initState() {
     super.initState();
     _loadClients();
+  }
+
+    Color _getSegmentColor(String? segment) {
+    switch (segment) {
+      case 'A':
+        return SegmentColors.segmentA;
+      case 'B':
+        return SegmentColors.segmentB;
+      case 'C':
+        return SegmentColors.segmentC;
+      case 'D':
+        return SegmentColors.segmentD;
+      default:
+        return SegmentColors.defaultColor;
+    }
   }
 
   Future<void> _loadClients() async {
@@ -126,7 +142,7 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              DropdownSearch<Client>(
+               DropdownSearch<Client>(
                 popupProps: PopupProps.menu(
                   showSearchBox: true,
                   searchFieldProps: TextFieldProps(
@@ -147,6 +163,13 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                     ),
                   ),
                   itemBuilder: (context, client, isSelected) => ListTile(
+                    leading: CircleAvatar(
+                      backgroundColor: _getSegmentColor(client.segment),
+                      child: Text(
+                        client.segment ?? '-',
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                    ),
                     title: Text('${client.firstName} ${client.lastName}'),
                     subtitle: Text('Telefon: ${client.phone ?? 'Brak'}'),
                   ),

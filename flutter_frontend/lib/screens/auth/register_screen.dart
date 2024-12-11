@@ -24,42 +24,48 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
 
-  void _register() async {
-    if (!_formKey.currentState!.validate()) return;
+void _register() async {
+  if (!_formKey.currentState!.validate()) return;
 
-    setState(() {
-      _isLoading = true;
-    });
+  setState(() {
+    _isLoading = true;
+  });
 
-    Map<String, dynamic> userData = {
-      'email': _emailController.text,
-      'password': _passwordController.text,
-      'first_name': _firstNameController.text,
-      'last_name': _lastNameController.text,
-      'role': _selectedRole,
-    };
+  Map<String, dynamic> userData = {
+    'email': _emailController.text,
+    'password': _passwordController.text,
+    'first_name': _firstNameController.text,
+    'last_name': _lastNameController.text,
+    'role': _selectedRole,
+  };
 
-    try {
-      await Provider.of<AuthProvider>(context, listen: false).register(userData);
+  try {
+    await Provider.of<AuthProvider>(context, listen: false).register(userData);
 
-      Navigator.pushReplacementNamed(context, '/home');
-    } catch (e) {
-      if (e.toString().contains('errors')) {
-        Map<String, dynamic> errors = e.toString() as Map<String, dynamic>;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(errors.values.join('\n'))),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString())),
-        );
-      }
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
+    // Navigate to login screen after successful registration
+    Navigator.pushReplacementNamed(context, '/login');
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Rejestracja zakończona pomyślnie. Zaloguj się.')),
+    );
+  } catch (e) {
+    if (e.toString().contains('errors')) {
+      Map<String, dynamic> errors = e.toString() as Map<String, dynamic>;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(errors.values.join('\n'))),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString())),
+      );
     }
+  } finally {
+    setState(() {
+      _isLoading = false;
+    });
   }
+}
+
 
   void _navigateToLogin() {
     Navigator.pop(context);

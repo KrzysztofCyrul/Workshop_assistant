@@ -20,6 +20,8 @@ import '../screens/clients/add_client_screen.dart';
 import '../screens/vehicles/add_vehicle_screen.dart';
 import '../screens/appointments/appointment_calendar_screen.dart';
 import '../screens/service_records/service_history_screen.dart';
+import '../screens/workshop/add_workshop_screen.dart';
+import '../screens/relationships/client_statistics_screen.dart';
 
 class AppRoutes {
   static final routes = <String, WidgetBuilder>{
@@ -83,5 +85,7 @@ class AppRoutes {
       final vehicleId = args['vehicleId']!;
       return VehicleServiceHistoryScreen(workshopId: workshopId, vehicleId: vehicleId);
     },
+    CreateWorkshopScreen.routeName: (context) => const CreateWorkshopScreen(),
+    ClientsStatisticsScreen.routeName: (context) => const ClientsStatisticsScreen(),
   };
 }

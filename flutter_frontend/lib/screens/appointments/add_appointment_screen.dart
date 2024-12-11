@@ -239,78 +239,77 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                           children: [
                             Text('Informacje Klienta', style: Theme.of(context).textTheme.titleMedium),
                             const SizedBox(height: 16.0),
-DropdownSearch<Client>(
-  popupProps: PopupProps.menu(
-    showSearchBox: true,
-    searchFieldProps: TextFieldProps(
-      decoration: const InputDecoration(
-        labelText: 'Szukaj klienta',
-        prefixIcon: Icon(Icons.search),
-        border: OutlineInputBorder(),
-      ),
-    ),
-    itemBuilder: (context, client, isSelected) => ListTile(
-      leading: CircleAvatar(
-        backgroundColor: _getSegmentColor(client.segment),
-        child: Text(
-          client.segment ?? '-',
-          style: const TextStyle(color: Colors.white),
-        ),
-      ),
-      title: Text('${client.firstName} ${client.lastName}'),
-      subtitle: Text('Telefon: ${client.phone ?? 'Brak'}'),
-    ),
-  ),
-  selectedItem: _selectedClient,
-  asyncItems: (String filter) async {
-    return _clients
-        .where((client) =>
-            client.firstName.toLowerCase().contains(filter.toLowerCase()) ||
-            client.lastName.toLowerCase().contains(filter.toLowerCase()) ||
-            (client.phone?.contains(filter) ?? false))
-        .toList();
-  },
-  itemAsString: (client) => '${client.firstName} ${client.lastName} - ${client.phone ?? 'Brak'}',
-  dropdownDecoratorProps: const DropDownDecoratorProps(
-    dropdownSearchDecoration: InputDecoration(
-      labelText: 'Klient',
-      border: OutlineInputBorder(),
-    ),
-  ),
-  onChanged: (value) async {
-    setState(() {
-      _selectedClient = value;
-      _vehicles = [];
-      _selectedVehicle = null; // Resetuj wybrany pojazd
-    });
-    if (value != null) {
-      await _fetchVehicles(value.id);
-    }
-  },
-  validator: (value) => value == null ? 'Wybierz klienta' : null,
-),
-
-                              const SizedBox(height: 16.0),
-                              if (_selectedClient != null)
-                                DropdownButtonFormField<Vehicle>(
-                                  decoration: const InputDecoration(
-                                    labelText: 'Pojazd',
+                            DropdownSearch<Client>(
+                              popupProps: PopupProps.menu(
+                                showSearchBox: true,
+                                searchFieldProps: const TextFieldProps(
+                                  decoration: InputDecoration(
+                                    labelText: 'Szukaj klienta',
+                                    prefixIcon: Icon(Icons.search),
                                     border: OutlineInputBorder(),
                                   ),
-                                  items: _vehicles.map((vehicle) {
-                                    return DropdownMenuItem<Vehicle>(
-                                      value: vehicle,
-                                      child: Text('${vehicle.make} ${vehicle.model}'),
-                                    );
-                                  }).toList(),
-                                  value: _selectedVehicle, // Ustaw aktualnie wybrany pojazd
-                                  onChanged: (value) {
-                                    setState(() {
-                                      _selectedVehicle = value;
-                                    });
-                                  },
-                                  validator: (value) => value == null ? 'Wybierz pojazd' : null,
                                 ),
+                                itemBuilder: (context, client, isSelected) => ListTile(
+                                  leading: CircleAvatar(
+                                    backgroundColor: _getSegmentColor(client.segment),
+                                    child: Text(
+                                      client.segment ?? '-',
+                                      style: const TextStyle(color: Colors.white),
+                                    ),
+                                  ),
+                                  title: Text('${client.firstName} ${client.lastName}'),
+                                  subtitle: Text('Telefon: ${client.phone ?? 'Brak'}'),
+                                ),
+                              ),
+                              selectedItem: _selectedClient,
+                              asyncItems: (String filter) async {
+                                return _clients
+                                    .where((client) =>
+                                        client.firstName.toLowerCase().contains(filter.toLowerCase()) ||
+                                        client.lastName.toLowerCase().contains(filter.toLowerCase()) ||
+                                        (client.phone?.contains(filter) ?? false))
+                                    .toList();
+                              },
+                              itemAsString: (client) => '${client.firstName} ${client.lastName} - ${client.phone ?? 'Brak'}',
+                              dropdownDecoratorProps: const DropDownDecoratorProps(
+                                dropdownSearchDecoration: InputDecoration(
+                                  labelText: 'Klient',
+                                  border: OutlineInputBorder(),
+                                ),
+                              ),
+                              onChanged: (value) async {
+                                setState(() {
+                                  _selectedClient = value;
+                                  _vehicles = [];
+                                  _selectedVehicle = null; // Resetuj wybrany pojazd
+                                });
+                                if (value != null) {
+                                  await _fetchVehicles(value.id);
+                                }
+                              },
+                              validator: (value) => value == null ? 'Wybierz klienta' : null,
+                            ),
+                            const SizedBox(height: 16.0),
+                            if (_selectedClient != null)
+                              DropdownButtonFormField<Vehicle>(
+                                decoration: const InputDecoration(
+                                  labelText: 'Pojazd',
+                                  border: OutlineInputBorder(),
+                                ),
+                                items: _vehicles.map((vehicle) {
+                                  return DropdownMenuItem<Vehicle>(
+                                    value: vehicle,
+                                    child: Text('${vehicle.make} ${vehicle.model}'),
+                                  );
+                                }).toList(),
+                                value: _selectedVehicle, // Ustaw aktualnie wybrany pojazd
+                                onChanged: (value) {
+                                  setState(() {
+                                    _selectedVehicle = value;
+                                  });
+                                },
+                                validator: (value) => value == null ? 'Wybierz pojazd' : null,
+                              ),
                           ],
                         ),
                       ),

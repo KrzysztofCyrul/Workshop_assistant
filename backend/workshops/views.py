@@ -1,9 +1,10 @@
-from rest_framework import viewsets, permissions, generics
+from rest_framework import viewsets
 from workshops.models import Workshop
-from workshops.serializers import  WorkshopSerializer
-from rest_framework.exceptions import PermissionDenied
+from workshops.serializers import WorkshopSerializer
+from rest_framework.permissions import IsAuthenticated
 from accounts.permissions import IsMechanic, IsWorkshopOwner, IsAdmin, IsClient
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from django.utils.timezone import now
+
 
 class WorkshopViewSet(viewsets.ModelViewSet):
     serializer_class = WorkshopSerializer
@@ -12,29 +13,32 @@ class WorkshopViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
 
-        # Admin widzi wszystkie warsztaty
         if user.is_superuser:
             return Workshop.objects.all()
 
-        # Workshop Owner widzi tylko swoje warsztaty
         if user.roles.filter(name='workshop_owner').exists():
             return Workshop.objects.filter(owner=user)
 
-        # Mechanic widzi warsztaty, w których jest przypisany jako mechanik,
-        # lub wszystkie warsztaty, jeśli nie jest przypisany do żadnego
         if user.roles.filter(name='mechanic').exists():
             assigned_workshops = Workshop.objects.filter(employees__user=user).distinct()
             if not assigned_workshops.exists():
-                # Mechanik bez przypisania widzi wszystkie warsztaty
                 return Workshop.objects.all()
-
-            # Mechanik przypisany widzi swoje warsztaty
             return assigned_workshops
 
-        # Client widzi warsztaty, w których ma aktywne rezerwacje (jeśli jest taki mechanizm)
         if user.roles.filter(name='client').exists():
             return Workshop.objects.filter(reservations__client=user).distinct()
 
-        # W przypadku braku odpowiedniej roli, zwracamy puste queryset
         return Workshop.objects.none()
 
+    def perform_create(self, serializer):
+        workshop = serializer.save(owner=self.request.user)
+        
+        # Add the owner as an employee of the workshop
+        from employees.models import Employee  # Import your Employee model
+        Employee.objects.create(
+            user=self.request.user,
+            workshop=workshop,
+            position='workshop_owner',  # Or any default position for owners
+            status='APPROVED',  # Set default status
+            hire_date=now(),
+        )

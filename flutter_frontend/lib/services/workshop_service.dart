@@ -34,4 +34,51 @@ class WorkshopService {
       throw Exception('Błąd wysyłania prośby o dołączenie');
     }
   }
+static Future<Map<String, dynamic>> createWorkshop({
+    required String accessToken,
+    required String name,
+    required String address,
+  }) async {
+    final url = Uri.parse('$baseUrl/workshops/');
+    final response = await http.post(
+      url,
+      headers: {
+        'Authorization': 'Bearer $accessToken',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'name': name,
+        'address': address,
+      }),
+    );
+
+    if (response.statusCode == 201) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Błąd podczas tworzenia warsztatu: ${response.body}');
+    }
+  }
+
+  static Future<void> assignCreatorToWorkshop({
+    required String accessToken,
+    required String workshopId,
+    required String userId,
+  }) async {
+    final url = Uri.parse('$baseUrl/workshops/$workshopId/employees/');
+    final response = await http.post(
+      url,
+      headers: {
+        'Authorization': 'Bearer $accessToken',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'user_id': userId,
+        'position': 'Owner',
+      }),
+    );
+
+    if (response.statusCode != 201) {
+      throw Exception('Błąd przypisywania użytkownika do warsztatu: ${response.body}');
+    }
+  }
 }

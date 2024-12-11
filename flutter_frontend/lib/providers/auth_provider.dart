@@ -55,4 +55,22 @@ class AuthProvider with ChangeNotifier {
       throw Exception('Brak tokenu odświeżania');
     }
   }
+
+  Future<void> refreshUserProfile() async {
+  if (_accessToken != null) {
+    try {
+      final userData = await AuthService.getUserProfile(_accessToken!);
+      _user = User.fromJson(userData);
+      notifyListeners();
+    } catch (e) {
+      throw Exception('Błąd odświeżania profilu: $e');
+    }
+  }
+}
+
+bool get isWorkshopOwnerWithoutWorkshop {
+  final isOwner = user?.roles.contains('workshop_owner') ?? false;
+  final hasWorkshop = user?.employeeProfiles.isNotEmpty ?? false;
+  return isOwner && !hasWorkshop;
+}
 }

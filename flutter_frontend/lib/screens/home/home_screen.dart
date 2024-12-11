@@ -1,28 +1,54 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
-import '../vehicles/add_vehicle_screen.dart';
+import '../workshop/add_workshop_screen.dart';
 import '../workshop/workshop_list_screen.dart';
+import '../vehicles/add_vehicle_screen.dart';
 import '../appointments/add_appointment_screen.dart';
 import '../clients/clients_screen.dart';
 import '../appointments/appointments_screen.dart';
 import '../employee/employee_details_screen.dart';
 import '../vehicles/vehicle_list_screen.dart';
-import '../vehicles/client_vehicle_list_screen.dart';
 import '../settings/settings_screen.dart';
 import '../clients/add_client_screen.dart';
 import '../appointments/appointment_calendar_screen.dart';
+import '../relationships/client_statistics_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   static const routeName = '/home';
 
-  HomeScreen({Key? key}) : super(key: key);
+  const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
-    final workshopId = authProvider.user?.employeeProfiles.first.workshopId;
-    final employeeId = authProvider.user?.employeeProfiles.first.id;
+    final user = authProvider.user;
+
+    if (user == null) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    final employeeProfiles = user.employeeProfiles;
+    final isWorkshopOwner = user.roles.contains('workshop_owner');
+
+    // Redirect logic
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (isWorkshopOwner && employeeProfiles.isEmpty) {
+        Navigator.of(context).pushReplacementNamed(CreateWorkshopScreen.routeName);
+      } else if (employeeProfiles.isEmpty) {
+        Navigator.of(context).pushReplacementNamed(WorkshopListScreen.routeName);
+      }
+    });
+
+    // Handle mechanics or employees with profiles
+    if (employeeProfiles.isEmpty) {
+      return const Scaffold(); // Prevents errors during redirection
+    }
+
+    final workshopId = employeeProfiles.first.workshopId;
+    final employeeId = employeeProfiles.first.id;
 
     return Scaffold(
       appBar: AppBar(
@@ -35,12 +61,13 @@ class HomeScreen extends StatelessWidget {
           ),
           IconButton(
             icon: const Icon(Icons.calendar_month),
-            onPressed: () => _navgiateToCalendar(context),
+            onPressed: () => _navigateToCalendar(context),
           ),
         ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
+        // ignore: unnecessary_null_comparison
         child: workshopId == null
             ? _buildNoWorkshopView(context)
             : _buildWorkshopActions(context, workshopId, employeeId),
@@ -61,19 +88,19 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildWorkshopActions(BuildContext context, String workshopId, String? employeeId) {
+  Widget _buildWorkshopActions(
+      BuildContext context, String workshopId, String? employeeId) {
     final actions = [
       {
         'title': 'Dodaj Zlecenie',
         'icon': Icons.add_circle_outline,
         'action': () => _navigateToAddAppointment(context),
       },
-            {
+      {
         'title': 'Zlecenia',
         'icon': Icons.assignment,
         'action': () => _navigateToAppointments(context),
       },
-
       {
         'title': 'Dodaj Klienta',
         'icon': Icons.person_add,
@@ -94,18 +121,16 @@ class HomeScreen extends StatelessWidget {
         'icon': Icons.directions_car,
         'action': () => _navigateToVehicleList(context, workshopId),
       },
-            {
-        'title': 'Szczegóły Pracownika',
+      {
+        'title': 'Statystyki Klientów',
         'icon': Icons.person,
-        'action': employeeId != null
-            ? () => _navigateToEmployeeDetails(context, workshopId, employeeId)
-            : null,
+        'action': () => _navigateToClientStatistics(context),
       },
       {
         'title': 'Ustawienia',
         'icon': Icons.settings,
         'action': () => _navigateToSettings(context),
-      }
+      },
     ];
 
     return GridView.builder(
@@ -167,7 +192,8 @@ class HomeScreen extends StatelessWidget {
     Navigator.of(context).pushNamed(AppointmentsScreen.routeName);
   }
 
-  void _navigateToEmployeeDetails(BuildContext context, String workshopId, String employeeId) {
+  void _navigateToEmployeeDetails(
+      BuildContext context, String workshopId, String employeeId) {
     Navigator.of(context).pushNamed(
       EmployeeDetailsScreen.routeName,
       arguments: {
@@ -186,16 +212,6 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  void _navigateToClientVehicleList(BuildContext context, String workshopId, String clientId) {
-    Navigator.of(context).pushNamed(
-      ClientVehicleListScreen.routeName,
-      arguments: {
-        'workshopId': workshopId,
-        'clientId': clientId,
-      },
-    );
-  }
-
   void _navigateToSettings(BuildContext context) {
     Navigator.of(context).pushNamed(SettingsScreen.routeName);
   }
@@ -204,7 +220,8 @@ class HomeScreen extends StatelessWidget {
     Navigator.of(context).pushNamed(AddClientScreen.routeName);
   }
 
-  void _navigateToAddVehicle(BuildContext context, String workshopId, String clientId) {
+  void _navigateToAddVehicle(
+      BuildContext context, String workshopId, String clientId) {
     Navigator.of(context).pushNamed(
       AddVehicleScreen.routeName,
       arguments: {
@@ -214,7 +231,7 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  void _navgiateToCalendar(BuildContext context) {
+  void _navigateToCalendar(BuildContext context) {
     Navigator.of(context).pushNamed(AppointmentCalendarScreen.routeName);
   }
 
@@ -228,5 +245,9 @@ class HomeScreen extends StatelessWidget {
         SnackBar(content: Text('Błąd wylogowania: $e')),
       );
     }
+  }
+
+  void _navigateToClientStatistics(BuildContext context) {
+    Navigator.of(context).pushNamed(ClientsStatisticsScreen.routeName);
   }
 }
