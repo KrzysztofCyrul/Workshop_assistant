@@ -8,13 +8,7 @@ from django.db.models import Sum, Avg, Max, Min
 from django.core.management.base import BaseCommand
 import joblib
 from clients.models import Client
-
-SEGMENT_DISCOUNTS = {
-    'A': 10.00,  # 10% rabatu
-    'B': 5.00,   # 5% rabatu
-    'C': 2.00,   # 2% rabatu
-    'D': 0.00,   # Brak rabatu
-}
+from utils import SEGMENT_DISCOUNTS
 
 class Command(BaseCommand):
     help = 'Aktualizuje segmenty klientów na podstawie modelu ML'

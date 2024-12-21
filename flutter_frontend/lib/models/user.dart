@@ -16,6 +16,8 @@ class User {
     required this.employeeProfiles,
   });
 
+  String get fullName => '$firstName $lastName';
+
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
       id: json['id'],

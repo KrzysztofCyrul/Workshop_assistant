@@ -17,11 +17,13 @@ class EmployeeSerializer(serializers.ModelSerializer):
     roles = serializers.PrimaryKeyRelatedField(many=True, queryset=Role.objects.all(), required=False)
     schedule_entries = ScheduleEntrySerializer(many=True, read_only=True)
     user_full_name = serializers.SerializerMethodField()
+    workshop_name = serializers.CharField(source='workshop.name', read_only=True)
+
 
     class Meta:
         model = Employee
         fields = (
-            'id', 'user', 'user_full_name','workshop', 'position',
+            'id', 'user', 'user_full_name','workshop', 'workshop_name', 'position',
             'hire_date', 'salary', 'roles', 'schedule_entries',
             'created_at', 'updated_at', 'status'
         )

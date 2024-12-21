@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:dropdown_search/dropdown_search.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/vehicle_provider.dart';
 import '../../providers/client_provider.dart';
 import '../../models/client.dart';
-import '../clients/add_client_screen.dart';
+import '../../widgets/client_serach_widget.dart';
 import '../../utils/colors.dart';
 
 class AddVehicleScreen extends StatefulWidget {
@@ -36,11 +35,14 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
   String? _selectedClientId;
   bool _isSubmitting = false;
 
-  @override
-  void initState() {
-    super.initState();
+@override
+void initState() {
+  super.initState();
+  WidgetsBinding.instance.addPostFrameCallback((_) {
     _loadClients();
-  }
+  });
+}
+
 
     Color _getSegmentColor(String? segment) {
     switch (segment) {
@@ -142,46 +144,7 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-               DropdownSearch<Client>(
-                popupProps: PopupProps.menu(
-                  showSearchBox: true,
-                  searchFieldProps: TextFieldProps(
-                    decoration: InputDecoration(
-                      labelText: 'Szukaj klienta',
-                      prefixIcon: const Icon(Icons.search),
-                      suffixIcon: IconButton(
-                        icon: const Icon(Icons.add),
-                        onPressed: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => AddClientScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                      border: const OutlineInputBorder(),
-                    ),
-                  ),
-                  itemBuilder: (context, client, isSelected) => ListTile(
-                    leading: CircleAvatar(
-                      backgroundColor: _getSegmentColor(client.segment),
-                      child: Text(
-                        client.segment ?? '-',
-                        style: const TextStyle(color: Colors.white),
-                      ),
-                    ),
-                    title: Text('${client.firstName} ${client.lastName}'),
-                    subtitle: Text('Telefon: ${client.phone ?? 'Brak'}'),
-                  ),
-                ),
-                asyncItems: (String filter) => _fetchClients(filter),
-                itemAsString: (Client client) => '${client.firstName} ${client.lastName} - ${client.phone ?? 'Brak'}',
-                dropdownDecoratorProps: const DropDownDecoratorProps(
-                  dropdownSearchDecoration: InputDecoration(
-                    labelText: 'Klient',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
+               ClientSearchWidget(
                 onChanged: (client) {
                   setState(() {
                     _selectedClientId = client?.id;

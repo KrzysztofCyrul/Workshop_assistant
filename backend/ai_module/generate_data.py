@@ -123,7 +123,6 @@ def generate_data(num_clients_per_segment=100):
 
     return features, appointments_df
 
-# Reszta kodu pozostaje bez zmian...
 # Funkcja calculate_features
 def calculate_features(clients_df, appointments_df, vehicles_df):
     today = datetime.now()
@@ -179,7 +178,6 @@ def calculate_features(clients_df, appointments_df, vehicles_df):
 
     return features
 
-# Funkcja assign_segments pozostaje taka sama
 def assign_segments(features):
     def segment_rfm(row):
         # Warunki dla segmentu A

@@ -14,6 +14,7 @@ class _SegmentColorsScreenState extends State<SegmentColorsScreen> {
   late Color _segmentBColor;
   late Color _segmentCColor;
   late Color _segmentDColor;
+  bool _isLoading = true;
 
   @override
   void initState() {
@@ -28,6 +29,7 @@ class _SegmentColorsScreenState extends State<SegmentColorsScreen> {
       _segmentBColor = SegmentColors.segmentB;
       _segmentCColor = SegmentColors.segmentC;
       _segmentDColor = SegmentColors.segmentD;
+      _isLoading = false;
     });
   }
 
@@ -77,6 +79,9 @@ class _SegmentColorsScreenState extends State<SegmentColorsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(

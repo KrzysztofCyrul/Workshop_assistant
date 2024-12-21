@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'service_tasks',
     'drf_yasg',
     'ai_module',
+    'emailer',
 ]
 
 MIDDLEWARE = [
@@ -227,3 +228,10 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(day_of_week='mon', hour=0, minute=0),
     },
 }
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.example.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'your_email@example.com'
+EMAIL_HOST_PASSWORD = 'your_password'

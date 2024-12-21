@@ -5,6 +5,7 @@ import 'providers/service_record_provider.dart';
 import 'providers/auth_provider.dart';
 import 'providers/workshop_provider.dart';
 import 'providers/client_provider.dart';
+import 'providers/email_provider.dart';
 import 'routes/app_routes.dart';
 import 'screens/auth/login_screen.dart';
 import 'providers/employee_provider.dart';
@@ -22,7 +23,8 @@ Future<void> main() async {
         ChangeNotifierProvider(create: (_) => ClientProvider()),
         ChangeNotifierProvider(create: (_) => EmployeeProvider()),
         ChangeNotifierProvider(create: (_) => VehicleProvider()),
-        ChangeNotifierProvider(create: (_) => ServiceRecordProvider()),        
+        ChangeNotifierProvider(create: (_) => ServiceRecordProvider()),    
+        ChangeNotifierProvider(create: (_) => EmailProvider()),    
       ],
       child: const MyApp(),
     ),

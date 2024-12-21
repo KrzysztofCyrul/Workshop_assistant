@@ -4,6 +4,7 @@ from .views import MyTokenObtainPairView, MyTokenRefreshView
 from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
 from rest_framework.permissions import AllowAny
+from emailer.views import EmailSettingsView
 
 
 schema_view = get_schema_view(
@@ -32,6 +33,8 @@ urlpatterns = [
         path('', include('vehicles.urls')),
         path('', include('service_records.urls')),
         path('', include('appointments.urls')),
+        path('', include('emailer.urls')),
+        path('', include('ai_module.urls')),
         path('token/', MyTokenObtainPairView.as_view(), name='token_obtain_pair'),
         path('token/refresh/', MyTokenRefreshView.as_view(), name='token_refresh'),
     ])),

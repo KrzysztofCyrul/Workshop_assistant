@@ -22,12 +22,14 @@ import '../screens/appointments/appointment_calendar_screen.dart';
 import '../screens/service_records/service_history_screen.dart';
 import '../screens/workshop/add_workshop_screen.dart';
 import '../screens/relationships/client_statistics_screen.dart';
+import '../screens/settings/email_settings_screen.dart';
+import '../screens/relationships/send_email_screen.dart';
 
 class AppRoutes {
   static final routes = <String, WidgetBuilder>{
     LoginScreen.routeName: (context) => const LoginScreen(),
     RegisterScreen.routeName: (context) => const RegisterScreen(),
-    HomeScreen.routeName: (context) => HomeScreen(),
+    HomeScreen.routeName: (context) => const HomeScreen(),
     AppointmentsScreen.routeName: (context) => const AppointmentsScreen(),
     CompletedAppointmentsScreen.routeName: (context) => const CompletedAppointmentsScreen(),
     CanceledAppointmentsScreen.routeName: (context) => const CanceledAppointmentsScreen(),
@@ -87,5 +89,7 @@ class AppRoutes {
     },
     CreateWorkshopScreen.routeName: (context) => const CreateWorkshopScreen(),
     ClientsStatisticsScreen.routeName: (context) => const ClientsStatisticsScreen(),
+    EmailSettingsScreen.routeName: (context) => EmailSettingsScreen(),
+    SendEmailScreen.routeName: (context) => const SendEmailScreen(),
   };
 }

@@ -19,14 +19,7 @@ import json
 import pandas as pd
 import joblib
 from django.utils.timezone import now
-
-# Mapowanie segmentów na rabaty
-SEGMENT_DISCOUNTS = {
-    'A': 10.00,  # 10% rabatu
-    'B': 5.00,   # 5% rabatu
-    'C': 2.00,   # 2% rabatu
-    'D': 0.00,   # Brak rabatu
-}
+from ai_module.utils import SEGMENT_DISCOUNTS
 
 # Funkcja do przewidywania segmentu na podstawie modelu ML
 def predict_segment(client):

@@ -13,6 +13,7 @@ import '../settings/settings_screen.dart';
 import '../clients/add_client_screen.dart';
 import '../appointments/appointment_calendar_screen.dart';
 import '../relationships/client_statistics_screen.dart';
+import '../relationships/send_email_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   static const routeName = '/home';
@@ -52,6 +53,10 @@ class HomeScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.settings),
+          onPressed: () => _navigateToSettings(context),
+        ),
         title: const Text('Panel Główny'),
         centerTitle: true,
         actions: [
@@ -127,9 +132,9 @@ class HomeScreen extends StatelessWidget {
         'action': () => _navigateToClientStatistics(context),
       },
       {
-        'title': 'Ustawienia',
-        'icon': Icons.settings,
-        'action': () => _navigateToSettings(context),
+        'title': 'Wyślij E-mail',
+        'icon': Icons.email,
+        'action': () => _navigateToSendEmail(context, workshopId),
       },
     ];
 
@@ -249,5 +254,14 @@ class HomeScreen extends StatelessWidget {
 
   void _navigateToClientStatistics(BuildContext context) {
     Navigator.of(context).pushNamed(ClientsStatisticsScreen.routeName);
+  }
+
+  void _navigateToSendEmail(BuildContext context, String workshopId) {
+    Navigator.of(context).pushNamed(
+      SendEmailScreen.routeName,
+      arguments: {
+        'workshopId': workshopId,
+      },
+    );
   }
 }

@@ -15,7 +15,7 @@ class ClientService {
     );
 
     if (response.statusCode == 200) {
-      final data = json.decode(response.body) as List<dynamic>;
+      final data = json.decode(utf8.decode(response.bodyBytes)) as List<dynamic>;
       return data.map((json) => Client.fromJson(json)).toList();
     } else {
       throw Exception('Błąd podczas pobierania listy klientów: ${response.statusCode} - ${response.body}');
