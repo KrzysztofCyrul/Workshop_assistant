@@ -3,33 +3,50 @@ import 'package:provider/provider.dart';
 import '../../services/appointment_service.dart';
 import '../../providers/auth_provider.dart';
 
-class AddRepairItemDialog extends StatefulWidget {
+class AddMultipleRepairItemsDialog extends StatefulWidget {
   final String workshopId;
   final String appointmentId;
 
-  const AddRepairItemDialog({
+  const AddMultipleRepairItemsDialog({
     Key? key,
     required this.workshopId,
     required this.appointmentId,
   }) : super(key: key);
 
   @override
-  _AddRepairItemDialogState createState() => _AddRepairItemDialogState();
+  _AddMultipleRepairItemsDialogState createState() =>
+      _AddMultipleRepairItemsDialogState();
 }
 
-class _AddRepairItemDialogState extends State<AddRepairItemDialog> {
-  final _formKey = GlobalKey<FormState>();
-  String? _description;
-  String _status = 'pending';
-  int _order = 0;
-  double? _cost;
+class _AddMultipleRepairItemsDialogState
+    extends State<AddMultipleRepairItemsDialog> {
+  final List<Map<String, dynamic>> _repairItems = [];
   bool _isLoading = false;
 
+  void _addRepairItem() {
+    setState(() {
+      _repairItems.add({
+        'description': '',
+        'status': 'pending',
+        'priority': false, // Default priority off
+        'cost': 0.0,
+      });
+    });
+  }
+
+  void _removeRepairItem(int index) {
+    setState(() {
+      _repairItems.removeAt(index);
+    });
+  }
+
   Future<void> _submitForm() async {
-    if (!_formKey.currentState!.validate()) {
+    if (_repairItems.any((item) => item['description'].isEmpty)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Uzupełnij opisy wszystkich elementów')),
+      );
       return;
     }
-    _formKey.currentState!.save();
 
     setState(() {
       _isLoading = true;
@@ -39,18 +56,23 @@ class _AddRepairItemDialogState extends State<AddRepairItemDialog> {
     final accessToken = authProvider.accessToken!;
 
     try {
-      await AppointmentService.createRepairItem(
-        accessToken,
-        widget.workshopId,
-        widget.appointmentId,
-        _description!,
-        _status,
-        _order,
-        _cost ?? 0.0,
-      );
+      for (final item in _repairItems) {
+        await AppointmentService.createRepairItem(
+          accessToken,
+          widget.workshopId,
+          widget.appointmentId,
+          item['description'],
+          item['status'],
+          item['priority'] ? 1 : 0, // Map priority to order
+          item['cost'],
+        );
+      }
       if (!mounted) return;
       Navigator.of(context).pop(true);
     } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Błąd: $e')),
+      );
       setState(() {
         _isLoading = false;
       });
@@ -60,79 +82,96 @@ class _AddRepairItemDialogState extends State<AddRepairItemDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Dodaj Element Naprawy'),
+      title: const Text('Dodaj Elementy Naprawy'),
       content: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : Form(
-              key: _formKey,
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Opis
-                    TextFormField(
-                      decoration: const InputDecoration(labelText: 'Opis'),
-                      validator: (value) =>
-                          value == null || value.isEmpty ? 'Wprowadź opis' : null,
-                      onSaved: (value) {
-                        _description = value;
-                      },
+          : SizedBox(
+              width: double.maxFinite,
+              child: ListView.builder(
+                shrinkWrap: true,
+                itemCount: _repairItems.length + 1,
+                itemBuilder: (context, index) {
+                  if (index == _repairItems.length) {
+                    return TextButton.icon(
+                      onPressed: _addRepairItem,
+                      icon: const Icon(Icons.add),
+                      label: const Text('Dodaj Element'),
+                    );
+                  }
+                  final item = _repairItems[index];
+                  return Card(
+                    margin: const EdgeInsets.symmetric(vertical: 8),
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Column(
+                        children: [
+                          TextFormField(
+                            initialValue: item['description'],
+                            decoration: const InputDecoration(labelText: 'Opis'),
+                            onChanged: (value) {
+                              item['description'] = value;
+                            },
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              DropdownButton<String>(
+                                value: item['status'],
+                                items: const [
+                                  DropdownMenuItem(
+                                      value: 'pending', child: Text('Do wykonania')),
+                                  DropdownMenuItem(
+                                      value: 'in_progress', child: Text('W trakcie')),
+                                  DropdownMenuItem(
+                                      value: 'completed', child: Text('Zakończone')),
+                                ],
+                                onChanged: (value) {
+                                  setState(() {
+                                    item['status'] = value!;
+                                  });
+                                },
+                              ),
+                              IconButton(
+                                icon: Icon(
+                                  item['priority']
+                                      ? Icons.star
+                                      : Icons.star_border,
+                                  color:
+                                      item['priority'] ? Colors.amber : Colors.grey,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    item['priority'] = !item['priority'];
+                                  });
+                                },
+                                tooltip: 'Priorytet',
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          TextFormField(
+                            initialValue: item['cost'].toStringAsFixed(2),
+                            decoration: const InputDecoration(labelText: 'Koszt'),
+                            keyboardType: const TextInputType.numberWithOptions(
+                                decimal: true),
+                            onChanged: (value) {
+                              item['cost'] = double.tryParse(value) ?? 0.0;
+                            },
+                          ),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: TextButton(
+                              onPressed: () => _removeRepairItem(index),
+                              child: const Text('Usuń',
+                                  style: TextStyle(color: Colors.red)),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                    const SizedBox(height: 16),
-                    // Status
-                    DropdownButtonFormField<String>(
-                      decoration: const InputDecoration(labelText: 'Status'),
-                      value: _status,
-                      items: const [
-                        DropdownMenuItem(value: 'pending', child: Text('Do wykonania')),
-                        DropdownMenuItem(value: 'in_progress', child: Text('W trakcie')),
-                        DropdownMenuItem(value: 'completed', child: Text('Zakończone')),
-                      ],
-                      onChanged: (value) {
-                        setState(() {
-                          _status = value!;
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    // Priorytet (Order)
-                    TextFormField(
-                      decoration: const InputDecoration(labelText: 'Priorytet (Order)'),
-                      initialValue: '0', // Domyślna wartość
-                      keyboardType: TextInputType.number,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Wprowadź priorytet';
-                        }
-                        if (int.tryParse(value) == null) {
-                          return 'Wprowadź poprawną liczbę';
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {
-                        _order = int.parse(value!);
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    // Koszt
-                    TextFormField(
-                      decoration: const InputDecoration(labelText: 'Koszt'),
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Wprowadź koszt';
-                        }
-                        if (double.tryParse(value.replaceAll(',', '.')) == null) {
-                          return 'Wprowadź poprawną kwotę';
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {
-                        _cost = double.parse(value!.replaceAll(',', '.'));
-                      },
-                    ),
-                  ],
-                ),
+                  );
+                },
               ),
             ),
       actions: [
@@ -142,7 +181,7 @@ class _AddRepairItemDialogState extends State<AddRepairItemDialog> {
         ),
         ElevatedButton(
           onPressed: _submitForm,
-          child: const Text('Dodaj'),
+          child: const Text('Zatwierdź'),
         ),
       ],
     );

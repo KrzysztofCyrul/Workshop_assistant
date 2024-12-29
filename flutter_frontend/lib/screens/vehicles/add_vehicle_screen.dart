@@ -4,17 +4,19 @@ import '../../providers/auth_provider.dart';
 import '../../providers/vehicle_provider.dart';
 import '../../providers/client_provider.dart';
 import '../../models/client.dart';
-import '../../widgets/client_serach_widget.dart';
+import '../../widgets/client_search_widget.dart';
 import '../../utils/colors.dart';
 
 class AddVehicleScreen extends StatefulWidget {
   static const routeName = '/add-vehicle';
 
   final String workshopId;
+  final Client? selectedClient;
 
   const AddVehicleScreen({
     Key? key,
     required this.workshopId,
+    this.selectedClient,
   }) : super(key: key);
 
   @override
@@ -38,6 +40,7 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
 @override
 void initState() {
   super.initState();
+  _selectedClientId = widget.selectedClient?.id;
   WidgetsBinding.instance.addPostFrameCallback((_) {
     _loadClients();
   });
@@ -144,14 +147,16 @@ void initState() {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-               ClientSearchWidget(
-                onChanged: (client) {
-                  setState(() {
-                    _selectedClientId = client?.id;
-                  });
-                },
-                validator: (client) => client == null ? 'Wybierz klienta' : null,
-              ),
+ClientSearchWidget(
+  selectedClient: widget.selectedClient, // Automatyczne ustawienie klienta
+  onChanged: (client) {
+    setState(() {
+      _selectedClientId = client?.id;
+    });
+  },
+  validator: (client) => client == null ? 'Wybierz klienta' : null,
+),
+
               const SizedBox(height: 16),
               TextFormField(
                 controller: _makeController,

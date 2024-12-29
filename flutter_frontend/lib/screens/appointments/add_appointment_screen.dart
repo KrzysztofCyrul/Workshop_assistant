@@ -1,16 +1,20 @@
+import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:provider/provider.dart';
 import 'package:multi_select_flutter/multi_select_flutter.dart';
 import '../../models/client.dart';
 import '../../models/vehicle.dart';
 import '../../models/employee.dart';
+import '../../providers/client_provider.dart';
+import '../../providers/vehicle_provider.dart';
 import '../../services/appointment_service.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/client_service.dart';
-import '../../services/vehicle_service.dart';
 import '../../services/employee_service.dart';
 import '../../utils/colors.dart';
-import '../../widgets/client_serach_widget.dart';
+import '../../widgets/client_search_widget.dart';
+import '../../screens/vehicles/add_vehicle_screen.dart';
 
 class AddAppointmentScreen extends StatefulWidget {
   static const routeName = '/add-appointment';
@@ -38,7 +42,6 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
 
   // Listy danych
   List<Client> _clients = [];
-  List<Vehicle> _vehicles = [];
   List<Employee> _mechanics = [];
 
   // Stany ładowania
@@ -52,12 +55,17 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
   final TextEditingController _dateTimeController = TextEditingController();
   final TextEditingController _estimatedDurationController = TextEditingController();
   final TextEditingController _totalCostController = TextEditingController();
+  final TextEditingController _mileageController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      _fetchInitialData();
+    });
     _fetchInitialData();
   }
+
 
   Color _getSegmentColor(String? segment) {
     switch (segment) {
@@ -74,45 +82,45 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
     }
   }
 
-  Future<void> _fetchInitialData() async {
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
+Future<void> _fetchInitialData() async {
+  setState(() {
+    _isLoading = true;
+    _errorMessage = null;
+  });
 
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final accessToken = authProvider.accessToken;
-    final workshopId = authProvider.user?.employeeProfiles.first.workshopId;
+  final authProvider = Provider.of<AuthProvider>(context, listen: false);
+  final accessToken = authProvider.accessToken;
+  final workshopId = authProvider.user?.employeeProfiles.first.workshopId;
 
-    try {
-      _clients = await ClientService.getClients(accessToken!, workshopId!);
-      _mechanics = await EmployeeService.getMechanics(accessToken, workshopId);
-    } catch (e) {
+  try {
+    await Provider.of<ClientProvider>(context, listen: false).fetchClients(accessToken!, workshopId!);
+    _clients = await ClientService.getClients(accessToken, workshopId);
+    _mechanics = await EmployeeService.getMechanics(accessToken, workshopId);
+  } catch (e) {
+    SchedulerBinding.instance.addPostFrameCallback((_) {
       setState(() {
         _errorMessage = 'Błąd podczas pobierania danych: $e';
       });
-    } finally {
+    });
+  } finally {
+    SchedulerBinding.instance.addPostFrameCallback((_) {
       setState(() {
         _isLoading = false;
       });
-    }
+    });
   }
+}
 
   Future<void> _fetchVehicles(String clientId) async {
     setState(() {
-      _vehicles = [];
       _selectedVehicle = null;
       _isLoading = true;
       _errorMessage = null;
     });
 
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final accessToken = authProvider.accessToken;
-    final workshopId = authProvider.user?.employeeProfiles.first.workshopId;
+    Provider.of<AuthProvider>(context, listen: false);
 
-    try {
-      _vehicles = await VehicleService.getVehiclesForClient(accessToken!, workshopId!, clientId);
-    } catch (e) {
+    try {} catch (e) {
       setState(() {
         _errorMessage = 'Błąd podczas pobierania pojazdów: $e';
       });
@@ -165,7 +173,6 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
         recommendations: _recommendations,
         estimatedDuration: _estimatedDuration,
         totalCost: _totalCost,
-        // assignedMechanicIds: _assignedMechanics.map((e) => e.id).toList(),
         status: _status,
       );
 
@@ -176,7 +183,10 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Zlecenie zostało dodane')),
       );
-      Navigator.of(context).pop(true);
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Navigator.of(context).pop(true);
+      });
     } catch (e) {
       setState(() {
         _isSubmitting = false;
@@ -185,6 +195,14 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
         SnackBar(content: Text('Błąd podczas tworzenia zlecenia: $e')),
       );
     }
+  }
+
+  void _onVehicleChanged(Vehicle? vehicle) {
+    setState(() {
+      _selectedVehicle = vehicle;
+      _mileage = vehicle?.mileage ?? 0;
+      _mileageController.text = _mileage.toString();
+    });
   }
 
   @override
@@ -245,7 +263,6 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                               onChanged: (value) async {
                                 setState(() {
                                   _selectedClient = value;
-                                  _vehicles = [];
                                   _selectedVehicle = null; // Resetuj wybrany pojazd
                                 });
                                 if (value != null) {
@@ -255,27 +272,100 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                               validator: (value) => value == null ? 'Wybierz klienta' : null,
                             ),
                             const SizedBox(height: 16.0),
-
-                            // Jeśli klient został wybrany, wyświetlamy dropdown z pojazdami
                             if (_selectedClient != null)
-                              DropdownButtonFormField<Vehicle>(
-                                decoration: const InputDecoration(
-                                  labelText: 'Pojazd',
-                                  border: OutlineInputBorder(),
+                              DropdownSearch<Vehicle>(
+                                asyncItems: (String filter) async {
+                                  // Pobieranie listy pojazdów dla danego klienta z filtrowaniem
+                                  final authProvider = Provider.of<AuthProvider>(context, listen: false);
+                                  final accessToken = authProvider.accessToken;
+                                  final workshopId = authProvider.user?.employeeProfiles.first.workshopId;
+
+                                  if (accessToken == null || workshopId == null) return [];
+
+                                  final vehicleProvider = Provider.of<VehicleProvider>(context, listen: false);
+                                  await vehicleProvider.fetchVehiclesForClient(accessToken, workshopId, _selectedClient!.id);
+
+                                  return vehicleProvider.vehicles.where((vehicle) {
+                                    final query = filter.toLowerCase();
+                                    return vehicle.make.toLowerCase().contains(query) ||
+                                        vehicle.model.toLowerCase().contains(query) ||
+                                        (vehicle.licensePlate.toLowerCase().contains(query));
+                                  }).toList();
+                                },
+                                selectedItem: _selectedVehicle,
+
+                                // Formatowanie wyświetlanego tekstu dla wybranego elementu
+                                itemAsString: (Vehicle vehicle) => '${vehicle.make} ${vehicle.model} - ${vehicle.licensePlate}',
+
+                                // Dekoracja pola rozwijanego
+                                dropdownDecoratorProps: DropDownDecoratorProps(
+                                  dropdownSearchDecoration: InputDecoration(
+                                    labelText: 'Pojazd',
+                                    border: const OutlineInputBorder(),
+                                  ),
                                 ),
-                                items: _vehicles.map((vehicle) {
-                                  return DropdownMenuItem<Vehicle>(
-                                    value: vehicle,
-                                    child: Text('${vehicle.make} ${vehicle.model}'),
-                                  );
-                                }).toList(),
-                                value: _selectedVehicle, // aktualnie wybrany pojazd
-                                onChanged: (value) {
+
+                                // Konfiguracja popupu listy rozwijanej
+                                popupProps: PopupProps.menu(
+                                  showSearchBox: true,
+                                  searchFieldProps: TextFieldProps(
+                                    decoration: InputDecoration(
+                                      labelText: 'Szukaj pojazdu',
+                                      prefixIcon: const Icon(Icons.search),
+                                      suffixIcon: IconButton(
+                                        icon: const Icon(Icons.add),
+                                        onPressed: () async {
+                                          final authProvider = Provider.of<AuthProvider>(context, listen: false);
+                                          final accessToken = authProvider.accessToken;
+                                          final workshopId = authProvider.user?.employeeProfiles.first.workshopId;
+
+                                          if (accessToken == null || workshopId == null) {
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              const SnackBar(content: Text('Brak dostępu do danych użytkownika.')),
+                                            );
+                                            return;
+                                          }
+
+                                          // Przekazanie wybranego klienta do ekranu AddVehicleScreen
+                                          final result = await Navigator.of(context).push<bool>(
+                                            MaterialPageRoute(
+                                              builder: (context) => AddVehicleScreen(
+                                                workshopId: workshopId,
+                                                selectedClient: _selectedClient, // Przekazanie wybranego klienta
+                                              ),
+                                            ),
+                                          );
+
+                                          if (result == true) {
+                                            await Provider.of<VehicleProvider>(context, listen: false).fetchVehiclesForClient(accessToken, workshopId, _selectedClient!.id);
+
+                                            setState(() {
+                                              _selectedVehicle = Provider.of<VehicleProvider>(context, listen: false).vehicles.last; // Ustaw ostatni pojazd jako wybrany
+                                            });
+                                          }
+                                        },
+                                      ),
+                                      border: const OutlineInputBorder(),
+                                    ),
+                                  ),
+                                  itemBuilder: (context, vehicle, isSelected) => ListTile(
+                                    leading: const Icon(Icons.directions_car),
+                                    title: Text('${vehicle.make} ${vehicle.model}'),
+                                    subtitle: Text('Rejestracja: ${vehicle.licensePlate}'),
+                                  ),
+                                ),
+
+                                // Obsługa "onChanged"
+                                onChanged: (Vehicle? vehicle) {
                                   setState(() {
-                                    _selectedVehicle = value;
+                                    _selectedVehicle = vehicle;
+                                    _mileage = vehicle?.mileage ?? 0;
+                                    _mileageController.text = _mileage.toString();
                                   });
                                 },
-                                validator: (value) => value == null ? 'Wybierz pojazd' : null,
+
+                                // Walidacja pola
+                                validator: (Vehicle? value) => value == null ? 'Wybierz pojazd' : null,
                               ),
                           ],
                         ),

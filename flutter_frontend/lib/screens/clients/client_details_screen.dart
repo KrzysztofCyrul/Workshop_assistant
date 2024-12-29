@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/client.dart';
-import '../../providers/vehicle_provider.dart';
+import '../../providers/client_provider.dart';
 import '../../providers/auth_provider.dart';
-import 'package:intl/intl.dart';
-import '../vehicles/vehicle_details_screen.dart';
 
 class ClientDetailsScreen extends StatelessWidget {
   static const routeName = '/client-details';
@@ -13,132 +11,103 @@ class ClientDetailsScreen extends StatelessWidget {
 
   const ClientDetailsScreen({Key? key, required this.client}) : super(key: key);
 
-  @override
-  Widget build(BuildContext context) {
+  void _deleteClient(BuildContext context) async {
+    final clientProvider = Provider.of<ClientProvider>(context, listen: false);
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final workshopId = authProvider.user?.employeeProfiles.first.workshopId;
     final accessToken = authProvider.accessToken;
+    final workshopId = authProvider.user?.employeeProfiles.first.workshopId;
 
     if (accessToken == null || workshopId == null) {
-      return Scaffold(
-        appBar: AppBar(
-          title: Text('${client.firstName} ${client.lastName}'),
-        ),
-        body: const Center(
-          child: Text('Brak dostępu do danych użytkownika.'),
-        ),
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Brak dostępu do danych użytkownika.')),
       );
+      return;
     }
 
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Potwierdzenie'),
+        content: const Text('Czy na pewno chcesz usunąć tego klienta?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Anuluj'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Usuń'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      try {
+        await clientProvider.deleteClient(accessToken, workshopId, client.id);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Klient został usunięty.')),
+        );
+        Navigator.of(context).pop(); // Powrót po usunięciu klienta
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Błąd podczas usuwania klienta: $e')),
+        );
+      }
+    }
+  }
+
+  void _editClient(BuildContext context) {
+    Navigator.of(context).pushNamed(
+      '/edit-client',
+      arguments: client
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text('${client.firstName} ${client.lastName}'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.edit),
+            tooltip: 'Edytuj',
+            onPressed: () => _editClient(context),
+          ),
+          IconButton(
+            icon: const Icon(Icons.delete),
+            tooltip: 'Usuń',
+            onPressed: () => _deleteClient(context),
+          ),
+        ],
       ),
-      body: FutureBuilder(
-        future: Provider.of<VehicleProvider>(context, listen: false).fetchVehiclesForClient(
-          accessToken,
-          workshopId,
-          client.id,
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Client details UI
+            Text(
+              '${client.firstName} ${client.lastName}',
+              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            Text('Email: ${client.email}', style: const TextStyle(fontSize: 16)),
+            const SizedBox(height: 8),
+            Text('Telefon: ${client.phone ?? 'Brak'}', style: const TextStyle(fontSize: 16)),
+            const SizedBox(height: 8),
+            Text('Adres: ${client.address ?? 'Brak'}', style: const TextStyle(fontSize: 16)),
+            const SizedBox(height: 8),
+            Text('Segment: ${client.segment ?? 'Brak segmentu'}', style: const TextStyle(fontSize: 16)),
+            const SizedBox(height: 16),
+            const Text(
+              'Pojazdy:',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            // Add other UI elements as needed
+          ],
         ),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Błąd: ${snapshot.error}'));
-          } else {
-            return Consumer<VehicleProvider>(
-              builder: (context, provider, child) {
-                if (provider.isLoading) {
-                  return const Center(child: CircularProgressIndicator());
-                } else if (provider.errorMessage != null) {
-                  return Center(child: Text(provider.errorMessage!));
-                } else {
-                  return Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Card(
-                          elevation: 4,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12.0),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  '${client.firstName} ${client.lastName}',
-                                  style: const TextStyle(
-                                    fontSize: 22,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const SizedBox(height: 8, width: double.infinity),
-                                // Text('ID: ${client.id}', style: const TextStyle(fontSize: 16)),
-                                // const SizedBox(height: 8),
-                                Text('Email: ${client.email}', style: const TextStyle(fontSize: 16)),
-                                const SizedBox(height: 8),
-                                Text('Telefon: ${client.phone ?? 'Brak'}', style: const TextStyle(fontSize: 16)),
-                                const SizedBox(height: 8),
-                                Text('Adres: ${client.address ?? 'Brak'}', style: const TextStyle(fontSize: 16)),
-                                const SizedBox(height: 8),
-                                Text('Segment: ${client.segment ?? 'Brak segmentu'}', style: const TextStyle(fontSize: 16)),
-                                const SizedBox(height: 8),
-                                Text(
-                                  'Data Utworzenia: ${DateFormat('dd-MM-yyyy').format(client.createdAt)}',
-                                  style: const TextStyle(fontSize: 16),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  'Data Aktualizacji: ${DateFormat('dd-MM-yyyy').format(client.updatedAt)}',
-                                  style: const TextStyle(fontSize: 16),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        const Text('Pojazdy:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                        const SizedBox(height: 8),
-                        Expanded(
-                          child: ListView.builder(
-                            itemCount: provider.vehicles.length,
-                            itemBuilder: (context, index) {
-                              final vehicle = provider.vehicles[index];
-                              return Card(
-                                elevation: 2,
-                                margin: const EdgeInsets.symmetric(vertical: 6),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10.0),
-                                ),
-                                child: ListTile(
-                                  leading: Icon(Icons.directions_car, color: Colors.blue[800]),
-                                  title: Text('${vehicle.make} ${vehicle.model}'),
-                                  subtitle: Text('Rejestracja: ${vehicle.licensePlate}'),
-                                  onTap: () {
-                                    Navigator.of(context).pushNamed(
-                                      VehicleDetailsScreen.routeName,
-                                      arguments: {
-                                        'workshopId': workshopId,
-                                        'vehicleId': vehicle.id,
-                                      },
-                                    );
-                                  },
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                }
-              },
-            );
-          }
-        },
       ),
     );
   }

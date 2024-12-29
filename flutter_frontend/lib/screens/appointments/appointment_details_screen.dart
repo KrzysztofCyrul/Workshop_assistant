@@ -57,7 +57,7 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
     final result = await showDialog(
       context: context,
       builder: (context) {
-        return AddRepairItemDialog(
+        return AddMultipleRepairItemsDialog(
           appointmentId: widget.appointmentId,
           workshopId: widget.workshopId,
         );

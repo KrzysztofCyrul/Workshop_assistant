@@ -7,7 +7,7 @@ import '../../providers/email_provider.dart';
 import '../../providers/employee_provider.dart';
 import '../../services/client_service.dart';
 import '../../services/chatgpt_service.dart'; // Dodano ChatGPT Service
-import '../../widgets/client_serach_widget.dart';
+import '../../widgets/client_search_widget.dart';
 
 class SendEmailScreen extends StatefulWidget {
   static const routeName = '/send-email';

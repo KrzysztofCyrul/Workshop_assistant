@@ -19,13 +19,15 @@ class ClientsScreen extends StatefulWidget {
 class _ClientsScreenState extends State<ClientsScreen> {
   String _searchQuery = '';
   String _selectedSegment = 'Wszystkie';
+  bool _isFirstLoad = true;
 
   @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_isFirstLoad) {
       _loadClients();
-    });
+      _isFirstLoad = false;
+    }
   }
 
   Future<void> _loadClients() async {
@@ -50,6 +52,18 @@ class _ClientsScreenState extends State<ClientsScreen> {
         builder: (context) => ClientDetailsScreen(client: client),
       ),
     );
+  }
+
+  Future<void> _navigateToAddClient() async {
+    final result = await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => AddClientScreen(),
+      ),
+    );
+
+    if (result == true) {
+      _loadClients();
+    }
   }
 
   List<Client> _filterClients(List<Client> clients) {
@@ -92,13 +106,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.person_add),
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => AddClientScreen(),
-              )
-              );
-            },
+            onPressed: _navigateToAddClient,
           ),
         ],
       ),

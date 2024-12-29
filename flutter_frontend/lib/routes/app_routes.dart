@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_frontend/screens/clients/edit_client_screen.dart';
 import '../models/client.dart';
 import '../screens/auth/login_screen.dart';
 import '../screens/auth/register_screen.dart';
@@ -47,6 +48,10 @@ class AppRoutes {
     WorkshopListScreen.routeName: (context) => const WorkshopListScreen(),
     ClientsScreen.routeName: (context) => const ClientsScreen(),
     AddClientScreen.routeName: (context) => AddClientScreen(),
+EditClientScreen.routeName: (context) {
+  final client = ModalRoute.of(context)!.settings.arguments as Client;
+  return EditClientScreen(client: client);
+},
     EmployeeDetailsScreen.routeName: (context) {
       final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
       final workshopId = args['workshopId']!;
@@ -75,11 +80,10 @@ class AppRoutes {
       final vehicleId = args['vehicleId']!;
       return VehicleDetailsScreen(workshopId: workshopId, vehicleId: vehicleId);
     },
-    ClientDetailsScreen.routeName: (context) {
-      final args = ModalRoute.of(context)!.settings.arguments as Map<dynamic, dynamic>;
-      final client = args['client'] as Client;
-      return ClientDetailsScreen(client: client);
-    },
+ClientDetailsScreen.routeName: (context) {
+  final client = ModalRoute.of(context)!.settings.arguments as Client;
+  return ClientDetailsScreen(client: client);
+},
     SettingsScreen.routeName: (context) => SettingsScreen(),
     VehicleServiceHistoryScreen.routeName: (context) {
       final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;

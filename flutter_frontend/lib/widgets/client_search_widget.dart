@@ -7,17 +7,10 @@ import '../../providers/client_provider.dart';
 import '../../utils/colors.dart';
 import '../screens/clients/add_client_screen.dart';
 
-class ClientSearchWidget extends StatelessWidget {
-  /// Aktualnie wybrany klient (jeśli chcemy ustawiać np. w formularzu edycji).
+class ClientSearchWidget extends StatefulWidget {
   final Client? selectedClient;
-
-  /// Funkcja wywoływana po zmianie wyboru klienta.
   final ValueChanged<Client?> onChanged;
-
-  /// Funkcja walidująca wybór klienta (np. wymóg: nie może być pusty).
   final String? Function(Client?)? validator;
-
-  /// Etykieta wyświetlana w polu (np. "Klient").
   final String labelText;
 
   const ClientSearchWidget({
@@ -28,7 +21,19 @@ class ClientSearchWidget extends StatelessWidget {
     this.labelText = 'Klient',
   }) : super(key: key);
 
-  /// Metoda pomocnicza do kolorowania segmentu klienta.
+  @override
+  _ClientSearchWidgetState createState() => _ClientSearchWidgetState();
+}
+
+class _ClientSearchWidgetState extends State<ClientSearchWidget> {
+  Client? _selectedClient;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedClient = widget.selectedClient;
+  }
+
   Color _getSegmentColor(String? segment) {
     switch (segment) {
       case 'A':
@@ -44,8 +49,6 @@ class ClientSearchWidget extends StatelessWidget {
     }
   }
 
-  /// Asynchroniczne pobranie (i odfiltrowanie) listy klientów z Providera
-  /// na podstawie wpisanego w wyszukiwarkę tekstu.
   Future<List<Client>> _fetchClients(BuildContext context, String filter) async {
     final clientProvider = Provider.of<ClientProvider>(context, listen: false);
     final allClients = clientProvider.clients;
@@ -63,38 +66,37 @@ class ClientSearchWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DropdownSearch<Client>(
-      // Listę ładujemy asynchronicznie, a filtry obsługujemy w _fetchClients
       asyncItems: (String filter) => _fetchClients(context, filter),
-      selectedItem: selectedClient,
-
-      // Formatowanie wyświetlanego tekstu dla wybranego elementu
+      selectedItem: _selectedClient,
       itemAsString: (Client client) =>
           '${client.firstName} ${client.lastName} - ${client.phone ?? 'Brak'}',
-
-      // Dostosowanie "dropdowna" (pole tekstowe przed rozwinięciem listy)
       dropdownDecoratorProps: DropDownDecoratorProps(
         dropdownSearchDecoration: InputDecoration(
-          labelText: labelText,
+          labelText: widget.labelText,
           border: const OutlineInputBorder(),
         ),
       ),
-
-      // Konfiguracja wyświetlania popupu i listy wyszukiwania
       popupProps: PopupProps.menu(
         showSearchBox: true,
         searchFieldProps: TextFieldProps(
           decoration: InputDecoration(
             labelText: 'Szukaj klienta',
             prefixIcon: const Icon(Icons.search),
-            // Przyciskiem z plusem przechodzimy do ekranu dodawania klienta
             suffixIcon: IconButton(
               icon: const Icon(Icons.add),
-              onPressed: () {
-                Navigator.of(context).push(
+              onPressed: () async {
+                final newClient = await Navigator.of(context).push<Client>(
                   MaterialPageRoute(
                     builder: (_) => AddClientScreen(),
                   ),
                 );
+
+                if (newClient != null) {
+                  setState(() {
+                    _selectedClient = newClient;
+                  });
+                  widget.onChanged(newClient);
+                }
               },
             ),
             border: const OutlineInputBorder(),
@@ -112,10 +114,13 @@ class ClientSearchWidget extends StatelessWidget {
           subtitle: Text('Telefon: ${client.phone ?? 'Brak'}'),
         ),
       ),
-
-      // Obsługa "onChanged" i "validator"
-      onChanged: onChanged,
-      validator: validator,
+      onChanged: (client) {
+        setState(() {
+          _selectedClient = client;
+        });
+        widget.onChanged(client);
+      },
+      validator: widget.validator,
     );
   }
 }

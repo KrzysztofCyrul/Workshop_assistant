@@ -6,6 +6,7 @@ from appointments.models import Appointment, RepairItem
 from ai_module.ml_model import predict_segment
 from service_records.models import ServiceRecord
 from ai_module.models import TrainingData
+from ai_module.utils import SEGMENT_DISCOUNTS
 
 @receiver(post_save, sender=Appointment)
 def create_service_record(sender, instance, created, **kwargs):
@@ -61,13 +62,6 @@ def update_total_time(sender, instance, **kwargs):
     total_time = sum(item.estimated_duration.total_seconds() for item in repair_items)
     appointment.estimated_duration = timedelta(seconds=total_time)
     appointment.save()
-
-SEGMENT_DISCOUNTS = {
-    'A': 10.00,  # 20% rabatu
-    'B': 5.00,  # 10% rabatu
-    'C': 2.00,   # 5% rabatu
-    'D': 0.00,   # Brak rabatu
-}
 
 @receiver(post_save, sender=Appointment)
 def update_client_segment(sender, instance, **kwargs):

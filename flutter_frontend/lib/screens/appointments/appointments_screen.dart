@@ -4,6 +4,7 @@ import '../../providers/auth_provider.dart';
 import '../../models/appointment.dart';
 import '../../services/appointment_service.dart';
 import 'package:intl/intl.dart';
+import '../../widgets/change_status_widget.dart';
 import 'appointment_details_screen.dart';
 import 'add_appointment_screen.dart';
 import 'completed_appointments_screen.dart';
@@ -200,44 +201,18 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
   }
 
   void _showChangeStatusPopup(Appointment appointment) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Zmień status wizyty'),
-          content: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              IconButton(
-                icon: const Icon(Icons.check_circle, color: Colors.green),
-                onPressed: () {
-                  _updateAppointmentStatus(appointment, 'completed');
-                  Navigator.pop(context);
-                },
-                tooltip: 'Zakończone',
-              ),
-              IconButton(
-                icon: const Icon(Icons.cancel, color: Colors.red),
-                onPressed: () {
-                  _updateAppointmentStatus(appointment, 'canceled');
-                  Navigator.pop(context);
-                },
-                tooltip: 'Anulowane',
-              ),
-              IconButton(
-                icon: const Icon(Icons.pending, color: Colors.orange),
-                onPressed: () {
-                  _updateAppointmentStatus(appointment, 'pending');
-                  Navigator.pop(context);
-                },
-                tooltip: 'Oczekujące',
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
+  showDialog(
+    context: context,
+    builder: (context) {
+      return ChangeStatusWidget(
+        appointment: appointment,
+        workshopId: _workshopId!,
+        onStatusChanged: _refreshScheduledAppointments, // Odświeżenie wizyt po zmianie
+      );
+    },
+  );
+}
+
 
  void _updateAppointmentStatus(Appointment appointment, String newStatus) async {
   try {

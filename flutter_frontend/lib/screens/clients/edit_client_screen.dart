@@ -1,29 +1,55 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../providers/auth_provider.dart';
+import '../../models/client.dart';
 import '../../providers/client_provider.dart';
+import '../../providers/auth_provider.dart';
 
-class AddClientScreen extends StatefulWidget {
-  static const routeName = '/add-client';
+class EditClientScreen extends StatefulWidget {
+  static const routeName = '/edit-client';
+
+  final Client client;
+
+  const EditClientScreen({Key? key, required this.client}) : super(key: key);
 
   @override
-  _AddClientScreenState createState() => _AddClientScreenState();
+  _EditClientScreenState createState() => _EditClientScreenState();
 }
 
-class _AddClientScreenState extends State<AddClientScreen> {
+class _EditClientScreenState extends State<EditClientScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  // Pola formularza
-  final TextEditingController _firstNameController = TextEditingController();
-  final TextEditingController _lastNameController = TextEditingController();
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _phoneController = TextEditingController();
-  final TextEditingController _addressController = TextEditingController();
+  // Form controllers
+  late TextEditingController _firstNameController;
+  late TextEditingController _lastNameController;
+  late TextEditingController _emailController;
+  late TextEditingController _phoneController;
+  late TextEditingController _addressController;
   String? _selectedSegment;
 
   bool _isSubmitting = false;
 
-void _submitForm() async {
+  @override
+  void initState() {
+    super.initState();
+    _firstNameController = TextEditingController(text: widget.client.firstName);
+    _lastNameController = TextEditingController(text: widget.client.lastName);
+    _emailController = TextEditingController(text: widget.client.email);
+    _phoneController = TextEditingController(text: widget.client.phone);
+    _addressController = TextEditingController(text: widget.client.address);
+    _selectedSegment = widget.client.segment;
+  }
+
+  @override
+  void dispose() {
+    _firstNameController.dispose();
+    _lastNameController.dispose();
+    _emailController.dispose();
+    _phoneController.dispose();
+    _addressController.dispose();
+    super.dispose();
+  }
+
+  void _submitForm() async {
     if (!_formKey.currentState!.validate()) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Proszę poprawić błędy w formularzu')),
@@ -36,6 +62,7 @@ void _submitForm() async {
     });
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final clientProvider = Provider.of<ClientProvider>(context, listen: false);
     final accessToken = authProvider.accessToken;
     final workshopId = authProvider.user?.employeeProfiles.first.workshopId;
 
@@ -50,9 +77,10 @@ void _submitForm() async {
     }
 
     try {
-      final newClient = await Provider.of<ClientProvider>(context, listen: false).addClient(
+      await clientProvider.updateClient(
         accessToken,
         workshopId,
+        clientId: widget.client.id,
         firstName: _firstNameController.text,
         lastName: _lastNameController.text,
         email: _emailController.text,
@@ -60,10 +88,15 @@ void _submitForm() async {
         address: _addressController.text,
         segment: _selectedSegment,
       );
-      Navigator.of(context).pop(newClient); // Return the new client
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Dane klienta zostały zaktualizowane')),
+      );
+
+      Navigator.of(context).pop();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Błąd podczas dodawania klienta: $e')),
+        SnackBar(content: Text('Błąd podczas aktualizacji danych klienta: $e')),
       );
     } finally {
       setState(() {
@@ -76,7 +109,7 @@ void _submitForm() async {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Dodaj Klienta'),
+        title: const Text('Edytuj Klienta'),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -121,7 +154,10 @@ void _submitForm() async {
                 ),
                 keyboardType: TextInputType.emailAddress,
                 validator: (value) {
-                  if (value != null && value.isNotEmpty && !RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$').hasMatch(value)) {
+                  if (value != null &&
+                      value.isNotEmpty &&
+                      !RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
+                          .hasMatch(value)) {
                     return 'Nieprawidłowy format email';
                   }
                   return null;
@@ -135,14 +171,6 @@ void _submitForm() async {
                   border: OutlineInputBorder(),
                 ),
                 keyboardType: TextInputType.phone,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Telefon jest wymagany';
-                  } else if (value.length > 20) {
-                    return 'Telefon nie może mieć więcej niż 20 znaków';
-                  }
-                  return null;
-                },
               ),
               const SizedBox(height: 16),
               TextFormField(
@@ -178,7 +206,7 @@ void _submitForm() async {
                       width: double.infinity,
                       child: ElevatedButton(
                         onPressed: _submitForm,
-                        child: const Text('Dodaj Klienta'),
+                        child: const Text('Zapisz Zmiany'),
                       ),
                     ),
             ],
@@ -186,15 +214,5 @@ void _submitForm() async {
         ),
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    _firstNameController.dispose();
-    _lastNameController.dispose();
-    _emailController.dispose();
-    _phoneController.dispose();
-    _addressController.dispose();
-    super.dispose();
   }
 }
