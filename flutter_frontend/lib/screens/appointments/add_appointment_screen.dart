@@ -15,6 +15,7 @@ import '../../services/employee_service.dart';
 import '../../utils/colors.dart';
 import '../../widgets/client_search_widget.dart';
 import '../../screens/vehicles/add_vehicle_screen.dart';
+import 'appointment_details_screen.dart';
 
 class AddAppointmentScreen extends StatefulWidget {
   static const routeName = '/add-appointment';
@@ -142,60 +143,64 @@ Future<void> _fetchInitialData() async {
     return null;
   }
 
-  Future<void> _submitForm() async {
-    if (!_formKey.currentState!.validate()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Proszę poprawić błędy w formularzu')),
-      );
-      return;
-    }
+Future<void> _submitForm() async {
+  if (!_formKey.currentState!.validate()) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Proszę poprawić błędy w formularzu')),
+    );
+    return;
+  }
 
-    _formKey.currentState!.save();
+  _formKey.currentState!.save();
+
+  setState(() {
+    _isSubmitting = true;
+    _errorMessage = null;
+  });
+
+  final authProvider = Provider.of<AuthProvider>(context, listen: false);
+  final accessToken = authProvider.accessToken;
+  final workshopId = authProvider.user?.employeeProfiles.first.workshopId;
+
+  try {
+    final appointmentId = await AppointmentService.createAppointment(
+      accessToken: accessToken!,
+      workshopId: workshopId!,
+      clientId: _selectedClient!.id,
+      vehicleId: _selectedVehicle!.id,
+      scheduledTime: _scheduledTime!,
+      notes: _notes,
+      mileage: _mileage,
+      recommendations: _recommendations,
+      estimatedDuration: _estimatedDuration,
+      totalCost: _totalCost,
+      status: _status,
+    );
 
     setState(() {
-      _isSubmitting = true;
-      _errorMessage = null;
+      _isSubmitting = false;
     });
 
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final accessToken = authProvider.accessToken;
-    final workshopId = authProvider.user?.employeeProfiles.first.workshopId;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Zlecenie zostało dodane')),
+    );
 
-    try {
-      await AppointmentService.createAppointment(
-        accessToken: accessToken!,
-        workshopId: workshopId!,
-        clientId: _selectedClient!.id,
-        vehicleId: _selectedVehicle!.id,
-        scheduledTime: _scheduledTime!,
-        notes: _notes,
-        mileage: _mileage,
-        recommendations: _recommendations,
-        estimatedDuration: _estimatedDuration,
-        totalCost: _totalCost,
-        status: _status,
-      );
-
-      setState(() {
-        _isSubmitting = false;
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Zlecenie zostało dodane')),
-      );
-
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        Navigator.of(context).pop(true);
-      });
-    } catch (e) {
-      setState(() {
-        _isSubmitting = false;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Błąd podczas tworzenia zlecenia: $e')),
-      );
-    }
+    Navigator.of(context).pushReplacementNamed(
+      AppointmentDetailsScreen.routeName,
+      arguments: {
+        'workshopId': workshopId,
+        'appointmentId': appointmentId,
+      },
+    );
+  } catch (e) {
+    setState(() {
+      _isSubmitting = false;
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Błąd podczas tworzenia zlecenia: $e')),
+    );
   }
+}
 
   void _onVehicleChanged(Vehicle? vehicle) {
     setState(() {
@@ -445,18 +450,18 @@ Future<void> _fetchInitialData() async {
                             //     _estimatedDuration = Duration(minutes: minutes);
                             //   },
                             // ),
-                            const SizedBox(height: 16.0),
-                            TextFormField(
-                              decoration: const InputDecoration(
-                                labelText: 'Całkowity koszt (PLN)',
-                                border: OutlineInputBorder(),
-                              ),
-                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                              controller: _totalCostController,
-                              onSaved: (value) {
-                                _totalCost = double.tryParse(value!) ?? 0.0;
-                              },
-                            ),
+                            // const SizedBox(height: 16.0),
+                            // TextFormField(
+                            //   decoration: const InputDecoration(
+                            //     labelText: 'Całkowity koszt (PLN)',
+                            //     border: OutlineInputBorder(),
+                            //   ),
+                            //   keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                            //   controller: _totalCostController,
+                            //   onSaved: (value) {
+                            //     _totalCost = double.tryParse(value!) ?? 0.0;
+                            //   },
+                            // ),
                             const SizedBox(height: 16.0),
                             DropdownButtonFormField<String>(
                               decoration: const InputDecoration(

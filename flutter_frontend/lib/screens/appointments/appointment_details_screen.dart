@@ -53,6 +53,26 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
     }
   }
 
+  double _calculateDiscountedCost(double originalCost, String? segment) {
+    double discountPercentage;
+    switch (segment) {
+      case 'A':
+        discountPercentage = 0.10;
+        break;
+      case 'B':
+        discountPercentage = 0.06;
+        break;
+      case 'C':
+        discountPercentage = 0.03;
+        break;
+      case 'D':
+      default:
+        discountPercentage = 0.0;
+        break;
+    }
+    return originalCost * (1 - discountPercentage);
+  }
+
   Future<void> _navigateToAddRepairItem() async {
     final result = await showDialog(
       context: context,
@@ -388,6 +408,8 @@ appBarActions.add(
             final appointment = snapshot.data!;
             final totalCost = _calculateTotalCost(appointment.repairItems);
             final totalEstimatedDuration = _calculateTotalEstimatedDuration(appointment.repairItems);
+            final discountedCost = _calculateDiscountedCost(totalCost, appointment.client.segment);
+
             return SingleChildScrollView(
               padding: const EdgeInsets.all(16.0),
               child: Column(
@@ -429,6 +451,11 @@ appBarActions.add(
                                 '${totalCost.toStringAsFixed(2)} PLN',
                                 icon: Icons.attach_money,
                               ),
+                                _buildDetailRow(
+                                  'Koszt z rabatem',
+                                  '${discountedCost.toStringAsFixed(2)} PLN',
+                                  icon: Icons.money_off,
+                                ),
                               if (appointment.notes != null && appointment.notes!.isNotEmpty)
                                 const Padding(
                                   padding: EdgeInsets.symmetric(vertical: 8.0),
@@ -497,7 +524,7 @@ appBarActions.add(
                               _buildDetailRow('Email', appointment.client.email, icon: Icons.email),
                               _buildDetailRow('Telefon', appointment.client.phone ?? 'Brak', icon: Icons.phone),
                               if (appointment.client.address != null)
-                                _buildDetailRow('Adres', appointment.client.address!),
+                                _buildDetailRow('Adres', appointment.client.address!, icon: Icons.home),
                             ],
                           ),
                         ),

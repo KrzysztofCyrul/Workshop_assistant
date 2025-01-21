@@ -88,10 +88,7 @@ class EmailService {
       port: emailSettings.smtpPort,
       username: emailSettings.smtpUser,
       password: emailSettings.smtpPassword,
-      // UWAGA: w zależności od portu i rodzaju szyfrowania możesz potrzebować innej konfiguracji:
       ssl: emailSettings.useTls, // np. port 465
-      // STARTTLS to port 587 – czasem wymaga ssl: false i np. smtpServer.tls = true
-      // Poniższe parametry włączone do debugowania certyfikatów (uwaga w produkcji!)
       ignoreBadCertificate: false,
       allowInsecure: false,
     );
@@ -102,7 +99,6 @@ class EmailService {
       ..recipients.addAll(recipients)
       ..subject = subject
       ..text = body; 
-      // Możesz też użyć: ..html = '<b>Treść w HTML</b>'
 
     debugPrint('[EmailService] Próba wysłania przez mailer...');
 

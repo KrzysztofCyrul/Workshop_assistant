@@ -33,12 +33,11 @@ class WorkshopViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         workshop = serializer.save(owner=self.request.user)
         
-        # Add the owner as an employee of the workshop
-        from employees.models import Employee  # Import your Employee model
+        from employees.models import Employee
         Employee.objects.create(
             user=self.request.user,
             workshop=workshop,
-            position='workshop_owner',  # Or any default position for owners
-            status='APPROVED',  # Set default status
+            position='workshop_owner',
+            status='APPROVED',
             hire_date=now(),
         )

@@ -18,8 +18,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController _firstNameController = TextEditingController();
   final TextEditingController _lastNameController = TextEditingController();
 
-  String _selectedRole = 'client';
-  final List<String> _roles = ['mechanic', 'workshop_owner', 'client'];
+  String _selectedRole = 'mechanic';
+  final List<String> _roles = ['mechanic', 'workshop_owner'];
 
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;

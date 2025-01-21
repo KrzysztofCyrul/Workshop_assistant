@@ -1,0 +1,366 @@
+digraph model_graph {
+    label = "Django Models Diagram"
+    labelloc = top;
+    fontsize=16;
+
+    fontname = "Roboto"
+    fontsize = 8
+    splines  = true
+    rankdir = LR
+    nodesep=0.3
+    ranksep=0.5
+
+    node [
+        fontname = "Roboto"
+        fontsize = 8
+        shape = "plaintext"
+        // fixedsize=true  // Usunięto, aby pozwolić Graphviz na automatyczne dostosowanie rozmiaru
+        // width=3          // Usunięto
+    ]
+
+    edge [
+        fontname = "Roboto"
+        fontsize = 8
+    ]
+
+    // Modele
+    django_contrib_auth_models_Permission [label=<
+        <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="2">
+            <TR><TD COLSPAN="2" ALIGN="CENTER"><FONT FACE="Roboto"><B>Permission</B></FONT></TD></TR>
+            <TR><TD ALIGN="LEFT"><B>id</B></TD><TD ALIGN="LEFT">AutoField</TD></TR>
+            <TR><TD ALIGN="LEFT">content_type</TD><TD ALIGN="LEFT">ForeignKey(id)</TD></TR>
+            <TR><TD ALIGN="LEFT">codename</TD><TD ALIGN="LEFT">CharField</TD></TR>
+            <TR><TD ALIGN="LEFT">name</TD><TD ALIGN="LEFT">CharField</TD></TR>
+        </TABLE>
+    >]
+
+    django_contrib_auth_models_Group [label=<
+        <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="2">
+            <TR><TD COLSPAN="2" ALIGN="CENTER"><FONT FACE="Roboto"><B>Group</B></FONT></TD></TR>
+            <TR><TD ALIGN="LEFT"><B>id</B></TD><TD ALIGN="LEFT">AutoField</TD></TR>
+            <TR><TD ALIGN="LEFT">name</TD><TD ALIGN="LEFT">CharField</TD></TR>
+        </TABLE>
+    >]
+
+    django_contrib_contenttypes_models_ContentType [label=<
+        <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="2">
+            <TR><TD COLSPAN="2" ALIGN="CENTER"><FONT FACE="Roboto"><B>ContentType</B></FONT></TD></TR>
+            <TR><TD ALIGN="LEFT"><B>id</B></TD><TD ALIGN="LEFT">AutoField</TD></TR>
+            <TR><TD ALIGN="LEFT">app_label</TD><TD ALIGN="LEFT">CharField</TD></TR>
+            <TR><TD ALIGN="LEFT">model</TD><TD ALIGN="LEFT">CharField</TD></TR>
+        </TABLE>
+    >]
+
+    django_contrib_auth_base_user_AbstractBaseUser [label=<
+        <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="2">
+            <TR><TD COLSPAN="2" ALIGN="CENTER"><FONT FACE="Roboto"><B>AbstractBaseUser</B></FONT></TD></TR>
+            <TR><TD ALIGN="LEFT"><B>last_login</B></TD><TD ALIGN="LEFT">DateTimeField</TD></TR>
+            <TR><TD ALIGN="LEFT">password</TD><TD ALIGN="LEFT">CharField</TD></TR>
+        </TABLE>
+    >]
+
+    django_contrib_auth_models_PermissionsMixin [label=<
+        <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="2">
+            <TR><TD COLSPAN="2" ALIGN="CENTER"><FONT FACE="Roboto"><B>PermissionsMixin</B></FONT></TD></TR>
+            <TR><TD ALIGN="LEFT">is_superuser</TD><TD ALIGN="LEFT">BooleanField</TD></TR>
+        </TABLE>
+    >]
+
+    accounts_models_User [label=<
+        <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="2">
+            <TR><TD COLSPAN="2" ALIGN="CENTER">
+                <FONT FACE="Roboto"><B>User</B></FONT><BR/>
+                &lt;<FONT FACE="Roboto"><I>AbstractBaseUser, PermissionsMixin</I></FONT>&gt;
+            </TD></TR>
+            <TR><TD ALIGN="LEFT"><B>id</B></TD><TD ALIGN="LEFT">UUIDField</TD></TR>
+            <TR><TD ALIGN="LEFT">created_at</TD><TD ALIGN="LEFT">DateTimeField</TD></TR>
+            <TR><TD ALIGN="LEFT">email</TD><TD ALIGN="LEFT">EmailField</TD></TR>
+            <TR><TD ALIGN="LEFT">first_name</TD><TD ALIGN="LEFT">CharField</TD></TR>
+            <TR><TD ALIGN="LEFT">is_active</TD><TD ALIGN="LEFT">BooleanField</TD></TR>
+            <TR><TD ALIGN="LEFT">is_staff</TD><TD ALIGN="LEFT">BooleanField</TD></TR>
+            <TR><TD ALIGN="LEFT"><I>is_superuser</I></TD><TD ALIGN="LEFT"><I>BooleanField</I></TD></TR>
+            <TR><TD ALIGN="LEFT"><I>last_login</I></TD><TD ALIGN="LEFT"><I>DateTimeField</I></TD></TR>
+            <TR><TD ALIGN="LEFT">last_name</TD><TD ALIGN="LEFT">CharField</TD></TR>
+            <TR><TD ALIGN="LEFT">password</TD><TD ALIGN="LEFT">CharField</TD></TR>
+            <TR><TD ALIGN="LEFT">updated_at</TD><TD ALIGN="LEFT">DateTimeField</TD></TR>
+        </TABLE>
+    >]
+
+    accounts_models_Role [label=<
+        <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="2">
+            <TR><TD COLSPAN="2" ALIGN="CENTER"><FONT FACE="Roboto"><B>Role</B></FONT></TD></TR>
+            <TR><TD ALIGN="LEFT"><B>id</B></TD><TD ALIGN="LEFT">UUIDField</TD></TR>
+            <TR><TD ALIGN="LEFT">name</TD><TD ALIGN="LEFT">CharField</TD></TR>
+        </TABLE>
+    >]
+
+    accounts_models_Permission [label=<
+        <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="2">
+            <TR><TD COLSPAN="2" ALIGN="CENTER"><FONT FACE="Roboto"><B>Permission</B></FONT></TD></TR>
+            <TR><TD ALIGN="LEFT"><B>id</B></TD><TD ALIGN="LEFT">UUIDField</TD></TR>
+            <TR><TD ALIGN="LEFT">name</TD><TD ALIGN="LEFT">CharField</TD></TR>
+        </TABLE>
+    >]
+
+    workshops_models_Workshop [label=<
+        <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="2">
+            <TR><TD COLSPAN="2" ALIGN="CENTER"><FONT FACE="Roboto"><B>Workshop</B></FONT></TD></TR>
+            <TR><TD ALIGN="LEFT"><B>id</B></TD><TD ALIGN="LEFT">UUIDField</TD></TR>
+            <TR><TD ALIGN="LEFT">owner</TD><TD ALIGN="LEFT">ForeignKey(id)</TD></TR>
+            <TR><TD ALIGN="LEFT">address</TD><TD ALIGN="LEFT">CharField</TD></TR>
+            <TR><TD ALIGN="LEFT">created_at</TD><TD ALIGN="LEFT">DateTimeField</TD></TR>
+            <TR><TD ALIGN="LEFT">name</TD><TD ALIGN="LEFT">CharField</TD></TR>
+            <TR><TD ALIGN="LEFT">updated_at</TD><TD ALIGN="LEFT">DateTimeField</TD></TR>
+        </TABLE>
+    >]
+
+    emailer_models_EmailSettings [label=<
+        <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="2">
+            <TR><TD COLSPAN="2" ALIGN="CENTER"><FONT FACE="Roboto"><B>EmailSettings</B></FONT></TD></TR>
+            <TR><TD ALIGN="LEFT"><B>id</B></TD><TD ALIGN="LEFT">BigAutoField</TD></TR>
+            <TR><TD ALIGN="LEFT">workshop</TD><TD ALIGN="LEFT">OneToOneField(id)</TD></TR>
+            <TR><TD ALIGN="LEFT">mail_from</TD><TD ALIGN="LEFT">CharField</TD></TR>
+            <TR><TD ALIGN="LEFT">smtp_host</TD><TD ALIGN="LEFT">CharField</TD></TR>
+            <TR><TD ALIGN="LEFT">smtp_password</TD><TD ALIGN="LEFT">CharField</TD></TR>
+            <TR><TD ALIGN="LEFT">smtp_port</TD><TD ALIGN="LEFT">IntegerField</TD></TR>
+            <TR><TD ALIGN="LEFT">smtp_user</TD><TD ALIGN="LEFT">EmailField</TD></TR>
+            <TR><TD ALIGN="LEFT">use_tls</TD><TD ALIGN="LEFT">BooleanField</TD></TR>
+        </TABLE>
+    >]
+
+    employees_models_Employee [label=<
+        <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="2">
+            <TR><TD COLSPAN="2" ALIGN="CENTER"><FONT FACE="Roboto"><B>Employee</B></FONT></TD></TR>
+            <TR><TD ALIGN="LEFT"><B>id</B></TD><TD ALIGN="LEFT">UUIDField</TD></TR>
+            <TR><TD ALIGN="LEFT">user</TD><TD ALIGN="LEFT">ForeignKey(id)</TD></TR>
+            <TR><TD ALIGN="LEFT">workshop</TD><TD ALIGN="LEFT">ForeignKey(id)</TD></TR>
+            <TR><TD ALIGN="LEFT">created_at</TD><TD ALIGN="LEFT">DateTimeField</TD></TR>
+            <TR><TD ALIGN="LEFT">hire_date</TD><TD ALIGN="LEFT">DateField</TD></TR>
+            <TR><TD ALIGN="LEFT">position</TD><TD ALIGN="LEFT">CharField</TD></TR>
+            <TR><TD ALIGN="LEFT">salary</TD><TD ALIGN="LEFT">DecimalField</TD></TR>
+            <TR><TD ALIGN="LEFT">status</TD><TD ALIGN="LEFT">CharField</TD></TR>
+            <TR><TD ALIGN="LEFT">updated_at</TD><TD ALIGN="LEFT">DateTimeField</TD></TR>
+        </TABLE>
+    >]
+
+    clients_models_Client [label=<
+        <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="2">
+            <TR><TD COLSPAN="2" ALIGN="CENTER"><FONT FACE="Roboto"><B>Client</B></FONT></TD></TR>
+            <TR><TD ALIGN="LEFT"><B>id</B></TD><TD ALIGN="LEFT">UUIDField</TD></TR>
+            <TR><TD ALIGN="LEFT">workshop</TD><TD ALIGN="LEFT">ForeignKey(id)</TD></TR>
+            <TR><TD ALIGN="LEFT">address</TD><TD ALIGN="LEFT">CharField</TD></TR>
+            <TR><TD ALIGN="LEFT">created_at</TD><TD ALIGN="LEFT">DateTimeField</TD></TR>
+            <TR><TD ALIGN="LEFT">discount</TD><TD ALIGN="LEFT">DecimalField</TD></TR>
+            <TR><TD ALIGN="LEFT">email</TD><TD ALIGN="LEFT">EmailField</TD></TR>
+            <TR><TD ALIGN="LEFT">first_name</TD><TD ALIGN="LEFT">CharField</TD></TR>
+            <TR><TD ALIGN="LEFT">last_name</TD><TD ALIGN="LEFT">CharField</TD></TR>
+            <TR><TD ALIGN="LEFT">phone</TD><TD ALIGN="LEFT">CharField</TD></TR>
+            <TR><TD ALIGN="LEFT">segment</TD><TD ALIGN="LEFT">CharField</TD></TR>
+            <TR><TD ALIGN="LEFT">updated_at</TD><TD ALIGN="LEFT">DateTimeField</TD></TR>
+        </TABLE>
+    >]
+
+    vehicles_models_Vehicle [label=<
+        <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="2">
+            <TR><TD COLSPAN="2" ALIGN="CENTER"><FONT FACE="Roboto"><B>Vehicle</B></FONT></TD></TR>
+            <TR><TD ALIGN="LEFT"><B>id</B></TD><TD ALIGN="LEFT">UUIDField</TD></TR>
+            <TR><TD ALIGN="LEFT">client</TD><TD ALIGN="LEFT">ForeignKey(id)</TD></TR>
+            <TR><TD ALIGN="LEFT">created_at</TD><TD ALIGN="LEFT">DateTimeField</TD></TR>
+            <TR><TD ALIGN="LEFT">engine_type</TD><TD ALIGN="LEFT">CharField</TD></TR>
+            <TR><TD ALIGN="LEFT">license_plate</TD><TD ALIGN="LEFT">CharField</TD></TR>
+            <TR><TD ALIGN="LEFT">make</TD><TD ALIGN="LEFT">CharField</TD></TR>
+            <TR><TD ALIGN="LEFT">mileage</TD><TD ALIGN="LEFT">PositiveIntegerField</TD></TR>
+            <TR><TD ALIGN="LEFT">model</TD><TD ALIGN="LEFT">CharField</TD></TR>
+            <TR><TD ALIGN="LEFT">updated_at</TD><TD ALIGN="LEFT">DateTimeField</TD></TR>
+            <TR><TD ALIGN="LEFT">vin</TD><TD ALIGN="LEFT">CharField</TD></TR>
+            <TR><TD ALIGN="LEFT">year</TD><TD ALIGN="LEFT">PositiveIntegerField</TD></TR>
+        </TABLE>
+    >]
+
+    service_records_models_ServiceRecord [label=<
+        <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="2">
+            <TR><TD COLSPAN="2" ALIGN="CENTER"><FONT FACE="Roboto"><B>ServiceRecord</B></FONT></TD></TR>
+            <TR><TD ALIGN="LEFT"><B>id</B></TD><TD ALIGN="LEFT">UUIDField</TD></TR>
+            <TR><TD ALIGN="LEFT">appointment</TD><TD ALIGN="LEFT">OneToOneField(id)</TD></TR>
+            <TR><TD ALIGN="LEFT">vehicle</TD><TD ALIGN="LEFT">ForeignKey(id)</TD></TR>
+            <TR><TD ALIGN="LEFT">created_at</TD><TD ALIGN="LEFT">DateTimeField</TD></TR>
+            <TR><TD ALIGN="LEFT">date</TD><TD ALIGN="LEFT">DateField</TD></TR>
+            <TR><TD ALIGN="LEFT">description</TD><TD ALIGN="LEFT">TextField</TD></TR>
+            <TR><TD ALIGN="LEFT">mileage</TD><TD ALIGN="LEFT">PositiveIntegerField</TD></TR>
+            <TR><TD ALIGN="LEFT">updated_at</TD><TD ALIGN="LEFT">DateTimeField</TD></TR>
+        </TABLE>
+    >]
+
+    appointments_models_Appointment [label=<
+        <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="2">
+            <TR><TD COLSPAN="2" ALIGN="CENTER"><FONT FACE="Roboto"><B>Appointment</B></FONT></TD></TR>
+            <TR><TD ALIGN="LEFT"><B>id</B></TD><TD ALIGN="LEFT">UUIDField</TD></TR>
+            <TR><TD ALIGN="LEFT">client</TD><TD ALIGN="LEFT">ForeignKey(id)</TD></TR>
+            <TR><TD ALIGN="LEFT">vehicle</TD><TD ALIGN="LEFT">ForeignKey(id)</TD></TR>
+            <TR><TD ALIGN="LEFT">workshop</TD><TD ALIGN="LEFT">ForeignKey(id)</TD></TR>
+            <TR><TD ALIGN="LEFT">created_at</TD><TD ALIGN="LEFT">DateTimeField</TD></TR>
+            <TR><TD ALIGN="LEFT">estimated_duration</TD><TD ALIGN="LEFT">DurationField</TD></TR>
+            <TR><TD ALIGN="LEFT">mileage</TD><TD ALIGN="LEFT">PositiveIntegerField</TD></TR>
+            <TR><TD ALIGN="LEFT">notes</TD><TD ALIGN="LEFT">TextField</TD></TR>
+            <TR><TD ALIGN="LEFT">recommendations</TD><TD ALIGN="LEFT">TextField</TD></TR>
+            <TR><TD ALIGN="LEFT">scheduled_time</TD><TD ALIGN="LEFT">DateTimeField</TD></TR>
+            <TR><TD ALIGN="LEFT">status</TD><TD ALIGN="LEFT">CharField</TD></TR>
+            <TR><TD ALIGN="LEFT">total_cost</TD><TD ALIGN="LEFT">DecimalField</TD></TR>
+            <TR><TD ALIGN="LEFT">updated_at</TD><TD ALIGN="LEFT">DateTimeField</TD></TR>
+        </TABLE>
+    >]
+
+    appointments_models_RepairItem [label=<
+        <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="2">
+            <TR><TD COLSPAN="2" ALIGN="CENTER"><FONT FACE="Roboto"><B>RepairItem</B></FONT></TD></TR>
+            <TR><TD ALIGN="LEFT"><B>id</B></TD><TD ALIGN="LEFT">UUIDField</TD></TR>
+            <TR><TD ALIGN="LEFT">appointment</TD><TD ALIGN="LEFT">ForeignKey(id)</TD></TR>
+            <TR><TD ALIGN="LEFT">completed_by</TD><TD ALIGN="LEFT">ForeignKey(id)</TD></TR>
+            <TR><TD ALIGN="LEFT">actual_duration</TD><TD ALIGN="LEFT">DurationField</TD></TR>
+            <TR><TD ALIGN="LEFT">cost</TD><TD ALIGN="LEFT">DecimalField</TD></TR>
+            <TR><TD ALIGN="LEFT">created_at</TD><TD ALIGN="LEFT">DateTimeField</TD></TR>
+            <TR><TD ALIGN="LEFT">description</TD><TD ALIGN="LEFT">TextField</TD></TR>
+            <TR><TD ALIGN="LEFT">estimated_duration</TD><TD ALIGN="LEFT">DurationField</TD></TR>
+            <TR><TD ALIGN="LEFT">is_completed</TD><TD ALIGN="LEFT">BooleanField</TD></TR>
+            <TR><TD ALIGN="LEFT">order</TD><TD ALIGN="LEFT">PositiveIntegerField</TD></TR>
+            <TR><TD ALIGN="LEFT">status</TD><TD ALIGN="LEFT">CharField</TD></TR>
+            <TR><TD ALIGN="LEFT">updated_at</TD><TD ALIGN="LEFT">DateTimeField</TD></TR>
+        </TABLE>
+    >]
+
+    service_orders_models_ServiceOrder [label=<
+        <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="2">
+            <TR><TD COLSPAN="2" ALIGN="CENTER"><FONT FACE="Roboto"><B>ServiceOrder</B></FONT></TD></TR>
+            <TR><TD ALIGN="LEFT"><B>id</B></TD><TD ALIGN="LEFT">UUIDField</TD></TR>
+            <TR><TD ALIGN="LEFT">appointment</TD><TD ALIGN="LEFT">ForeignKey(id)</TD></TR>
+            <TR><TD ALIGN="LEFT">assigned_to</TD><TD ALIGN="LEFT">ForeignKey(id)</TD></TR>
+            <TR><TD ALIGN="LEFT">client</TD><TD ALIGN="LEFT">ForeignKey(id)</TD></TR>
+            <TR><TD ALIGN="LEFT">vehicle</TD><TD ALIGN="LEFT">ForeignKey(id)</TD></TR>
+            <TR><TD ALIGN="LEFT">workshop</TD><TD ALIGN="LEFT">ForeignKey(id)</TD></TR>
+            <TR><TD ALIGN="LEFT">created_at</TD><TD ALIGN="LEFT">DateTimeField</TD></TR>
+            <TR><TD ALIGN="LEFT">notes</TD><TD ALIGN="LEFT">TextField</TD></TR>
+            <TR><TD ALIGN="LEFT">status</TD><TD ALIGN="LEFT">CharField</TD></TR>
+            <TR><TD ALIGN="LEFT">total_cost</TD><TD ALIGN="LEFT">DecimalField</TD></TR>
+            <TR><TD ALIGN="LEFT">updated_at</TD><TD ALIGN="LEFT">DateTimeField</TD></TR>
+        </TABLE>
+    >]
+
+    service_tasks_models_ServiceTask [label=<
+        <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="2">
+            <TR><TD COLSPAN="2" ALIGN="CENTER"><FONT FACE="Roboto"><B>ServiceTask</B></FONT></TD></TR>
+            <TR><TD ALIGN="LEFT"><B>id</B></TD><TD ALIGN="LEFT">UUIDField</TD></TR>
+            <TR><TD ALIGN="LEFT">assigned_to</TD><TD ALIGN="LEFT">ForeignKey(id)</TD></TR>
+            <TR><TD ALIGN="LEFT">service_order</TD><TD ALIGN="LEFT">ForeignKey(id)</TD></TR>
+            <TR><TD ALIGN="LEFT">actual_time</TD><TD ALIGN="LEFT">DecimalField</TD></TR>
+            <TR><TD ALIGN="LEFT">created_at</TD><TD ALIGN="LEFT">DateTimeField</TD></TR>
+            <TR><TD ALIGN="LEFT">description</TD><TD ALIGN="LEFT">TextField</TD></TR>
+            <TR><TD ALIGN="LEFT">estimated_time</TD><TD ALIGN="LEFT">DecimalField</TD></TR>
+            <TR><TD ALIGN="LEFT">status</TD><TD ALIGN="LEFT">CharField</TD></TR>
+            <TR><TD ALIGN="LEFT">updated_at</TD><TD ALIGN="LEFT">DateTimeField</TD></TR>
+        </TABLE>
+    >]
+
+    // Relacje
+
+    // Authentication Relations
+    django_contrib_auth_models_Permission -> django_contrib_contenttypes_models_ContentType
+    [label="content_type (permission)", arrowhead=none, arrowtail=dot, dir=both];
+
+    django_contrib_auth_models_Group -> django_contrib_auth_models_Permission
+    [label="permissions (group)", arrowhead=dot, arrowtail=dot, dir=both];
+
+    // Accounts Relations
+    rest_framework_simplejwt_token_blacklist_models_OutstandingToken -> accounts_models_User
+    [label="user (outstandingtoken)", arrowhead=none, arrowtail=dot, dir=both];
+
+    accounts_models_User -> django_contrib_auth_models_Group
+    [label="groups (user)", arrowhead=dot, arrowtail=dot, dir=both];
+
+    accounts_models_User -> django_contrib_auth_models_Permission
+    [label="user_permissions (user)", arrowhead=dot, arrowtail=dot, dir=both];
+
+    accounts_models_User -> accounts_models_Role
+    [label="roles (user)", arrowhead=dot, arrowtail=dot, dir=both];
+
+    accounts_models_User -> django_contrib_auth_base_user_AbstractBaseUser
+    [label="abstract\ninheritance", arrowhead=empty, arrowtail=none, dir=both];
+
+    accounts_models_User -> django_contrib_auth_models_PermissionsMixin
+    [label="abstract\ninheritance", arrowhead=empty, arrowtail=none, dir=both];
+
+    accounts_models_Role -> accounts_models_Permission
+    [label="permissions (role)", arrowhead=dot, arrowtail=dot, dir=both];
+
+    // Workshops Relations
+    workshops_models_Workshop -> accounts_models_User
+    [label="owner (workshops)", arrowhead=none, arrowtail=dot, dir=both];
+
+    emailer_models_EmailSettings -> workshops_models_Workshop
+    [label="workshop (email_settings)", arrowhead=none, arrowtail=none, dir=both];
+
+    // Employees Relations
+    employees_models_Employee -> accounts_models_User
+    [label="user (employee_profiles)", arrowhead=none, arrowtail=dot, dir=both];
+
+    employees_models_Employee -> workshops_models_Workshop
+    [label="workshop (employees)", arrowhead=none, arrowtail=dot, dir=both];
+
+    employees_models_Employee -> accounts_models_Role
+    [label="roles (employee)", arrowhead=dot, arrowtail=dot, dir=both];
+
+    // Clients Relations
+    clients_models_Client -> workshops_models_Workshop
+    [label="workshop (clients)", arrowhead=none, arrowtail=dot, dir=both];
+
+    // Vehicles Relations
+    vehicles_models_Vehicle -> clients_models_Client
+    [label="client (vehicles)", arrowhead=none, arrowtail=dot, dir=both];
+
+    service_records_models_ServiceRecord -> vehicles_models_Vehicle
+    [label="vehicle (service_records)", arrowhead=none, arrowtail=dot, dir=both];
+
+    service_records_models_ServiceRecord -> appointments_models_Appointment
+    [label="appointment (service_record)", arrowhead=none, arrowtail=none, dir=both];
+
+    // Appointments Relations
+    appointments_models_Appointment -> workshops_models_Workshop
+    [label="workshop (appointments)", arrowhead=none, arrowtail=dot, dir=both];
+
+    appointments_models_Appointment -> clients_models_Client
+    [label="client (appointments)", arrowhead=none, arrowtail=dot, dir=both];
+
+    appointments_models_Appointment -> vehicles_models_Vehicle
+    [label="vehicle (appointments)", arrowhead=none, arrowtail=dot, dir=both];
+
+    appointments_models_Appointment -> employees_models_Employee
+    [label="assigned_mechanics (appointments)", arrowhead=dot, arrowtail=dot, dir=both];
+
+    appointments_models_RepairItem -> appointments_models_Appointment
+    [label="appointment (repair_items)", arrowhead=none, arrowtail=dot, dir=both];
+
+    appointments_models_RepairItem -> employees_models_Employee
+    [label="completed_by (completed_repair_items)", arrowhead=none, arrowtail=dot, dir=both];
+
+    // Service Orders Relations
+    service_orders_models_ServiceOrder -> appointments_models_Appointment
+    [label="appointment (service_orders)", arrowhead=none, arrowtail=dot, dir=both];
+
+    service_orders_models_ServiceOrder -> workshops_models_Workshop
+    [label="workshop (service_orders)", arrowhead=none, arrowtail=dot, dir=both];
+
+    service_orders_models_ServiceOrder -> clients_models_Client
+    [label="client (service_orders)", arrowhead=none, arrowtail=dot, dir=both];
+
+    service_orders_models_ServiceOrder -> vehicles_models_Vehicle
+    [label="vehicle (service_orders)", arrowhead=none, arrowtail=dot, dir=both];
+
+    service_orders_models_ServiceOrder -> employees_models_Employee
+    [label="assigned_to (assigned_orders)", arrowhead=none, arrowtail=dot, dir=both];
+
+    // Service Tasks Relations
+    service_tasks_models_ServiceTask -> service_orders_models_ServiceOrder
+    [label="service_order (tasks)", arrowhead=none, arrowtail=dot, dir=both];
+
+    service_tasks_models_ServiceTask -> employees_models_Employee
+    [label="assigned_to (tasks)", arrowhead=none, arrowtail=dot, dir=both];
+}

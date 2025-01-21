@@ -16,7 +16,7 @@ class RepairItemSerializer(serializers.ModelSerializer):
         allow_null=True,
         required=False
     )
-    appointment = serializers.PrimaryKeyRelatedField(read_only=True)  # Upewnij się, że jest tylko do odczytu
+    appointment = serializers.PrimaryKeyRelatedField(read_only=True)
 
     class Meta:
         model = RepairItem

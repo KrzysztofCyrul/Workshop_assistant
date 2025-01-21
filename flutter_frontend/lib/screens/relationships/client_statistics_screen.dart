@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
+
 import '../../providers/auth_provider.dart';
 import '../../services/client_service.dart';
 import '../../services/appointment_service.dart';
 import '../../models/client.dart';
 import '../../models/appointment.dart';
+
+// Plik z klasą SegmentColors
+import '../../utils/colors.dart';
 
 class ClientsStatisticsScreen extends StatefulWidget {
   static const routeName = '/clients-statistics';
@@ -17,30 +21,44 @@ class ClientsStatisticsScreen extends StatefulWidget {
 }
 
 class _ClientsStatisticsScreenState extends State<ClientsStatisticsScreen> {
+  // Asynchroniczne ładowanie danych
   late Future<void> _futureData;
+
+  // Listy klientów i wizyt
   List<Client> _clients = [];
   List<Appointment> _appointments = [];
+
+  // Błąd (jeżeli wystąpi)
   String? _errorMessage;
 
+  // Statystyki
   Map<String, int> _clientSegmentCounts = {};
   Map<String, double> _segmentTotalValues = {};
   Map<String, double> _segmentAverageValues = {};
 
+  // Filtry
+  late int _selectedMonth;
+  late int _selectedYear;
+  bool _showWholeYear = false;
+
   @override
   void initState() {
     super.initState();
+    // Ustaw domyślnie bieżący miesiąc i rok
+    _selectedMonth = DateTime.now().month;
+    _selectedYear = DateTime.now().year;
+
+    // Ładujemy ewentualne zapisane kolory z SharedPreferences 
+    // (jeśli chcesz, można też wywołać to w main.dart).
+    SegmentColors.loadColors().then((_) {
+      setState(() {});
+    });
+
+    // Ładujemy dane
     _futureData = _loadData();
   }
 
-  String getDisplaySegmentName(String segment) {
-  const Map<String, String> segmentAbbreviations = {
-    'Brak segmentu': 'BS',
-  };
-
-  return segmentAbbreviations[segment] ?? segment;
-}
-
-
+  /// Metoda główna: pobiera wszystkich klientów i wizyty, filtruje po dacie, oblicza statystyki.
   Future<void> _loadData() async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final accessToken = authProvider.accessToken;
@@ -54,16 +72,33 @@ class _ClientsStatisticsScreenState extends State<ClientsStatisticsScreen> {
     }
 
     try {
-      // Pobierz klientów i wizyty równolegle
       final results = await Future.wait([
         ClientService.getClients(accessToken, workshopId),
         AppointmentService.getAppointments(accessToken, workshopId),
       ]);
 
-      _clients = results[0] as List<Client>;
-      _appointments = results[1] as List<Appointment>;
+      final allClients = results[0] as List<Client>;
+      final allAppointments = results[1] as List<Appointment>;
+
+      _clients = allClients;
+
+      // Filtruj wizyty po roku / miesiącu (chyba że "cały rok").
+      final filteredAppointments = allAppointments.where((appt) {
+        final d = appt.createdAt;
+        if (_showWholeYear) {
+          return d.year == _selectedYear;
+        } else {
+          return d.year == _selectedYear && d.month == _selectedMonth;
+        }
+      }).toList();
+
+      _appointments = filteredAppointments;
 
       _calculateStatistics();
+
+      setState(() {
+        _errorMessage = null;
+      });
     } catch (e) {
       setState(() {
         _errorMessage = 'Błąd podczas pobierania danych: $e';
@@ -71,89 +106,126 @@ class _ClientsStatisticsScreenState extends State<ClientsStatisticsScreen> {
     }
   }
 
+  /// Obliczanie danych statystycznych
   void _calculateStatistics() {
-    // Inicjalizacja map
     _clientSegmentCounts = {};
     _segmentTotalValues = {};
     _segmentAverageValues = {};
 
-    // Grupowanie klientów według segmentów
+    // Zlicz klientów w segmentach
     for (var client in _clients) {
       final segment = client.segment ?? 'Brak segmentu';
-      if (_clientSegmentCounts.containsKey(segment)) {
-        _clientSegmentCounts[segment] = _clientSegmentCounts[segment]! + 1;
-      } else {
-        _clientSegmentCounts[segment] = 1;
-      }
+      _clientSegmentCounts[segment] = (_clientSegmentCounts[segment] ?? 0) + 1;
     }
 
-    // Grupowanie wizyt według segmentów klientów
-    Map<String, List<double>> segmentValues = {};
-
+    // Suma i średnia kosztów wizyt w segmentach
+    final Map<String, List<double>> segmentValues = {};
     for (var appointment in _appointments) {
       final segment = appointment.client.segment ?? 'Brak segmentu';
-      // Suma kosztów wszystkich napraw w wizycie
       final totalCost = appointment.repairItems.fold<double>(
-          0.0, (previousValue, item) => previousValue + item.cost);
-      
-      if (segmentValues.containsKey(segment)) {
-        segmentValues[segment]!.add(totalCost);
-      } else {
-        segmentValues[segment] = [totalCost];
-      }
+        0.0,
+        (prev, item) => prev + item.cost,
+      );
+      segmentValues.putIfAbsent(segment, () => []).add(totalCost);
     }
 
-    // Obliczanie łącznych i średnich wartości
     segmentValues.forEach((segment, costs) {
       final total = costs.fold<double>(0.0, (prev, cost) => prev + cost);
       final average = costs.isNotEmpty ? total / costs.length : 0.0;
-
       _segmentTotalValues[segment] = total;
       _segmentAverageValues[segment] = average;
     });
 
-    // Upewnij się, że segmenty bez wizyt mają 0 wartości
-    _clientSegmentCounts.keys.forEach((segment) {
+    // Uzupełnij brakujące segmenty zerami
+    for (final segment in _clientSegmentCounts.keys) {
       _segmentTotalValues.putIfAbsent(segment, () => 0.0);
       _segmentAverageValues.putIfAbsent(segment, () => 0.0);
-    });
+    }
   }
 
-  Map<String, int> _countClientsBySegment() {
-    return _clientSegmentCounts;
+  /// Funkcja pomocnicza do skracania nazw (opcjonalne)
+  String getDisplaySegmentName(String segment) {
+    // np. 'A' -> 'Segment A', 'B' -> 'Segment B', itp.
+    // Lub 'Brak segmentu' -> 'BS'...
+    switch (segment) {
+      case 'A':
+        return 'Segment A';
+      case 'B':
+        return 'Segment B';
+      case 'C':
+        return 'Segment C';
+      case 'D':
+        return 'Segment D';
+      case 'Brak segmentu':
+        return 'Brak';
+      default:
+        return segment;
+    }
   }
 
-  Map<String, double> _getSegmentTotalValues() {
-    return _segmentTotalValues;
+  /// Mapa: segment -> kolor (korzystamy z SegmentColors)
+  Color getSegmentColor(String segment) {
+    switch (segment) {
+      case 'A':
+        return SegmentColors.segmentA;
+      case 'B':
+        return SegmentColors.segmentB;
+      case 'C':
+        return SegmentColors.segmentC;
+      case 'D':
+        return SegmentColors.segmentD;
+      case 'Brak segmentu':
+        return SegmentColors.defaultColor;
+      default:
+        return SegmentColors.defaultColor;
+    }
   }
 
-  Map<String, double> _getSegmentAverageValues() {
-    return _segmentAverageValues;
+  /// Element legendy (kolor + nazwa + %)
+  Widget _buildLegendItem({
+    required String segment,
+    required double percentage,
+  }) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 14,
+          height: 14,
+          decoration: BoxDecoration(
+            color: getSegmentColor(segment),
+            shape: BoxShape.circle,
+          ),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          '${getDisplaySegmentName(segment)}: ${percentage.toStringAsFixed(1)}%',
+          style: const TextStyle(fontSize: 14),
+        ),
+      ],
+    );
   }
 
-  List<PieChartSectionData> _buildPieChartSections(Map<String, int> segmentCounts, int total) {
-    final colors = [
-      Colors.blue,
-      Colors.red,
-      Colors.green,
-      Colors.orange,
-      Colors.purple,
-      Colors.teal,
-      Colors.brown,
-      Colors.indigo,
-      Colors.cyan,
-      Colors.pink,
-    ];
-
+  /// Budowa sekcji wykresu kołowego
+  List<PieChartSectionData> _buildPieChartSections(
+    Map<String, int> segmentCounts,
+    int totalClients,
+  ) {
+    // Zamieniamy mapę na listę par segment->liczba
     final entries = segmentCounts.entries.toList();
+
+    // Sortujemy malejąco po liczbie klientów
     entries.sort((a, b) => b.value.compareTo(a.value));
 
     return List.generate(entries.length, (index) {
+      final segment = entries[index].key;
       final count = entries[index].value;
-      final fraction = count / total;
+
+      // Unikamy dzielenia przez 0
+      final fraction = totalClients == 0 ? 0.0 : count / totalClients;
 
       return PieChartSectionData(
-        color: index < colors.length ? colors[index] : Colors.black,
+        color: getSegmentColor(segment), // kluczowe
         value: fraction * 100,
         title: '${(fraction * 100).toStringAsFixed(1)}%',
         radius: 60,
@@ -166,126 +238,264 @@ class _ClientsStatisticsScreenState extends State<ClientsStatisticsScreen> {
     });
   }
 
-  Widget _buildLegendItem({required String title, required double percentage, required Color color}) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 14,
-          height: 14,
-          decoration: BoxDecoration(
-            color: color,
-            shape: BoxShape.circle,
-          ),
-        ),
-        const SizedBox(width: 8),
-        Text(
-          '$title: ${percentage.toStringAsFixed(1)}%',
-          style: const TextStyle(fontSize: 14),
-        ),
-      ],
-    );
+  /// Reset filtrów
+  void _resetFilters() {
+    setState(() {
+      _selectedMonth = DateTime.now().month;
+      _selectedYear = DateTime.now().year;
+      _showWholeYear = false;
+      _futureData = _loadData();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    // Przygotuj dane do wyświetlenia
+    final totalClients = _clients.length;
+    final segmentCounts = _clientSegmentCounts;
+    final pieSections = _buildPieChartSections(segmentCounts, totalClients);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Statystyki Klientów'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () {
+              setState(() {
+                _futureData = _loadData();
+              });
+            },
+          ),
+        ],
       ),
       body: FutureBuilder<void>(
         future: _futureData,
         builder: (context, snapshot) {
+          // 1. Loader w trakcie pobierania danych
           if (snapshot.connectionState == ConnectionState.waiting && _clients.isEmpty) {
             return const Center(child: CircularProgressIndicator());
-          } else if (_errorMessage != null) {
+          }
+          // 2. Obsługa błędów
+          if (_errorMessage != null) {
             return Center(child: Text(_errorMessage!));
-          } else if (_clients.isEmpty) {
+          }
+          // 3. Brak klientów
+          if (_clients.isEmpty) {
             return const Center(child: Text('Brak klientów'));
           }
 
-          final segmentCounts = _countClientsBySegment();
-          final segmentTotalValues = _getSegmentTotalValues();
-          final segmentAverageValues = _getSegmentAverageValues();
-          final totalClients = _clients.length;
-
-          // Przygotuj dane do wykresu
-          final pieSections = _buildPieChartSections(segmentCounts, totalClients);
-          final colors = [
-            Colors.blue,
-            Colors.red,
-            Colors.green,
-            Colors.orange,
-            Colors.purple,
-            Colors.teal,
-            Colors.brown,
-            Colors.indigo,
-            Colors.cyan,
-            Colors.pink,
-          ];
+          // Filtry czasu
+          final List<int> months = List.generate(12, (i) => i + 1);
+          final currentYear = DateTime.now().year;
+          final List<int> years = List.generate(11, (i) => currentYear - 5 + i);
 
           return SingleChildScrollView(
             padding: const EdgeInsets.all(16.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Podsumowanie liczby klientów
+                // --- Filtry (rok, cały rok, miesiąc) ---
                 Card(
-                  color: Colors.blue.shade50,
+                  margin: const EdgeInsets.only(bottom: 16),
                   elevation: 3,
-                  child: ListTile(
-                    leading: const Icon(Icons.group, color: Colors.blue, size: 40),
-                    title: const Text(
-                      'Łączna liczba klientów',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                    subtitle: Text(
-                      '$totalClients',
-                      style: const TextStyle(fontSize: 16),
+                  child: Padding(
+                    padding: const EdgeInsets.all(12.0),
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: DropdownButtonFormField<int>(
+                                value: _selectedYear,
+                                decoration: const InputDecoration(
+                                  labelText: 'Rok',
+                                  border: OutlineInputBorder(),
+                                ),
+                                items: years.map((year) {
+                                  return DropdownMenuItem<int>(
+                                    value: year,
+                                    child: Text(year.toString()),
+                                  );
+                                }).toList(),
+                                onChanged: (value) {
+                                  if (value != null) {
+                                    setState(() {
+                                      _selectedYear = value;
+                                      _futureData = _loadData();
+                                    });
+                                  }
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Row(
+                                children: [
+                                  Checkbox(
+                                    value: _showWholeYear,
+                                    onChanged: (val) {
+                                      if (val != null) {
+                                        setState(() {
+                                          _showWholeYear = val;
+                                          _futureData = _loadData();
+                                        });
+                                      }
+                                    },
+                                  ),
+                                  const Expanded(
+                                    child: Text('Cały rok'),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: IgnorePointer(
+                                ignoring: _showWholeYear,
+                                child: Opacity(
+                                  opacity: _showWholeYear ? 0.5 : 1.0,
+                                  child: DropdownButtonFormField<int>(
+                                    value: _selectedMonth,
+                                    decoration: const InputDecoration(
+                                      labelText: 'Miesiąc',
+                                      border: OutlineInputBorder(),
+                                    ),
+                                    items: months.map((m) {
+                                      return DropdownMenuItem<int>(
+                                        value: m,
+                                        child: Text(m.toString()),
+                                      );
+                                    }).toList(),
+                                    onChanged: (value) {
+                                      if (value != null && !_showWholeYear) {
+                                        setState(() {
+                                          _selectedMonth = value;
+                                          _futureData = _loadData();
+                                        });
+                                      }
+                                    },
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            ElevatedButton(
+                              onPressed: _resetFilters,
+                              child: const Text('Reset'),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
                 ),
-                const SizedBox(height: 20),
 
-                // Wykres kołowy z legendą
+                // --- Tabela DataTable: segment, liczba, suma, średnia ---
                 Card(
                   elevation: 3,
                   child: Padding(
-                    padding: const EdgeInsets.all(16.0),
+                    padding: const EdgeInsets.all(8.0),
                     child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text(
-                          'Procentowy podział klientów według segmentu',
+                          'Szczegóły segmentów',
                           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                         ),
-                        const SizedBox(height: 20),
-                        SizedBox(
-                          height: 250,
-                          child: PieChart(
-                            PieChartData(
-                              sections: pieSections,
-                              centerSpaceRadius: 40,
-                              sectionsSpace: 4,
-                              borderData: FlBorderData(show: false),
-                              pieTouchData: PieTouchData(),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 10),
+                        LayoutBuilder(
+                          builder: (context, constraints) {
+                            double screenWidth = constraints.maxWidth;
+                            return DataTable(
+                              headingRowHeight: 25,
+                              dataRowHeight: 25,
+                              columnSpacing: 8,
+                              columns: [
+                                DataColumn(
+                                  label: SizedBox(
+                                    width: screenWidth * 0.2,
+                                    child: const Text(
+                                      'Seg.',
+                                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ),
+                                DataColumn(
+                                  label: SizedBox(
+                                    width: screenWidth * 0.2,
+                                    child: const Text(
+                                      'Liczba',
+                                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ),
+                                DataColumn(
+                                  label: SizedBox(
+                                    width: screenWidth * 0.3,
+                                    child: const Text(
+                                      'Sum (PLN)',
+                                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ),
+                                DataColumn(
+                                  label: SizedBox(
+                                    width: screenWidth * 0.3,
+                                    child: const Text(
+                                      'Avg (PLN)',
+                                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                              rows: _clientSegmentCounts.keys.map((segment) {
+                                final count = _clientSegmentCounts[segment] ?? 0;
+                                final totalValue = _segmentTotalValues[segment] ?? 0.0;
+                                final averageValue = _segmentAverageValues[segment] ?? 0.0;
+                                final displaySegment = getDisplaySegmentName(segment);
 
-                        // Legenda pod wykresem
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: pieSections.asMap().entries.map((entry) {
-                            int index = entry.key;
-                            String segment = segmentCounts.keys.elementAt(index);
-                            return _buildLegendItem(
-                              title: segment,
-                              percentage: (segmentCounts[segment]! / totalClients) * 100,
-                              color: index < colors.length ? colors[index] : Colors.black,
+                                return DataRow(cells: [
+                                  DataCell(
+                                    Text(
+                                      displaySegment,
+                                      style: const TextStyle(fontSize: 12),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  DataCell(
+                                    Text(
+                                      '$count',
+                                      style: const TextStyle(fontSize: 12),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  DataCell(
+                                    Text(
+                                      totalValue.toStringAsFixed(2),
+                                      style: const TextStyle(fontSize: 12),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  DataCell(
+                                    Text(
+                                      averageValue.toStringAsFixed(2),
+                                      style: const TextStyle(fontSize: 12),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ]);
+                              }).toList(),
                             );
-                          }).toList(),
+                          },
                         ),
                       ],
                     ),
@@ -293,124 +503,18 @@ class _ClientsStatisticsScreenState extends State<ClientsStatisticsScreen> {
                 ),
                 const SizedBox(height: 20),
 
-                // Lista segmentów z liczbą klientów, łączną wartością i średnią wartością
-Card(
-  elevation: 3,
-  child: Padding(
-    padding: const EdgeInsets.all(8.0), // Reduced padding
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Szczegóły segmentów',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 10),
-        LayoutBuilder(
-          builder: (context, constraints) {
-            double screenWidth = constraints.maxWidth;
-            return DataTable(
-              headingRowHeight: 25,
-              dataRowHeight: 25,
-              columnSpacing: 8,
-              columns: [
-                DataColumn(
-                  label: Container(
-                    width: screenWidth * 0.2,
-                    child: const Text(
-                      'Seg.',
-                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ),
-                DataColumn(
-                  label: Container(
-                    width: screenWidth * 0.2,
-                    child: const Text(
-                      'Liczba',
-                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ),
-                DataColumn(
-                  label: Container(
-                    width: screenWidth * 0.3,
-                    child: const Text(
-                      'Sum (PLN)',
-                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ),
-                DataColumn(
-                  label: Container(
-                    width: screenWidth * 0.3,
-                    child: const Text(
-                      'Avg (PLN)',
-                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ),
-              ],
-              rows: segmentCounts.keys.map((segment) {
-                final count = segmentCounts[segment]!;
-                final totalValue = segmentTotalValues[segment] ?? 0.0;
-                final averageValue = segmentAverageValues[segment] ?? 0.0;
-                final displaySegment = getDisplaySegmentName(segment);
-                return DataRow(cells: [
-                  DataCell(
-                    Text(
-                      displaySegment,
-                      style: const TextStyle(fontSize: 12),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  DataCell(
-                    Text(
-                      '$count',
-                      style: const TextStyle(fontSize: 12),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  DataCell(
-                    Text(
-                      totalValue.toStringAsFixed(2),
-                      style: const TextStyle(fontSize: 12),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  DataCell(
-                    Text(
-                      averageValue.toStringAsFixed(2),
-                      style: const TextStyle(fontSize: 12),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ]);
-              }).toList(),
-            );
-          },
-        ),
-      ],
-    ),
-  ),
-),
-const SizedBox(height: 20),
-
-
-                // Opcjonalnie: Wykres słupkowy pokazujący łączną wartość per segment
+                // --- Wykres słupkowy (łączna wartość w segmentach) ---
                 Card(
                   elevation: 3,
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: Column(
                       children: [
-                        const Text(
-                          'Łączna Wartość Klientów według Segmentu',
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        Text(
+                          'Łączna Wartość Klientów\n'
+                          '${_showWholeYear ? 'Rok: $_selectedYear' : 'Mies. $_selectedMonth/$_selectedYear'}',
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 20),
                         SizedBox(
@@ -426,9 +530,10 @@ const SizedBox(height: 20),
                                 touchTooltipData: BarTouchTooltipData(
                                   tooltipPadding: const EdgeInsets.all(8.0),
                                   getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                                    String segment = segmentCounts.keys.elementAt(group.x.toInt());
+                                    final segKey = segmentCounts.keys.elementAt(group.x.toInt());
+                                    final segValue = rod.toY.toStringAsFixed(2);
                                     return BarTooltipItem(
-                                      '$segment\n',
+                                      '${getDisplaySegmentName(segKey)}\n',
                                       const TextStyle(
                                         color: Colors.white,
                                         fontWeight: FontWeight.bold,
@@ -436,7 +541,7 @@ const SizedBox(height: 20),
                                       ),
                                       children: <TextSpan>[
                                         TextSpan(
-                                          text: rod.toY.toStringAsFixed(2),
+                                          text: segValue,
                                           style: const TextStyle(
                                             color: Colors.yellow,
                                             fontSize: 14,
@@ -454,8 +559,13 @@ const SizedBox(height: 20),
                                   sideTitles: SideTitles(
                                     showTitles: true,
                                     getTitlesWidget: (double value, TitleMeta meta) {
-                                      if (value.toInt() < segmentCounts.keys.length) {
-                                        return Text(segmentCounts.keys.elementAt(value.toInt()));
+                                      final index = value.toInt();
+                                      if (index < segmentCounts.keys.length) {
+                                        final seg = segmentCounts.keys.elementAt(index);
+                                        return Text(
+                                          getDisplaySegmentName(seg),
+                                          style: const TextStyle(fontSize: 10),
+                                        );
                                       }
                                       return const Text('');
                                     },
@@ -465,7 +575,7 @@ const SizedBox(height: 20),
                                 ),
                                 leftTitles: AxisTitles(
                                   sideTitles: SideTitles(
-                                    showTitles: true,
+                                    showTitles: false,
                                     getTitlesWidget: (double value, TitleMeta meta) {
                                       if (value == 0) {
                                         return const Text('0');
@@ -479,17 +589,22 @@ const SizedBox(height: 20),
                                 ),
                               ),
                               borderData: FlBorderData(show: false),
-                              barGroups: segmentCounts.keys.toList().asMap().entries.map((entry) {
-                                int index = entry.key;
-                                String segment = entry.value;
-                                double totalValue = segmentTotalValues[segment] ?? 0.0;
+                              barGroups: segmentCounts.keys
+                                  .toList()
+                                  .asMap()
+                                  .entries
+                                  .map((entry) {
+                                final index = entry.key;
+                                final segment = entry.value;
+                                final totalValue = _segmentTotalValues[segment] ?? 0.0;
+
                                 return BarChartGroupData(
                                   x: index,
                                   barRods: [
                                     BarChartRodData(
                                       fromY: 0,
                                       toY: totalValue,
-                                      color: colors[index % colors.length],
+                                      color: getSegmentColor(segment), // kluczowe
                                       width: 22,
                                       borderRadius: BorderRadius.circular(4),
                                     ),
@@ -500,11 +615,11 @@ const SizedBox(height: 20),
                           ),
                         ),
                         const SizedBox(height: 20),
+                        // Legenda do wykresu słupkowego
                         Wrap(
                           spacing: 8,
                           runSpacing: 8,
-                          children: List.generate(segmentCounts.keys.length, (index) {
-                            String segment = segmentCounts.keys.elementAt(index);
+                          children: segmentCounts.keys.map((segment) {
                             return Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
@@ -512,20 +627,93 @@ const SizedBox(height: 20),
                                   width: 14,
                                   height: 14,
                                   decoration: BoxDecoration(
-                                    color: colors[index % colors.length],
+                                    color: getSegmentColor(segment),
                                     shape: BoxShape.circle,
                                   ),
                                 ),
                                 const SizedBox(width: 8),
-                                Text(segment),
+                                Text(getDisplaySegmentName(segment)),
                               ],
                             );
-                          }),
+                          }).toList(),
                         ),
                       ],
                     ),
                   ),
                 ),
+                
+                // --- Wykres kołowy (podział klientów) ---
+                Card(
+                  elevation: 3,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      children: [
+                        Text(
+                          _showWholeYear
+                              ? 'Procentowy podział klientów (rok $_selectedYear)'
+                              : 'Procentowy podział klientów (mies. $_selectedMonth/$_selectedYear)',
+                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 20),
+                        SizedBox(
+                          height: 250,
+                          child: PieChart(
+                            // Klucz można dodać, jeśli chcesz
+                            // key: ValueKey(_appointments),
+                            PieChartData(
+                              sections: pieSections,
+                              centerSpaceRadius: 40,
+                              sectionsSpace: 4,
+                              borderData: FlBorderData(show: false),
+                              pieTouchData: PieTouchData(),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        // Legenda
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: pieSections.asMap().entries.map((entry) {
+                            int index = entry.key;
+                            // segment wyciągamy z posortowanej listy
+                            final segment = segmentCounts.entries.toList()[index].key;
+                            final segCount = segmentCounts[segment] ?? 0;
+                            double percentage = 0;
+                            if (totalClients > 0) {
+                              percentage = (segCount / totalClients) * 100;
+                            }
+                            return _buildLegendItem(
+                              segment: segment,
+                              percentage: percentage,
+                            );
+                          }).toList(),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                
+                // --- Podsumowanie liczby klientów ---
+                Card(
+                  color: Colors.blue.shade50,
+                  elevation: 3,
+                  child: ListTile(
+                    leading: const Icon(Icons.group, color: Colors.blue, size: 40),
+                    title: const Text(
+                      'Łączna liczba klientów',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    subtitle: Text(
+                      '$totalClients',
+                      style: const TextStyle(fontSize: 16),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
               ],
             ),
           );

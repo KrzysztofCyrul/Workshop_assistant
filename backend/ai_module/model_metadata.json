@@ -11,5 +11,5 @@
         "vehicle_mileage"
     ],
     "best_params": null,
-    "accuracy": 0.9666666666666667
+    "accuracy": 0.975
 }

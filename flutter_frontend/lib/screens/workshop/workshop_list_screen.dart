@@ -38,12 +38,30 @@ class _WorkshopListScreenState extends State<WorkshopListScreen> {
     }
   }
 
+    void _logout(BuildContext context) async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    try {
+      await authProvider.logout();
+      Navigator.of(context).pushReplacementNamed('/login'); // Navigate to login screen
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Błąd wylogowania: $e')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final workshopProvider = Provider.of<WorkshopProvider>(context);
     return Scaffold(
       appBar: AppBar(
         title: const Text('Lista warsztatów'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () => _logout(context),
+          ),
+        ]
       ),
       body: RefreshIndicator(
         onRefresh: _fetchWorkshops,

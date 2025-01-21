@@ -162,6 +162,10 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
+                'Rejestracja: ${appointment.vehicle.licensePlate}',
+                style: const TextStyle(fontSize: 16),
+              ),
+              Text(
                 'Klient: ${appointment.client.firstName} ${appointment.client.lastName}',
                 style: const TextStyle(fontSize: 14),
               ),
@@ -207,7 +211,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
       return ChangeStatusWidget(
         appointment: appointment,
         workshopId: _workshopId!,
-        onStatusChanged: _refreshScheduledAppointments, // Odświeżenie wizyt po zmianie
+        onStatusChanged: _refreshScheduledAppointments,
       );
     },
   );

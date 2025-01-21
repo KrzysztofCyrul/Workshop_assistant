@@ -59,7 +59,7 @@ class ChangeStatusWidget extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.pending, color: Colors.orange),
             onPressed: () {
-              _updateAppointmentStatus(context, 'pending');
+              _updateAppointmentStatus(context, 'schedudled');
               Navigator.pop(context);
             },
             tooltip: 'Oczekujące',

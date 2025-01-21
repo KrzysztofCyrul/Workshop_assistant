@@ -5,7 +5,6 @@ from django.utils import timezone
 from appointments.models import Appointment, RepairItem
 from ai_module.ml_model import predict_segment
 from service_records.models import ServiceRecord
-from ai_module.models import TrainingData
 from ai_module.utils import SEGMENT_DISCOUNTS
 
 @receiver(post_save, sender=Appointment)
@@ -30,17 +29,6 @@ def create_service_record(sender, instance, created, **kwargs):
             instance.vehicle.mileage = instance.mileage
             instance.vehicle.save()
 
-            # Zapisz dane treningowe
-            for repair_item in repair_items:
-                if repair_item.actual_duration:  # Sprawdź, czy istnieje wartość w polu actual_duration
-                    TrainingData.objects.create(
-                        description=repair_item.description,
-                        make=instance.vehicle.make,
-                        model=instance.vehicle.model,
-                        year=instance.vehicle.year,
-                        engine=instance.vehicle.engine_type,
-                        actual_duration_hours=repair_item.actual_duration,  # Upewnij się, że to pole istnieje
-                    )
                 
 @receiver(post_save, sender=RepairItem)
 def update_appointment_status(sender, instance, **kwargs):

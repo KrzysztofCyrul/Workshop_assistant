@@ -24,19 +24,18 @@ class AppointmentService {
     }
   }
 
-  static Future<void> createAppointment({
+  static Future<String> createAppointment({
     required String accessToken,
     required String workshopId,
     required String clientId,
     required String vehicleId,
     required DateTime scheduledTime,
     String? notes,
-    int mileage = 0,
+    required int mileage,
     String? recommendations,
     Duration? estimatedDuration,
     double? totalCost,
-    // List<String>? assignedMechanicIds,
-    String status = 'scheduled',
+    required String status,
   }) async {
     final url = Uri.parse('$baseUrl/workshops/$workshopId/appointments/');
     final response = await http.post(
@@ -52,17 +51,17 @@ class AppointmentService {
         'notes': notes,
         'mileage': mileage,
         'recommendations': recommendations,
-        'estimated_duration': estimatedDuration != null
-            ? estimatedDuration.inMinutes
-            : null,
+        'estimated_duration': estimatedDuration?.inMinutes,
         'total_cost': totalCost,
-        // 'assigned_mechanics': assignedMechanicIds,
         'status': status,
       }),
     );
 
-    if (response.statusCode != 201) {
-      throw Exception('Błąd podczas tworzenia zlecenia: ${response.body}');
+    if (response.statusCode == 201) {
+      final data = json.decode(response.body);
+      return data['id'];
+    } else {
+      throw Exception('Błąd podczas tworzenia zlecenia: ${response.statusCode}');
     }
   }
 

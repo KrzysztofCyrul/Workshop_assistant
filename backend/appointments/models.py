@@ -1,14 +1,11 @@
 from decimal import Decimal
 import uuid
 from django.db import models
+from django.core.exceptions import ValidationError
 from employees.models import Employee
 from workshops.models import Workshop
 from clients.models import Client
 from vehicles.models import Vehicle
-from django.db.models.signals import post_save
-from django.dispatch import receiver
-from django.utils import timezone
-from datetime import timedelta
 
 class Appointment(models.Model):
     STATUS_CHOICES = [
@@ -50,10 +47,12 @@ class Appointment(models.Model):
 
     def __str__(self):
         return f"Appointment for {self.client} on {self.scheduled_time}"
-    
+
     def calculate_total_cost(self):
-        repair_items = self.repair_items.all()
-        total_cost = sum(item.cost for item in repair_items)
+        repair_items_cost = sum(item.cost for item in self.repair_items.all())
+        parts_cost = sum(part.total_cost for part in self.parts.all())
+
+        total_cost = repair_items_cost + parts_cost
 
         # Apply client's discount
         discount_rate = Decimal(self.client.discount) / Decimal(100)
@@ -96,9 +95,33 @@ class RepairItem(models.Model):
     cost = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     order = models.PositiveIntegerField(default=0)
 
-
     def __str__(self):
         return f"{self.description} ({self.get_status_display()}), assigned to {self.appointment.client}"
 
     class Meta:
         ordering = ['order']
+
+class Part(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=100)
+    description = models.TextField(blank=True, null=True)
+    cost = models.DecimalField(max_digits=10, decimal_places=2)
+    quantity = models.PositiveIntegerField(default=1)
+    appointment = models.ForeignKey(
+        Appointment,
+        on_delete=models.CASCADE,
+        related_name='parts'
+    )
+
+    def clean(self):
+        if self.cost < 0:
+            raise ValidationError("Koszt nie może być ujemny.")
+        if self.quantity < 1:
+            raise ValidationError("Ilość musi być większa lub równa 1.")
+
+    @property
+    def total_cost(self):
+        return self.cost * self.quantity
+
+    def __str__(self):
+        return f"{self.name} x{self.quantity} ({self.cost} zł)"

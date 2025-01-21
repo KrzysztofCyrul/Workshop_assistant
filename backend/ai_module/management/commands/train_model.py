@@ -36,12 +36,10 @@ class Command(BaseCommand):
 
             for client in clients:
                 try:
-                    # Pobranie wszystkich wizyt klienta
                     appointments = client.appointments.all()
                     completed_appointments = appointments.filter(status='completed')
                     canceled_appointments = appointments.filter(status='canceled')
 
-                    # Obliczanie cech związanych z wizytami
                     frequency = completed_appointments.count()
                     monetary_value = completed_appointments.aggregate(total_spent=Sum('total_cost'))['total_spent'] or 0
                     avg_cost = completed_appointments.aggregate(avg_spent=Avg('total_cost'))['avg_spent'] or 0
@@ -56,10 +54,8 @@ class Command(BaseCommand):
                     recency = (today - last_appointment_date.date()).days if last_appointment_date else (today - client.created_at.date()).days
                     time_since_first_visit = (today - first_appointment_date.date()).days if first_appointment_date else 0
 
-                    # Dodanie cech: vehicle_year i vehicle_mileage
                     vehicles = client.vehicles.all()
                     if vehicles.exists():
-                        # Wybieramy najnowszy pojazd
                         latest_vehicle = vehicles.order_by('-year').first()
                         vehicle_year = latest_vehicle.year
                         vehicle_mileage = latest_vehicle.mileage
@@ -84,7 +80,6 @@ class Command(BaseCommand):
                     self.stdout.write(self.style.ERROR(f"Błąd podczas przetwarzania klienta {client.id}: {e}"))
 
             df = pd.DataFrame(data)
-            # Uzupełnianie brakujących wartości
             df['vehicle_year'] = df['vehicle_year'].fillna(df['vehicle_year'].median())
             df['vehicle_mileage'] = df['vehicle_mileage'].fillna(df['vehicle_mileage'].median())
 
@@ -125,25 +120,18 @@ class Command(BaseCommand):
             self.stdout.write(self.style.NOTICE("Rozpoczęto trening modelu..."))
             df = prepare_dataset()
 
-            # Definicja cech
             features = ['recency', 'frequency', 'monetary_value', 'avg_cost', 'canceled_count',
                         'cancellation_rate', 'time_since_first_visit', 'vehicle_year', 'vehicle_mileage']
             X = df[features]
             y = df['segment']
-
-            # Uzupełnienie brakujących wartości
             X = X.fillna(X.median())
-
-            # Balansowanie danych
             X_balanced, y_balanced = balance_data(X, y)
 
-            # Definicja pipeline z skalowaniem i klasyfikatorem
             pipeline = Pipeline([
                 ('scaler', StandardScaler()),
                 ('classifier', RandomForestClassifier(random_state=42))
             ])
 
-            # Definicja siatki parametrów dla GridSearchCV
             param_grid = {
                 'classifier__n_estimators': [50, 100, 200],
                 'classifier__max_depth': [10, 20, 30],
@@ -169,19 +157,15 @@ class Command(BaseCommand):
                 self.stdout.write(self.style.ERROR(f"Błąd podczas Grid Search: {e}"))
                 raise e
 
-            # Predykcja na zbiorze treningowym (po balansowaniu)
             y_pred = best_model.predict(X_balanced)
             self.stdout.write(self.style.NOTICE("Raport klasyfikacji:"))
             self.stdout.write(classification_report(y_balanced, y_pred))
 
-            # Plotowanie macierzy konfuzji
             plot_confusion_matrix(y_balanced, y_pred, labels=np.unique(y_balanced), title="Macierz konfuzji")
 
-            # Zapisanie modelu
             model_path = os.path.join(os.path.dirname(__file__), 'advanced_client_segment_classifier.joblib')
             joblib.dump(best_model, model_path)
 
-            # Zapisanie metadanych
             metadata = {
                 'best_params': grid_search.best_params_,
                 'features': features,

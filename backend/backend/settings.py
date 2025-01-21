@@ -27,6 +27,7 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 
 INSTALLED_APPS = [
+    'django_extensions',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -148,25 +149,25 @@ AUTH_USER_MODEL = 'accounts.User'
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'your_db_name',
-        'USER': 'your_db_user',
-        'PASSWORD': 'your_db_password',
-        'HOST': 'localhost',  # lub IP serwera bazy danych
-        'PORT': '5432',       # domyślny port PostgreSQL
-    }
-}
-
-
-
 # DATABASES = {
 #     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'your_db_name',
+#         'USER': 'your_db_user',
+#         'PASSWORD': 'your_db_password',
+#         'HOST': 'localhost',  # lub IP serwera bazy danych
+#         'PORT': '5432',       # domyślny port PostgreSQL
 #     }
 # }
+
+
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
+}
 
 
 # Password validation
@@ -215,8 +216,8 @@ DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000  # or any other value that suits your need
 # Import api key form .env file
 API_KEY = os.getenv('API_KEY')
 
-CELERY_BROKER_URL = 'redis://localhost:6379/0'  # Używamy Redis jako brokera
-CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+# CELERY_BROKER_URL = 'redis://localhost:6379/0'  # Używamy Redis jako brokera
+# CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
 
 from celery.schedules import crontab
 

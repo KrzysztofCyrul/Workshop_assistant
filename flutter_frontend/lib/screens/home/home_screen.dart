@@ -16,7 +16,6 @@ import '../appointments/appointment_calendar_screen.dart';
 import '../relationships/client_statistics_screen.dart';
 import '../relationships/send_email_screen.dart';
 
-
 class HomeScreen extends StatelessWidget {
   static const routeName = '/home';
 
@@ -75,9 +74,7 @@ class HomeScreen extends StatelessWidget {
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         // ignore: unnecessary_null_comparison
-        child: workshopId == null
-            ? _buildNoWorkshopView(context)
-            : _buildWorkshopActions(context, workshopId, employeeId),
+        child: workshopId == null ? _buildNoWorkshopView(context) : _buildWorkshopActions(context, workshopId, employeeId),
       ),
     );
   }
@@ -95,8 +92,7 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildWorkshopActions(
-      BuildContext context, String workshopId, String? employeeId) {
+  Widget _buildWorkshopActions(BuildContext context, String workshopId, String? employeeId) {
     final actions = [
       {
         'title': 'Dodaj Zlecenie',
@@ -199,8 +195,7 @@ class HomeScreen extends StatelessWidget {
     Navigator.of(context).pushNamed(AppointmentsScreen.routeName);
   }
 
-  void _navigateToEmployeeDetails(
-      BuildContext context, String workshopId, String employeeId) {
+  void _navigateToEmployeeDetails(BuildContext context, String workshopId, String employeeId) {
     Navigator.of(context).pushNamed(
       EmployeeDetailsScreen.routeName,
       arguments: {
@@ -227,8 +222,7 @@ class HomeScreen extends StatelessWidget {
     Navigator.of(context).pushNamed(AddClientScreen.routeName);
   }
 
-  void _navigateToAddVehicle(
-      BuildContext context, String workshopId, String clientId) {
+  void _navigateToAddVehicle(BuildContext context, String workshopId, String clientId) {
     Navigator.of(context).pushNamed(
       AddVehicleScreen.routeName,
       arguments: {

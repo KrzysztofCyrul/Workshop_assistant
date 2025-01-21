@@ -39,7 +39,7 @@ def get_estimated_duration(vehicle_info, repair_description):
         )
 
         estimated_duration = response.choices[0].message['content'].strip()
-        print(f"Odpowiedź z API: {estimated_duration}")  # Dodaj ten print
+        print(f"Odpowiedź z API: {estimated_duration}")
         return estimated_duration
     except Exception as e:
         # Obsłuż błędy API

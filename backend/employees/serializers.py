@@ -19,7 +19,6 @@ class EmployeeSerializer(serializers.ModelSerializer):
     user_full_name = serializers.SerializerMethodField()
     workshop_name = serializers.CharField(source='workshop.name', read_only=True)
 
-
     class Meta:
         model = Employee
         fields = (

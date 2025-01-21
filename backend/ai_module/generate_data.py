@@ -26,9 +26,14 @@ def generate_clients_for_segment(segment, num_clients):
 
     for i in range(num_clients):
         client_id = f'client_{segment}_{i+1}'
-        created_at = START_DATE + timedelta(days=random.randint(0, 180))  # Dla wszystkich segmentów poza D
+        
+        # Data utworzenia klienta (różnicujemy tylko dla segmentów A–C, żeby była wstecz max o 180 dni;
+        # dla segmentu D może być taki sam zakres, bo i tak recency finalnie wyjdzie dłuższe)
+        if segment != 'D':
+            created_at = START_DATE + timedelta(days=random.randint(0, 180))
+        else:
+            created_at = START_DATE + timedelta(days=random.randint(0, 365))
 
-        # Generowanie cech dla segmentu A
         if segment == 'A':
             recency = random.randint(0, 30)
             frequency = random.randint(11, 20)
@@ -36,10 +41,10 @@ def generate_clients_for_segment(segment, num_clients):
             avg_cost = random.uniform(501, 1000)
             canceled_count = 0
             time_since_first_visit = random.randint(0, 179)
-            cancellation_rate = 0
+            cancellation_rate = 0.0  # w tym wypadku 0, aby nie przekroczyć 0.1
             vehicle_year = random.randint(datetime.now().year - 5, datetime.now().year)
             vehicle_mileage = random.randint(0, 50000)
-        # Generowanie cech dla segmentu B
+
         elif segment == 'B':
             recency = random.randint(31, 90)
             frequency = random.randint(6, 10)
@@ -50,45 +55,55 @@ def generate_clients_for_segment(segment, num_clients):
             cancellation_rate = random.uniform(0, 0.19)
             vehicle_year = random.randint(datetime.now().year - 10, datetime.now().year - 5)
             vehicle_mileage = random.randint(50001, 100000)
-        # Generowanie cech dla segmentu C
-        elif segment == 'C':
-            recency = random.randint(91, 180)
-            frequency = random.randint(1, 5)
-            monetary_value = random.uniform(1001, 2000)
-            avg_cost = random.uniform(201, 300)
-            canceled_count = random.randint(0, 2)
-            time_since_first_visit = random.randint(180, 365)
-            cancellation_rate = random.uniform(0, 0.29)
-            vehicle_year = random.randint(datetime.now().year - 20, datetime.now().year - 10)
-            vehicle_mileage = random.randint(100001, 200000)
-        # Generowanie cech dla segmentu D
-        else:  # Segment D
-            recency = random.randint(181, 365)
-            frequency = random.randint(0, 5)
-            monetary_value = random.uniform(0, 1000)
-            avg_cost = random.uniform(0, 200)
-            canceled_count = random.randint(0, 5)
-            time_since_first_visit = random.randint(180, 365)
-            cancellation_rate = random.uniform(0.3, 1)
-            vehicle_year = random.randint(1990, datetime.now().year - 20)
-            vehicle_mileage = random.randint(150001, 300000)
 
+        else:
+
+            if segment == 'C':
+                recency = random.randint(91, 180)
+                frequency = random.randint(1, 5)
+                monetary_value = random.uniform(1001, 2000)
+                avg_cost = random.uniform(201, 300)
+                canceled_count = random.randint(0, 2)
+                time_since_first_visit = random.randint(180, 365)
+                cancellation_rate = random.uniform(0, 0.19)
+                vehicle_year = random.randint(datetime.now().year - 20, datetime.now().year - 10)
+                vehicle_mileage = random.randint(100001, 200000)
+            # --- Segment D ---
+            # Segment D dostaje każdy, kto nie spełni warunków A/B/C
+            else:  # segment == 'D'
+                recency = random.randint(181, 365)
+                frequency = random.randint(0, 5)
+                monetary_value = random.uniform(0, 1000)
+                avg_cost = random.uniform(0, 200)
+                canceled_count = random.randint(0, 5)
+                time_since_first_visit = random.randint(180, 365)
+                cancellation_rate = random.uniform(0.3, 1)
+                vehicle_year = random.randint(1990, datetime.now().year - 20)
+                vehicle_mileage = random.randint(150001, 300000)
+
+        # Dodajemy do listy klientów
         clients.append({'client_id': client_id, 'created_at': created_at})
 
+        # Dodajemy dane pojazdu
         vehicles.append({
             'client_id': client_id,
             'vehicle_year': vehicle_year,
             'vehicle_mileage': vehicle_mileage
         })
 
-        # Generowanie wizyt na podstawie częstotliwości
+        # Generujemy wizyty na podstawie częstotliwości (frequency + canceled_count)
         num_visits = frequency + canceled_count
         for _ in range(num_visits):
             appointment_date = END_DATE - timedelta(days=random.randint(recency, recency + 30))
             if appointment_date < created_at:
                 appointment_date = created_at + timedelta(days=random.randint(0, 30))
             total_cost = avg_cost
-            is_canceled = canceled_count > 0 and random.random() < cancellation_rate
+            # Sprawdź, czy wizyta ma być anulowana
+            is_canceled = False
+            if canceled_count > 0:
+                if random.random() < cancellation_rate:
+                    is_canceled = True
+
             status = 'canceled' if is_canceled else 'completed'
             appointments.append({
                 'client_id': client_id,
@@ -185,7 +200,7 @@ def assign_segments(features):
             row['frequency'] > 10 and
             row['monetary_value'] > 5000 and
             row['avg_cost'] > 500 and
-            row['canceled_count'] == 0 and
+            row['canceled_count'] <= 1 and
             row['time_since_first_visit'] < 180 and
             row['cancellation_rate'] < 0.1 and
             row['vehicle_year'] >= datetime.now().year - 5 and
@@ -203,8 +218,8 @@ def assign_segments(features):
         # Warunki dla segmentu C
         elif (row['recency'] <= 180 and
               row['monetary_value'] > 1000 and
-              row['avg_cost'] > 200 and
-              row['cancellation_rate'] < 0.3 and
+              row['avg_cost'] > 100 and
+              row['cancellation_rate'] < 0.2 and
               row['vehicle_mileage'] > 100000):
             return 'C'
         # Segment D dla pozostałych klientów
@@ -219,18 +234,29 @@ rfm_df, appointments_df = generate_data()
 print("Przykładowe dane RFM:")
 print(rfm_df.head())
 
-print("\nRozkład segmentów:")
+print("\nRozkład segmentów (z przypisania po calculate_features i assign_segments):")
 print(rfm_df['segment'].value_counts())
 
-# Trening i ewaluacja modelu
-features_list = ['recency', 'frequency', 'monetary_value', 'avg_cost', 'canceled_count',
-                 'time_since_first_visit', 'cancellation_rate', 'vehicle_year', 'vehicle_mileage']
+# =====================================
+# Trening i ewaluacja modelu (przykład)
+features_list = [
+    'recency', 
+    'frequency', 
+    'monetary_value', 
+    'avg_cost', 
+    'canceled_count',
+    'time_since_first_visit', 
+    'cancellation_rate', 
+    'vehicle_year', 
+    'vehicle_mileage'
+]
 X = rfm_df[features_list]
 y = rfm_df['segment']
 
 # Podział na zbiór treningowy i testowy
 X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.3, stratify=y, random_state=42)
+    X, y, test_size=0.3, stratify=y, random_state=42
+)
 
 # Trening modelu
 model = DecisionTreeClassifier(random_state=42)
@@ -242,6 +268,8 @@ accuracy = accuracy_score(y_test, y_pred)
 print("\nRaport klasyfikacji:")
 print(classification_report(y_test, y_pred))
 
+print(f"Accuracy: {accuracy:.2f}")
+
 # Zapisanie modelu
 model_path = 'advanced_client_segment_classifier.joblib'
 joblib.dump(model, model_path)
@@ -250,7 +278,7 @@ print(f"\nModel zapisano jako '{model_path}'")
 # Zapisanie metadanych
 metadata = {
     'features': features_list,
-    'best_params': None,  # W DecisionTreeClassifier brak optymalizacji parametrów
+    'best_params': None,  # W DecisionTreeClassifier brak optymalizacji parametrów w tym przykładzie
     'accuracy': accuracy
 }
 metadata_path = 'model_metadata.json'
