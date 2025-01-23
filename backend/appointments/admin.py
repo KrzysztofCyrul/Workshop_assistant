@@ -1,6 +1,6 @@
 from pyexpat.errors import messages
 from django.contrib import admin
-from appointments.models import Appointment, RepairItem
+from appointments.models import Appointment, RepairItem, Part
 from ai_module.signals import get_appointment_recommendations
 
 @admin.register(Appointment)
@@ -33,3 +33,9 @@ class RepairItemAdmin(admin.ModelAdmin):
     search_fields = ('appointment__client__first_name', 'appointment__client__last_name', 'description', 'status')
     readonly_fields = ('estimated_duration',)
     list_filter = ('status',)
+
+@admin.register(Part)
+class PartAdmin(admin.ModelAdmin):
+    list_display = ('appointment', 'name', 'quantity', 'total_cost')
+    search_fields = ('appointment__client__first_name', 'appointment__client__last_name', 'name')
+    list_filter = ('name', 'quantity')

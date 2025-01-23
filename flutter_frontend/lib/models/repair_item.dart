@@ -1,82 +1,92 @@
 class RepairItem {
-  final String id;
-  final String appointmentId;
-  final String description;
-  final bool isCompleted;
-  final String? completedBy;
-  final String status;
+  final String? appointmentId;
+  final String? description;
+  bool isCompleted;
   final Duration? estimatedDuration;
   final Duration? actualDuration;
+  final double cost;
+  final String? completedBy;
+  String status;
+  final String id;
   final DateTime createdAt;
   final DateTime updatedAt;
-  final double cost;
   final int order;
 
   RepairItem({
-    required this.id,
-    required this.appointmentId,
-    required this.description,
-    required this.isCompleted,
-    this.completedBy,
-    required this.status,
+    this.appointmentId,
+    this.description,
+    this.isCompleted = false,
     this.estimatedDuration,
     this.actualDuration,
+    this.cost = 0.0,
+    this.completedBy,
+    this.status = 'pending',
+    required this.id,
     required this.createdAt,
     required this.updatedAt,
-    required this.cost,
     required this.order,
   });
 
+ // Funkcja `copyWith` umożliwia modyfikację wybranych pól
+  RepairItem copyWith({
+    String? id,
+    String? appointmentId,
+    String? description,
+    bool? isCompleted,
+    String? completedBy,
+    String? status,
+    Duration? estimatedDuration,
+    Duration? actualDuration,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    double? cost,
+    int? order,
+  }) {
+    return RepairItem(
+      id: id ?? this.id,
+      appointmentId: appointmentId ?? this.appointmentId,
+      description: description ?? this.description,
+      isCompleted: isCompleted ?? this.isCompleted,
+      completedBy: completedBy ?? this.completedBy,
+      status: status ?? this.status,
+      estimatedDuration: estimatedDuration ?? this.estimatedDuration,
+      actualDuration: actualDuration ?? this.actualDuration,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      cost: cost ?? this.cost,
+      order: order ?? this.order,
+    );
+  }
+
   factory RepairItem.fromJson(Map<String, dynamic> json) {
     return RepairItem(
+      appointmentId: json['appointment'] as String?,
+      description: json['description'] as String?,
+      isCompleted: json['is_completed'] as bool? ?? false,
+      estimatedDuration: _parseDuration(json['estimated_duration']),
+      actualDuration: _parseDuration(json['actual_duration']),
+      cost: double.tryParse(json['cost']?.toString() ?? '0.0') ?? 0.0,
+      completedBy: json['completed_by'] as String?,
+      status: json['status'] as String? ?? 'pending',
       id: json['id'],
-      appointmentId: json['appointment'],
-      description: json['description'] ?? '',
-      isCompleted: json['is_completed'] ?? false,
-      completedBy: json['completed_by'],
-      status: json['status'] ?? 'pending',
-      estimatedDuration: json['estimated_duration'] != null
-          ? _parseDuration(json['estimated_duration'])
-          : null,
-      actualDuration: json['actual_duration'] != null
-          ? _parseDuration(json['actual_duration'])
-          : null,
       createdAt: DateTime.parse(json['created_at']),
       updatedAt: DateTime.parse(json['updated_at']),
-      cost: json['cost'] != null ? double.parse(json['cost'].toString()) : 0.0,
       order: json['order'] ?? 0,
     );
   }
 
   // Funkcja pomocnicza do parsowania ciągu znaków na Duration
-  static Duration _parseDuration(String durationStr) {
+  static Duration? _parseDuration(dynamic value) {
+    if (value == null) return null;
     try {
-      if (durationStr.contains(':')) {
-        // Format "HH:MM:SS" lub "HH:MM"
-        final parts = durationStr.split(':');
-        if (parts.length == 3) {
-          final hours = int.parse(parts[0]);
-          final minutes = int.parse(parts[1]);
-          final seconds = int.parse(parts[2]);
-          return Duration(hours: hours, minutes: minutes, seconds: seconds);
-        } else if (parts.length == 2) {
-          final hours = int.parse(parts[0]);
-          final minutes = int.parse(parts[1]);
-          return Duration(hours: hours, minutes: minutes);
-        } else {
-          throw FormatException('Nieprawidłowy format czasu');
-        }
-      } else {
-        // Format dziesiętny "34.800000" (godziny)
-        double decimalHours = double.parse(durationStr);
-        int hours = decimalHours.floor();
-        int minutes = ((decimalHours - hours) * 60).round();
-        return Duration(hours: hours, minutes: minutes);
-      }
-    } catch (e) {
-      // Obsłuż błąd parsowania, np. zwróć Duration.zero lub inny domyślny
-      print('Błąd parsowania Duration: $e');
-      return Duration.zero;
+      // Przyjmuje format "HH:MM:SS"
+      final parts = value.split(':');
+      final hours = int.parse(parts[0]);
+      final minutes = int.parse(parts[1]);
+      final seconds = int.parse(parts[2]);
+      return Duration(hours: hours, minutes: minutes, seconds: seconds);
+    } catch (_) {
+      return null;
     }
   }
 

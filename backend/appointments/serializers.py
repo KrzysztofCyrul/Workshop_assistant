@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from appointments.models import Appointment, RepairItem
+from appointments.models import Appointment, Part, RepairItem
 from employees.models import Employee
 from employees.serializers import EmployeeSerializer
 from clients.models import Client
@@ -41,12 +41,33 @@ class RepairItemSerializer(serializers.ModelSerializer):
         validated_data.pop('appointment', None)  # Usuwa 'appointment' z validated_data
         return RepairItem.objects.create(appointment=appointment, **validated_data)
 
+class PartSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Part
+        fields = '__all__'
+        read_only_fields = ('id', 'workshop', 'created_at', 'updated_at')
+
+    def validate_quantity(self, value):
+        if value <= 0:
+            raise serializers.ValidationError("Ilość musi być większa niż 0.")
+        return value
+
+    def validate_cost(self, value):
+        if value < 0:
+            raise serializers.ValidationError("Cena nie może być ujemna.")
+        return value
+
+    def create(self, validated_data):
+        # Dodanie powiązania z warsztatem z kontekstu
+        validated_data['appointment'] = self.context['appointment']
+        return super().create(validated_data)
 
 
 class AppointmentSerializer(serializers.ModelSerializer):
     client = ClientSerializer(read_only=True)
     vehicle = VehicleSerializer(read_only=True)
     repair_items = RepairItemSerializer(many=True, read_only=True)  # Dodanie pola do zagnieżdżenia RepairItem
+    parts = PartSerializer(many=True, read_only=True)  # Dodanie pola do zagnieżdżenia Part
 
     client_id = serializers.PrimaryKeyRelatedField(queryset=Client.objects.all(), write_only=True, source='client')
     vehicle_id = serializers.PrimaryKeyRelatedField(queryset=Vehicle.objects.all(), write_only=True, source='vehicle')

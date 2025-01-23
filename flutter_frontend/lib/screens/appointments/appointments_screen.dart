@@ -29,34 +29,39 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
     _scheduledAppointmentsFuture = _fetchScheduledAppointments();
   }
 
-  Future<List<Appointment>> _fetchScheduledAppointments() async {
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final user = authProvider.user;
+Future<List<Appointment>> _fetchScheduledAppointments() async {
+  final authProvider = Provider.of<AuthProvider>(context, listen: false);
+  final user = authProvider.user;
 
-    if (user == null) {
-      throw Exception('Brak danych użytkownika');
-    }
-
-    bool isMechanic = user.roles.contains('mechanic') || user.roles.contains('workshop_owner');
-    bool isAssignedToWorkshop = user.employeeProfiles.isNotEmpty;
-
-    if (isMechanic && isAssignedToWorkshop) {
-      final employee = user.employeeProfiles.first;
-      _workshopId = employee.workshopId;
-
-      List<Appointment> appointments = await AppointmentService.getAppointments(
-        authProvider.accessToken!,
-        _workshopId!,
-      );
-
-      appointments = appointments.where((appointment) => appointment.status.toLowerCase() == 'scheduled').toList();
-      appointments.sort((a, b) => b.scheduledTime.compareTo(a.scheduledTime));
-
-      return appointments;
-    } else {
-      throw Exception('Nie masz uprawnień do wyświetlenia tej strony');
-    }
+  if (user == null) {
+    throw Exception('Brak danych użytkownika');
   }
+
+  bool isMechanic = user.roles.contains('mechanic') || user.roles.contains('workshop_owner');
+  bool isAssignedToWorkshop = user.employeeProfiles.isNotEmpty;
+
+  if (isMechanic && isAssignedToWorkshop) {
+    final employee = user.employeeProfiles.first;
+    _workshopId = employee.workshopId;
+
+    if (_workshopId == null) {
+      throw Exception('Brak ID warsztatu');
+    }
+
+    List<Appointment> appointments = await AppointmentService.getAppointments(
+      authProvider.accessToken!,
+      _workshopId!,
+    );
+
+    appointments = appointments.where((appointment) => appointment.status.toLowerCase() == 'scheduled').toList();
+    appointments.sort((a, b) => b.scheduledTime.compareTo(a.scheduledTime));
+
+    return appointments;
+  } else {
+    throw Exception('Nie masz uprawnień do wyświetlenia tej strony');
+  }
+}
+
 
   Future<void> _refreshScheduledAppointments() async {
     setState(() {
@@ -145,60 +150,68 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
     );
   }
 
-  Widget _buildAppointmentItem(Appointment appointment) {
-    return Card(
-      elevation: 3,
-      margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      child: ListTile(
-        leading: const Icon(Icons.event, size: 40, color: Colors.blue),
-        title: Text(
-          'Wizyta: ${appointment.vehicle.make} ${appointment.vehicle.model}',
-          style: const TextStyle(fontWeight: FontWeight.bold),
+Widget _buildAppointmentItem(Appointment appointment) {
+  return Card(
+    elevation: 3,
+    margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+    child: ListTile(
+      leading: const Icon(Icons.event, size: 40, color: Colors.blue),
+      title: Text(
+        'Wizyta: ${appointment.vehicle.make} ${appointment.vehicle.model}',
+        style: const TextStyle(fontWeight: FontWeight.bold),
+      ),
+     subtitle: Padding(
+        padding: const EdgeInsets.only(top: 4.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Rejestracja: ${appointment.vehicle.licensePlate}',
+              style: const TextStyle(fontSize: 16),
+            ),
+            Text(
+              'Klient: ${appointment.client.firstName} ${appointment.client.lastName}',
+              style: const TextStyle(fontSize: 14),
+            ),
+            Text(
+              'Data: ${DateFormat('dd-MM-yyyy HH:mm').format(appointment.scheduledTime.toLocal())}',
+              style: const TextStyle(fontSize: 14),
+            ),
+            Text(
+              'Status: ${appointment.status}',
+              style: TextStyle(
+                fontSize: 14,
+                color: _getStatusColor(appointment.status),
+              ),
+            ),
+            Text(
+              'Notatki: ${appointment.notes ?? 'Brak'}',
+              style: const TextStyle(fontSize: 14, fontStyle: FontStyle.italic),
+            ),
+          ],
         ),
-        subtitle: Padding(
-          padding: const EdgeInsets.only(top: 4.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Rejestracja: ${appointment.vehicle.licensePlate}',
-                style: const TextStyle(fontSize: 16),
-              ),
-              Text(
-                'Klient: ${appointment.client.firstName} ${appointment.client.lastName}',
-                style: const TextStyle(fontSize: 14),
-              ),
-              Text(
-                'Data: ${DateFormat('dd-MM-yyyy HH:mm').format(appointment.scheduledTime.toLocal())}',
-                style: const TextStyle(fontSize: 14),
-              ),
-              Text(
-                'Status: ${appointment.status}',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: _getStatusColor(appointment.status),
-                ),
-              ),
-              Text(
-                'Notatki: ${appointment.notes ?? 'Brak'}',
-                style: const TextStyle(fontSize: 14, fontStyle: FontStyle.italic),
-              ),
-            ],
-          ),
-        ),
+      ),
         isThreeLine: true,
         trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-        onTap: () {
-          Navigator.pushNamed(
-            context,
-            AppointmentDetailsScreen.routeName,
-            arguments: {
-              'workshopId': _workshopId!,
-              'appointmentId': appointment.id,
-            },
-          );
-        },
+onTap: () {
+  if (_workshopId != null) {
+    Navigator.pushNamed(
+      context,
+      AppointmentDetailsScreen.routeName,
+      arguments: {
+        'workshopId': _workshopId!,
+        'appointmentId': appointment.id,
+      },
+    );
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Brak wymaganych danych do nawigacji')),
+    );
+  }
+},
+
+
         onLongPress: () => _showChangeStatusPopup(appointment),
       ),
     );

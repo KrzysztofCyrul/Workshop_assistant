@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/appointment.dart';
 import '../../models/repair_item.dart';
+import '../../models/part.dart';
 import '../../services/appointment_service.dart';
 import '../../providers/auth_provider.dart';
 import '../service_records/service_history_screen.dart';
@@ -28,11 +29,32 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
   late Future<Appointment> _appointmentFuture;
   Appointment? _currentAppointment; // Przechowujemy załadowaną wizytę
 
+  final List<Part> parts = [];
+  final List<RepairItem> repairItems = [];
+
+  final TextEditingController partNameController = TextEditingController();
+  final TextEditingController quantityController = TextEditingController();
+  final TextEditingController partCostController = TextEditingController();
+  final TextEditingController serviceCostController = TextEditingController();
+
+  final TextEditingController repairDescriptionController = TextEditingController();
+  final TextEditingController repairCostController = TextEditingController();
+  final TextEditingController estimatedDurationController = TextEditingController();
+
+  double get totalPartCost => parts.fold(0, (sum, item) => sum + (item.costPart * item.quantity));
+  double get totalServiceCost => repairItems.fold(0, (sum, item) => sum + item.cost);
+
   @override
   void initState() {
     super.initState();
     _appointmentFuture = _fetchAppointmentDetails();
+    partCostController.text = '0';
+    repairCostController.text = '0';
+    serviceCostController.text = '0';
+
   }
+
+  
 
   Future<Appointment> _fetchAppointmentDetails() async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
@@ -44,12 +66,20 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
         widget.workshopId,
         widget.appointmentId,
       );
-      _currentAppointment = appointment;
-      // Odśwież ekran, żeby zaktualizować AppBar z ikoną historii
-      setState(() {});
+      setState(() {
+        _currentAppointment = appointment;
+        repairItems.clear();
+        repairItems.addAll(appointment.repairItems);
+
+        parts.clear();
+        parts.addAll(appointment.parts);
+      });
       return appointment;
     } catch (e) {
-      throw Exception('Błąd podczas pobierania szczegółów zlecenia: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Błąd podczas pobierania szczegółów zlecenia: $e')),
+      );
+      throw Exception('Błąd podczas pobierania szczegółów zlecenia.');
     }
   }
 
@@ -92,125 +122,6 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
     }
   }
 
-  Future<void> _updateRepairItemStatus(RepairItem item, bool isCompleted) async {
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final accessToken = authProvider.accessToken!;
-
-    String? actualDuration;
-
-    if (isCompleted) {
-      actualDuration = await _showActualDurationDialog();
-      if (actualDuration == null) {
-        return;
-      }
-    }
-
-    try {
-      await AppointmentService.updateRepairItem(
-        accessToken,
-        widget.workshopId,
-        widget.appointmentId,
-        item.id,
-        isCompleted: isCompleted,
-        actualDuration: actualDuration,
-      );
-      setState(() {
-        _appointmentFuture = _fetchAppointmentDetails();
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Status elementu naprawy został zaktualizowany')),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Błąd podczas aktualizacji statusu')),
-      );
-    }
-  }
-
-  Future<String?> _showActualDurationDialog() async {
-    final _durationFormKey = GlobalKey<FormState>();
-    int? _hours;
-    int? _minutes;
-
-    return showDialog<String>(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Wprowadź rzeczywisty czas trwania'),
-          content: Form(
-            key: _durationFormKey,
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextFormField(
-                    decoration: const InputDecoration(labelText: 'Godziny'),
-                    keyboardType: TextInputType.number,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Wprowadź godziny';
-                      }
-                      if (int.tryParse(value) == null) {
-                        return 'Wprowadź poprawną liczbę';
-                      }
-                      return null;
-                    },
-                    onSaved: (value) {
-                      _hours = int.parse(value!);
-                    },
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: TextFormField(
-                    decoration: const InputDecoration(labelText: 'Minuty'),
-                    keyboardType: TextInputType.number,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Wprowadź minuty';
-                      }
-                      if (int.tryParse(value) == null) {
-                        return 'Wprowadź poprawną liczbę';
-                      }
-                      return null;
-                    },
-                    onSaved: (value) {
-                      _minutes = int.parse(value!);
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(null),
-              child: const Text('Anuluj'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                if (_durationFormKey.currentState!.validate()) {
-                  _durationFormKey.currentState!.save();
-                  final duration = Duration(hours: _hours!, minutes: _minutes!);
-                  final durationString = _formatDurationForBackend(duration);
-                  Navigator.of(context).pop(durationString);
-                }
-              },
-              child: const Text('Zapisz'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  String _formatDurationForBackend(Duration duration) {
-    String twoDigits(int n) => n.toString().padLeft(2, '0');
-    String hours = twoDigits(duration.inHours);
-    String minutes = twoDigits(duration.inMinutes.remainder(60));
-    String seconds = twoDigits(duration.inSeconds.remainder(60));
-    return '$hours:$minutes:$seconds';
-  }
-
   String _getStatusLabel(String status) {
     switch (status) {
       case 'pending':
@@ -219,16 +130,16 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
         return 'W trakcie';
       case 'completed':
         return 'Zakończone';
+      case 'canceled':
+        return 'Anulowane';
       default:
         return status;
     }
   }
 
   String _formatDuration(Duration duration) {
-    String twoDigits(int n) => n.toString().padLeft(2, '0');
-    String hours = twoDigits(duration.inHours);
-    String minutes = twoDigits(duration.inMinutes.remainder(60));
-    return '$hours h $minutes min';
+    double hours = duration.inMinutes / 60;
+    return hours.toStringAsFixed(2).replaceAll('.', ',');
   }
 
   double _calculateTotalCost(List<RepairItem> repairItems) {
@@ -279,87 +190,940 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
     );
   }
 
-  Widget _buildRepairItem(RepairItem item) {
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 8.0),
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: ListTile(
-        leading: Icon(
-          item.isCompleted ? Icons.check_circle : Icons.radio_button_unchecked,
-          color: item.isCompleted ? Colors.green : Colors.grey,
-          size: 32,
-        ),
-        title: Text(
-          item.description,
-          style: TextStyle(
-            decoration: item.isCompleted ? TextDecoration.lineThrough : null,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 4),
-            Text('Status: ${_getStatusLabel(item.status)}'),
-            Text('Koszt: ${item.cost.toStringAsFixed(2)} PLN'),
-            if (item.estimatedDuration != null)
-              Text('Szacowany czas: ${_formatDuration(item.estimatedDuration!)}'),
-            if (item.actualDuration != null)
-              Text('Rzeczywisty czas: ${_formatDuration(item.actualDuration!)}'),
-            if (item.completedBy != null)
-              Text('Wykonane przez: ${item.completedBy}'),
-          ],
-        ),
-        trailing: GestureDetector(
-          onTap: () {
-            _updateRepairItemStatus(item, !item.isCompleted);
-          },
-          child: Icon(
-            item.isCompleted ? Icons.check_circle : Icons.radio_button_unchecked,
-            color: item.isCompleted ? Colors.green : Colors.grey,
-            size: 32,
-          ),
-        ),
-        isThreeLine: true,
-      ),
+  void _addPart() async {
+    if (partNameController.text.isEmpty || quantityController.text.isEmpty || partCostController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Wypełnij wszystkie pola')),
+      );
+      return;
+    }
+
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final accessToken = authProvider.accessToken!;
+
+    final newPart = Part(
+      id: UniqueKey().toString(),
+      appointmentId: widget.appointmentId,
+      name: partNameController.text,
+      description: '', // Pole 'description', można rozszerzyć formularz
+      quantity: int.parse(quantityController.text),
+      costPart: double.parse(partCostController.text),
+      costService: double.parse(serviceCostController.text),
     );
+
+    try {
+      await AppointmentService.createPart(
+        accessToken,
+        widget.workshopId,
+        widget.appointmentId,
+        newPart.name,
+        newPart.description,
+        newPart.quantity,
+        newPart.costPart,
+        newPart.costService,
+      );
+
+      // Aktualizuj lokalną listę
+      setState(() {
+        parts.add(newPart);
+      });
+
+      // Czyszczenie pól
+      partNameController.clear();
+      quantityController.clear();
+      partCostController.clear();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Błąd podczas dodawania części')),
+      );
+    }
+  }
+
+  void _editPart(int index) async {
+    final part = parts[index];
+    partNameController.text = part.name;
+    quantityController.text = part.quantity.toString();
+    partCostController.text = part.costPart.toString();
+    serviceCostController.text = part.costService.toString();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Edytuj część'),
+          content: Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: partNameController,
+                  decoration: const InputDecoration(labelText: 'Część'),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: TextField(
+                  controller: quantityController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(labelText: 'Ilość'),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: TextField(
+                  controller: partCostController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(labelText: 'Cena części'),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: TextField(
+                  controller: serviceCostController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(labelText: 'Cena usługi'),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Anuluj'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final authProvider = Provider.of<AuthProvider>(context, listen: false);
+                final accessToken = authProvider.accessToken!;
+
+                try {
+                  // Aktualizuj część w backendzie
+                  await AppointmentService.updatePart(
+                    accessToken,
+                    widget.workshopId,
+                    widget.appointmentId,
+                    part.id, // Użyj ID części
+                    name: partNameController.text,
+                    description: '',
+                    quantity: int.parse(quantityController.text),
+                    costPart: double.parse(partCostController.text),
+                    costService: double.parse(serviceCostController.text),
+                  );
+
+                  // Aktualizuj lokalną listę
+                  setState(() {
+                    parts[index] = part.copyWith(
+                      name: partNameController.text,
+                      quantity: int.parse(quantityController.text),
+                      costPart: double.parse(partCostController.text),
+                      costService: double.parse(serviceCostController.text),
+                    );
+                  });
+                  Navigator.pop(context);
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Błąd podczas aktualizacji części')),
+                  );
+                }
+              },
+              child: const Text('Zapisz'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _editPartValue(int index, String field, dynamic newValue) async {
+  final part = parts[index];
+  final authProvider = Provider.of<AuthProvider>(context, listen: false);
+  final accessToken = authProvider.accessToken!;
+
+  // Aktualizacja pola lokalnie
+  Part updatedPart;
+  switch (field) {
+    case 'name':
+      updatedPart = part.copyWith(name: newValue);
+      break;
+    case 'quantity':
+      updatedPart = part.copyWith(quantity: newValue);
+      break;
+    case 'costPart':
+      updatedPart = part.copyWith(costPart: newValue);
+      break;
+    case 'costService':
+      updatedPart = part.copyWith(costService: newValue);
+      break;
+    default:
+      return;
+  }
+
+  setState(() {
+    parts[index] = updatedPart;
+  });
+
+  // Aktualizacja w backendzie
+  try {
+    await AppointmentService.updatePart(
+      accessToken,
+      widget.workshopId,
+      widget.appointmentId,
+      part.id,
+      name: updatedPart.name,
+      description: part.description,
+      quantity: updatedPart.quantity,
+      costPart: updatedPart.costPart,
+      costService: updatedPart.costService,
+    );
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Zaktualizowano pole: $field')),
+    );
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Błąd podczas aktualizacji pola: $field - $e')),
+    );
+
+    // Przywracanie starej wartości w przypadku błędu
+    setState(() {
+      parts[index] = part;
+    });
+  }
+}
+
+
+  void _removePart(int index) async {
+    final part = parts[index];
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final accessToken = authProvider.accessToken!;
+
+    try {
+      await AppointmentService.deletePart(
+        accessToken,
+        widget.workshopId,
+        widget.appointmentId,
+        part.id,
+      );
+      setState(() {
+        parts.removeAt(index);
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Błąd podczas usuwania części')),
+      );
+    }
+  }
+
+Widget _buildPartsTable() {
+  return DataTable(
+    columnSpacing: MediaQuery.of(context).size.width * 0.02,
+    headingRowColor: WidgetStateColor.resolveWith((states) => Colors.green.shade100),
+    dataRowColor: WidgetStateColor.resolveWith((states) {
+      return states.contains(WidgetState.selected) ? Colors.green.shade50 : Colors.grey.shade100;
+    }),
+    columns: const [
+      DataColumn(
+        label: Center(
+          child: Text(
+            'Część',
+            style: TextStyle(fontWeight: FontWeight.bold),
+            textAlign: TextAlign.center,
+          ),
+        ),
+      ),
+      DataColumn(
+        label: Center(
+          child: Text(
+            'Ilość',
+            style: TextStyle(fontWeight: FontWeight.bold),
+            textAlign: TextAlign.center,
+          ),
+        ),
+      ),
+      DataColumn(
+        label: Center(
+          child: Text(
+            'Cena części',
+            style: TextStyle(fontWeight: FontWeight.bold),
+            textAlign: TextAlign.center,
+          ),
+        ),
+      ),
+      DataColumn(label: Center(
+        child: Text(
+          'Suma części',
+          style: TextStyle(fontWeight: FontWeight.bold),
+          textAlign: TextAlign.center,
+        ),
+      )),
+      DataColumn(
+        label: Center(
+          child: Text(
+            'Cena usługi',
+            style: TextStyle(fontWeight: FontWeight.bold),
+            textAlign: TextAlign.center,
+          ),
+        ),
+      ),
+    ],
+    rows: parts.asMap().entries.map((entry) {
+      final index = entry.key;
+      final part = entry.value;
+
+      return DataRow(
+        cells: [
+          DataCell(
+            TextFormField(
+              initialValue: part.name,
+              decoration: const InputDecoration(border: InputBorder.none),
+              onFieldSubmitted: (newValue) {
+                _editPartValue(index, 'name', newValue);
+              },
+            ),
+          ),
+          DataCell(
+            TextFormField(
+              initialValue: part.quantity.toString(),
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(border: InputBorder.none),
+              onFieldSubmitted: (newValue) {
+                _editPartValue(index, 'quantity', int.tryParse(newValue) ?? part.quantity);
+              },
+            ),
+          ),
+          DataCell(
+            TextFormField(
+              initialValue: part.costPart.toStringAsFixed(2),
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(border: InputBorder.none),
+              onFieldSubmitted: (newValue) {
+                _editPartValue(index, 'costPart', double.tryParse(newValue) ?? part.costPart);
+              },
+            ),
+          ),
+          DataCell(
+            Text((part.costPart * part.quantity).toStringAsFixed(2)),
+            ),
+          DataCell(
+            TextFormField(
+              initialValue: part.costService.toStringAsFixed(2),
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(border: InputBorder.none),
+              onFieldSubmitted: (newValue) {
+                _editPartValue(index, 'costService', double.tryParse(newValue) ?? part.costService);
+              },
+            ),
+          ),
+        ],
+      );
+    }).toList(),
+  );
+}
+
+
+  void _confirmRemovePart(int index) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Potwierdzenie usunięcia'),
+          content: Text('Czy na pewno chcesz usunąć część "${parts[index].name}"?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Anuluj'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                _removePart(index);
+                Navigator.of(context).pop();
+              },
+              child: const Text('Usuń'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _addRepairItem() async {
+    if (repairDescriptionController.text.isEmpty || repairCostController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Wypełnij wszystkie pola')),
+      );
+      return;
+    }
+
+    // Sprawdź poprawność danych wejściowych
+    final double? cost = double.tryParse(repairCostController.text);
+
+    if (cost == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Wprowadź poprawne dane')),
+      );
+      return;
+    }
+
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final accessToken = authProvider.accessToken!;
+
+    // Przygotowanie nowego elementu naprawy
+    final newRepairItem = RepairItem(
+      id: UniqueKey().toString(),
+      appointmentId: widget.appointmentId,
+      description: repairDescriptionController.text,
+      isCompleted: false,
+      status: 'pending',
+      estimatedDuration: null,
+      actualDuration: null,
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
+      cost: cost,
+      order: repairItems.length + 1,
+    );
+
+    try {
+      // Wywołanie metody serwisowej do zapisania elementu w backendzie
+      await AppointmentService.createRepairItem(
+        accessToken,
+        widget.workshopId,
+        widget.appointmentId,
+        newRepairItem.description ?? '',
+        newRepairItem.status,
+        newRepairItem.order,
+        newRepairItem.cost,
+      );
+
+      // Aktualizacja lokalnej listy
+      setState(() {
+        repairItems.add(newRepairItem);
+      });
+
+      // Czyszczenie pól
+      repairDescriptionController.clear();
+      repairCostController.clear();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Błąd podczas dodawania elementu naprawy')),
+      );
+    }
+  }
+
+  void _editRepairItemValue(int index, String field, dynamic value) async {
+  final item = repairItems[index];
+
+  final updatedItem = item.copyWith(
+    description: field == 'description' ? value : item.description,
+    cost: field == 'cost' ? value : item.cost,
+    estimatedDuration: field == 'estimatedDuration' ? value : item.estimatedDuration,
+  );
+
+  setState(() {
+    repairItems[index] = updatedItem;
+  });
+
+  try {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final accessToken = authProvider.accessToken!;
+
+    await AppointmentService.updateRepairItem(
+      accessToken,
+      widget.workshopId,
+      widget.appointmentId,
+      item.id,
+      description: updatedItem.description ?? '',
+      status: updatedItem.status,
+      cost: updatedItem.cost,
+      order: updatedItem.order,
+      estimatedDuration: updatedItem.estimatedDuration,
+    );
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Błąd podczas aktualizacji elementu naprawy')),
+    );
+  }
+}
+
+
+Widget _buildRepairItemsTable() {
+  return DataTable(
+    columnSpacing: MediaQuery.of(context).size.width * 0.02, // Dostosowanie odstępów
+    headingRowColor: WidgetStateColor.resolveWith((states) => Colors.blue.shade100),
+    dataRowColor: WidgetStateColor.resolveWith((states) {
+      return states.contains(WidgetState.selected) ? Colors.blue.shade50 : Colors.grey.shade100;
+    }),
+    columns: const [
+      DataColumn(
+        label: Expanded(
+          child: Center(
+            child: Text(
+              'Opis',
+              style: TextStyle(fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ),
+      ),
+      DataColumn(
+        label: Expanded(
+          child: Center(
+            child: Text(
+              'Status',
+              style: TextStyle(fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ),
+      ),
+      DataColumn(
+        label: Expanded(
+          child: Center(
+            child: Text(
+              'Koszt',
+              style: TextStyle(fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ),
+      ),
+      DataColumn(
+        label: Expanded(
+          child: Center(
+            child: Text(
+              'Szacowany czas',
+              style: TextStyle(fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ),
+      ),
+      DataColumn(
+        label: Expanded(
+          child: Center(
+            child: Text(
+              'Akcje',
+              style: TextStyle(fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ),
+      ),
+    ],
+    rows: repairItems.asMap().entries.map((entry) {
+      final index = entry.key;
+      final item = entry.value;
+
+      return DataRow(
+        cells: [
+          DataCell(
+            TextFormField(
+              initialValue: item.description ?? 'Brak opisu',
+              decoration: const InputDecoration(border: InputBorder.none),
+              onFieldSubmitted: (newValue) {
+                _editRepairItemValue(index, 'description', newValue);
+              },
+            ),
+          ),
+          DataCell(
+            GestureDetector(
+              onTap: () => _showStatusChangeDialog(item),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    _getStatusIcon(item.status),
+                    color: _getStatusColor(item.status),
+                  ),
+                  const SizedBox(width: 8),
+                ],
+              ),
+            ),
+          ),
+          DataCell(
+            TextFormField(
+              initialValue: item.cost.toStringAsFixed(2),
+              decoration: const InputDecoration(border: InputBorder.none),
+              keyboardType: TextInputType.number,
+              onFieldSubmitted: (newValue) {
+                _editRepairItemValue(index, 'cost', double.parse(newValue));
+              },
+            ),
+          ),
+          DataCell(
+          Text(
+            item.estimatedDuration != null
+                ? _formatDuration(item.estimatedDuration!)
+                : 'Brak',
+          )
+          ),
+          DataCell(
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.delete, color: Colors.red),
+                  onPressed: () => _confirmDeleteRepairItem(index),
+                ),
+              ],
+            ),
+          ),
+        ],
+      );
+    }).toList(),
+  );
+}
+
+
+  Widget _buildAddPartForm() {
+    return Row(
+      children: [
+        Expanded(
+          flex: 3,
+          child: TextField(
+            controller: partNameController,
+            decoration: const InputDecoration(
+              labelText: 'Część',
+              border: OutlineInputBorder(),
+              contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          flex: 2,
+          child: TextField(
+            controller: quantityController,
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(
+              labelText: 'Ilość',
+              border: OutlineInputBorder(),
+              contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          flex: 2,
+          child: TextField(
+            controller: partCostController,
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(
+              labelText: 'Cena części',
+              border: OutlineInputBorder(),
+              contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          flex: 2,
+          child: TextField(
+            controller: serviceCostController,
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(
+              labelText: 'Cena usługi',
+              border: OutlineInputBorder(),
+              contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        IconButton(
+          icon: const Icon(Icons.add, color: Colors.green),
+          onPressed: _addPart,
+          tooltip: 'Dodaj część',
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAddRepairItemForm() {
+    return Row(
+      children: [
+        Expanded(
+          flex: 4,
+          child: TextField(
+            controller: repairDescriptionController,
+            decoration: const InputDecoration(
+              labelText: 'Opis',
+              border: OutlineInputBorder(),
+              contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          flex: 2,
+          child: TextField(
+            controller: repairCostController,
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(
+              labelText: 'Koszt',
+              border: OutlineInputBorder(),
+              contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        IconButton(
+          icon: const Icon(Icons.add, color: Colors.green),
+          onPressed: _addRepairItem,
+          tooltip: 'Dodaj element naprawy',
+        ),
+      ],
+    );
+  }
+
+  void _showStatusChangeDialog(RepairItem item) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Zmień status'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: Icon(Icons.pending, color: _getStatusColor('pending')),
+                title: const Text('Do wykonania'),
+                onTap: () => _updateRepairItemStatus(item, 'pending'),
+              ),
+              ListTile(
+                leading: Icon(Icons.timelapse, color: _getStatusColor('in_progress')),
+                title: const Text('W trakcie'),
+                onTap: () => _updateRepairItemStatus(item, 'in_progress'),
+              ),
+              ListTile(
+                leading: Icon(Icons.check_circle, color: _getStatusColor('completed')),
+                title: const Text('Zakończone'),
+                onTap: () => _updateRepairItemStatus(item, 'completed'),
+              ),
+              ListTile(
+                leading: Icon(Icons.cancel, color: _getStatusColor('canceled')),
+                title: const Text('Anulowane'),
+                onTap: () => _updateRepairItemStatus(item, 'canceled'),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  IconData _getStatusIcon(String status) {
+    switch (status) {
+      case 'pending':
+        return Icons.pending;
+      case 'in_progress':
+        return Icons.timelapse;
+      case 'completed':
+        return Icons.check_circle;
+      case 'canceled':
+        return Icons.cancel;
+      default:
+        return Icons.info;
+    }
+  }
+
+  Color _getStatusColor(String status) {
+    switch (status) {
+      case 'pending':
+        return Colors.orange;
+      case 'in_progress':
+        return Colors.blue;
+      case 'completed':
+        return Colors.green;
+      case 'canceled':
+        return Colors.red;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  void _updateRepairItemStatus(RepairItem item, String newStatus) async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final accessToken = authProvider.accessToken!;
+    Navigator.pop(context); // Zamknięcie dialogu
+    try {
+      await AppointmentService.updateRepairItemStatus(
+        accessToken,
+        widget.workshopId,
+        widget.appointmentId,
+        item.id,
+        newStatus == 'completed',
+      );
+
+      setState(() {
+        item.status = newStatus;
+        item.isCompleted = (newStatus == 'completed');
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Status elementu "${item.description}" został zaktualizowany.')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Błąd podczas zmiany statusu: $e')),
+      );
+    }
+  }
+
+// Funkcja do potwierdzenia usunięcia
+  void _confirmDeleteRepairItem(int index) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Potwierdzenie usunięcia'),
+          content: const Text('Czy na pewno chcesz usunąć ten element naprawy?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(), // Zamknij dialog
+              child: const Text('Anuluj'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                _removeRepairItem(index); // Usuń element
+                Navigator.of(context).pop(); // Zamknij dialog
+              },
+              child: const Text('Usuń'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _editRepairItem(int index) async {
+    final item = repairItems[index];
+    repairDescriptionController.text = item.description!;
+    repairCostController.text = item.cost.toString();
+    estimatedDurationController.text = item.estimatedDuration?.inMinutes.toString() ?? '';
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Edytuj element naprawy'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: repairDescriptionController,
+                decoration: const InputDecoration(labelText: 'Opis'),
+              ),
+              TextField(
+                controller: repairCostController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(labelText: 'Koszt'),
+              ),
+              TextField(
+                controller: estimatedDurationController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(labelText: 'Szacowany czas (minuty)'),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Anuluj'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final authProvider = Provider.of<AuthProvider>(context, listen: false);
+                final accessToken = authProvider.accessToken!;
+
+                try {
+                  await AppointmentService.updateRepairItem(
+                    accessToken,
+                    widget.workshopId,
+                    widget.appointmentId,
+                    item.id,
+                    description: repairDescriptionController.text,
+                    status: item.status,
+                    cost: double.parse(repairCostController.text),
+                    order: item.order,
+                    estimatedDuration: Duration(minutes: int.parse(estimatedDurationController.text)),
+                  );
+                  setState(() {
+                    repairItems[index] = item.copyWith(
+                      description: repairDescriptionController.text,
+                      cost: double.parse(repairCostController.text),
+                      estimatedDuration: Duration(minutes: int.parse(estimatedDurationController.text)),
+                      updatedAt: DateTime.now(),
+                    );
+                  });
+                  Navigator.pop(context);
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Błąd podczas aktualizacji elementu naprawy')),
+                  );
+                }
+              },
+              child: const Text('Zapisz'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _removeRepairItem(int index) async {
+    final item = repairItems[index];
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final accessToken = authProvider.accessToken!;
+
+    try {
+      await AppointmentService.deleteRepairItem(
+        accessToken,
+        widget.workshopId,
+        widget.appointmentId,
+        item.id,
+      );
+      setState(() {
+        repairItems.removeAt(index);
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Błąd podczas usuwania elementu naprawy')),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     // Wyliczamy dynamicznie akcje w AppBar w zależności od tego, czy mamy załadowane dane.
-List<Widget> appBarActions = [];
+    List<Widget> appBarActions = [];
 
 // Jeśli mamy dane o wizycie, dodaj ikonę historii jako pierwszą:
-if (_currentAppointment != null) {
-  appBarActions.add(
-    IconButton(
-      icon: const Icon(Icons.history),
-      tooltip: 'Historia pojazdu',
-      onPressed: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => VehicleServiceHistoryScreen(
-              workshopId: widget.workshopId,
-              vehicleId: _currentAppointment!.vehicle.id,
-            ),
-          ),
-        );
-      },
-    ),
-  );
-}
+    if (_currentAppointment != null) {
+      appBarActions.add(
+        IconButton(
+          icon: const Icon(Icons.history),
+          tooltip: 'Historia pojazdu',
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => VehicleServiceHistoryScreen(
+                  workshopId: widget.workshopId,
+                  vehicleId: _currentAppointment!.vehicle.id,
+                ),
+              ),
+            );
+          },
+        ),
+      );
+    }
 
 // Na końcu dodaj ikonę plusa:
-appBarActions.add(
-  IconButton(
-    icon: const Icon(Icons.add),
-    tooltip: 'Dodaj element naprawy',
-    onPressed: _navigateToAddRepairItem,
-  ),
-);
+    appBarActions.add(
+      IconButton(
+        icon: const Icon(Icons.add),
+        tooltip: 'Dodaj element naprawy',
+        onPressed: _navigateToAddRepairItem,
+      ),
+    );
 
     return Scaffold(
       appBar: AppBar(
@@ -451,11 +1215,11 @@ appBarActions.add(
                                 '${totalCost.toStringAsFixed(2)} PLN',
                                 icon: Icons.attach_money,
                               ),
-                                _buildDetailRow(
-                                  'Koszt z rabatem',
-                                  '${discountedCost.toStringAsFixed(2)} PLN',
-                                  icon: Icons.money_off,
-                                ),
+                              _buildDetailRow(
+                                'Koszt z rabatem',
+                                '${discountedCost.toStringAsFixed(2)} PLN',
+                                icon: Icons.money_off,
+                              ),
                               if (appointment.notes != null && appointment.notes!.isNotEmpty)
                                 const Padding(
                                   padding: EdgeInsets.symmetric(vertical: 8.0),
@@ -523,8 +1287,7 @@ appBarActions.add(
                               ),
                               _buildDetailRow('Email', appointment.client.email, icon: Icons.email),
                               _buildDetailRow('Telefon', appointment.client.phone ?? 'Brak', icon: Icons.phone),
-                              if (appointment.client.address != null)
-                                _buildDetailRow('Adres', appointment.client.address!, icon: Icons.home),
+                              if (appointment.client.address != null) _buildDetailRow('Adres', appointment.client.address!, icon: Icons.home),
                             ],
                           ),
                         ),
@@ -532,22 +1295,47 @@ appBarActions.add(
                     ),
                   ),
                   const SizedBox(height: 16.0),
-                  // Elementy naprawy
+
+                  // Formularz dodawania elementu naprawy
                   _buildSectionTitle('Elementy Naprawy'),
-                  appointment.repairItems.isEmpty
-                      ? const Padding(
-                          padding: EdgeInsets.all(8.0),
-                          child: Text('Brak elementów naprawy.'),
-                        )
-                      : ListView.builder(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: appointment.repairItems.length,
-                          itemBuilder: (context, index) {
-                            final item = appointment.repairItems[index];
-                            return _buildRepairItem(item);
-                          },
+                  _buildAddRepairItemForm(),
+
+                  const SizedBox(height: 16),
+
+                  // Tabela elementów naprawy
+                  Container(
+                    width: double.infinity,
+                    child: _buildRepairItemsTable(),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // Formularz dodawania części
+                  _buildSectionTitle('Części'),
+                  _buildAddPartForm(),
+                  const SizedBox(height: 16),
+
+                  // Tabela części
+                  Container(
+                    width: double.infinity,
+                    child: _buildPartsTable(),
+                  ),
+                  // Podsumowanie kosztów
+                  const Divider(),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Suma cen części: ${totalPartCost.toStringAsFixed(2)} PLN'),
+                        Text('Suma cen usług: ${totalServiceCost.toStringAsFixed(2)} PLN'),
+                        Text(
+                          'Łączna cena: ${totalCost.toStringAsFixed(2)} PLN',
+                          style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             );

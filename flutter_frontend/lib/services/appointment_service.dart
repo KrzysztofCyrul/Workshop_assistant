@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/appointment.dart';
+import '../models/part.dart';
 import '../models/repair_item.dart';
 import '../utils/constants.dart';
 
@@ -128,38 +129,45 @@ static String _durationToString(Duration duration) {
   return '$hours:$minutes:$seconds';
 }
 
-// Metoda aktualizująca element naprawy
-  static Future<void> updateRepairItem(
-    String accessToken,
-    String workshopId,
-    String appointmentId,
-    String repairItemId, {
-    String? status,
-    bool? isCompleted,
-    String? actualDuration,
-    String? completedBy,
-  }) async {
-    final url = Uri.parse(
-        '$baseUrl/workshops/$workshopId/appointments/$appointmentId/repair-items/$repairItemId/');
-    final Map<String, dynamic> body = {};
-    if (status != null) body['status'] = status;
-    if (isCompleted != null) body['is_completed'] = isCompleted;
-    if (actualDuration != null) body['actual_duration'] = actualDuration;
-    if (completedBy != null) body['completed_by'] = completedBy;
+static Future<void> updateRepairItem(
+  String accessToken,
+  String workshopId,
+  String appointmentId,
+  String repairItemId, {
+  required String description,
+  required String status,
+  required double cost,
+  required int order,
+  Duration? estimatedDuration,
+  Duration? actualDuration,
+  bool? isCompleted,
+}) async {
+  final url = Uri.parse(
+      '$baseUrl/workshops/$workshopId/appointments/$appointmentId/repair-items/$repairItemId/');
+  final body = {
+    'description': description,
+    'status': status,
+    'cost': cost,
+    'order': order,
+    if (estimatedDuration != null)
+      'estimated_duration': '${estimatedDuration.inHours}:${estimatedDuration.inMinutes.remainder(60)}:00',
+    if (actualDuration != null)
+      'actual_duration': '${actualDuration.inHours}:${actualDuration.inMinutes.remainder(60)}:00',
+    if (isCompleted != null) 'is_completed': isCompleted,
+  };
+  final response = await http.patch(
+    url,
+    headers: {
+      'Authorization': 'Bearer $accessToken',
+      'Content-Type': 'application/json',
+    },
+    body: json.encode(body),
+  );
 
-    final response = await http.patch(
-      url,
-      headers: {
-        'Authorization': 'Bearer $accessToken',
-        'Content-Type': 'application/json',
-      },
-      body: json.encode(body),
-    );
-
-    if (response.statusCode != 200 && response.statusCode != 204) {
-      throw Exception('Błąd podczas aktualizacji elementu naprawy: ${response.body}');
-    }
+  if (response.statusCode != 200) {
+    throw Exception('Błąd podczas aktualizacji elementu naprawy: ${response.body}');
   }
+}
 
   // Metoda pobierająca szczegóły zlecenia
   static Future<Appointment> getAppointmentDetails(
@@ -170,6 +178,7 @@ static String _durationToString(Duration duration) {
       url,
       headers: {
         'Authorization': 'Bearer $accessToken',
+        'Content-Type': 'application/json',
       },
     );
 
@@ -245,10 +254,158 @@ static String _durationToString(Duration duration) {
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
+      print(data);
       return RepairItem.fromJson(data);
     } else {
       throw Exception(
           'Błąd podczas pobierania szczegółów elementu naprawy: ${response.statusCode}');
+    }
+  }
+
+static Future<void> deleteRepairItem(
+  String accessToken,
+  String workshopId,
+  String appointmentId,
+  String repairItemId,
+) async {
+  final url = Uri.parse(
+      '$baseUrl/workshops/$workshopId/appointments/$appointmentId/repair-items/$repairItemId/');
+  final response = await http.delete(
+    url,
+    headers: {
+      'Authorization': 'Bearer $accessToken',
+      'Content-Type': 'application/json',
+    },
+  );
+
+  if (response.statusCode != 204) {
+    throw Exception('Błąd podczas usuwania elementu naprawy: ${response.body}');
+  }
+}
+
+  // Method to create a part
+
+static Future<void> createPart(
+  String accessToken,
+  String workshopId,
+  String appointmentId,
+  String name,
+  String description,
+  int quantity,
+  double costPart,
+  double costService,
+) async {
+  final url = Uri.parse(
+      '$baseUrl/workshops/$workshopId/appointments/$appointmentId/parts/');
+  final body = {
+    'name': name,
+    'description': description,
+    'quantity': quantity,
+    'cost_part': costPart.toString(),
+    'cost_service': costService.toString(),
+    'appointment': appointmentId,
+  };
+
+  print('Wysyłane dane: $body'); // Logowanie wysyłanych danych
+
+  final response = await http.post(
+    url,
+    headers: {
+      'Authorization': 'Bearer $accessToken',
+      'Content-Type': 'application/json',
+    },
+    body: json.encode(body),
+  );
+
+  if (response.statusCode != 201) {
+    print('Błąd odpowiedzi backendu: ${response.body}');
+    throw Exception('Błąd podczas dodawania części: ${response.body}');
+  }
+}
+
+
+  // Method to fetch parts for an appointment
+  static Future<List<Part>> getParts(
+    String accessToken,
+    String workshopId,
+    String appointmentId,
+  ) async {
+    final url = Uri.parse(
+        '$baseUrl/workshops/$workshopId/appointments/$appointmentId/parts/');
+    final response = await http.get(
+      url,
+      headers: {
+        'Authorization': 'Bearer $accessToken',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body) as List;
+      print('URL: $url');
+print('Response: ${response.body}');
+print('Status Code: ${response.statusCode}');
+
+      return data.map((json) => Part.fromJson(json)).toList();
+    } else {
+      throw Exception('Error fetching parts: ${response.body}');
+    }
+  }
+
+  static Future<void> updatePart(
+  String accessToken,
+  String workshopId,
+  String appointmentId,
+  String partId, {
+  required String name,
+  required String description,
+  required int quantity,
+  required double costPart,
+  required double costService,
+}) async {
+  final url = Uri.parse(
+      '$baseUrl/workshops/$workshopId/appointments/$appointmentId/parts/$partId/');
+  final body = {
+    'name': name,
+    'description': description,
+    'quantity': quantity,
+    'cost_part': costPart.toString(),
+    'cost_service': costService.toString(),
+  };
+  final response = await http.patch(
+    url,
+    headers: {
+      'Authorization': 'Bearer $accessToken',
+      'Content-Type': 'application/json',
+    },
+    body: json.encode(body),
+  );
+
+  if (response.statusCode != 200) {
+    throw Exception('Błąd podczas aktualizacji części: ${response.body}');
+  }
+}
+
+
+  // Method to delete a part
+  static Future<void> deletePart(
+    String accessToken,
+    String workshopId,
+    String appointmentId,
+    String partId,
+  ) async {
+    final url = Uri.parse(
+        '$baseUrl/workshops/$workshopId/appointments/$appointmentId/parts/$partId/');
+    final response = await http.delete(
+      url,
+      headers: {
+        'Authorization': 'Bearer $accessToken',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode != 204) {
+      throw Exception('Error deleting part: ${response.body}');
     }
   }
 }

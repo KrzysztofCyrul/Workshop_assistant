@@ -70,6 +70,7 @@ class RepairItem(models.Model):
         ('pending', 'Do wykonania'),
         ('in_progress', 'W trakcie'),
         ('completed', 'Zakończone'),
+        ('canceled', 'Anulowane'),
     ]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -103,25 +104,27 @@ class RepairItem(models.Model):
 
 class Part(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=100)
-    description = models.TextField(blank=True, null=True)
-    cost = models.DecimalField(max_digits=10, decimal_places=2)
-    quantity = models.PositiveIntegerField(default=1)
     appointment = models.ForeignKey(
         Appointment,
         on_delete=models.CASCADE,
         related_name='parts'
     )
+    name = models.CharField(max_length=100)
+    description = models.TextField(blank=True, null=True)
+    cost_part = models.DecimalField(max_digits=10, decimal_places=2)
+    cost_service = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    quantity = models.PositiveIntegerField(default=1)
+
 
     def clean(self):
-        if self.cost < 0:
+        if self.cost_part < 0:
             raise ValidationError("Koszt nie może być ujemny.")
         if self.quantity < 1:
             raise ValidationError("Ilość musi być większa lub równa 1.")
 
     @property
     def total_cost(self):
-        return self.cost * self.quantity
+        return self.cost_part * self.quantity
 
     def __str__(self):
-        return f"{self.name} x{self.quantity} ({self.cost} zł)"
+        return f"{self.name} x{self.quantity} ({self.cost_part} zł)"

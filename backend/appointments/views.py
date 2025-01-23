@@ -1,8 +1,8 @@
 from pyexpat.errors import messages
 from django.shortcuts import get_object_or_404, redirect
 from rest_framework import viewsets, permissions
-from appointments.models import Appointment, RepairItem
-from appointments.serializers import AppointmentSerializer, RepairItemSerializer
+from appointments.models import Appointment, RepairItem, Part
+from appointments.serializers import AppointmentSerializer, PartSerializer, RepairItemSerializer
 # from ai_module.signals import get_appointment_recommendations
 from workshops.models import Workshop
 from accounts.permissions import IsMechanic, IsWorkshopOwner, IsAdmin
@@ -10,6 +10,7 @@ from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status, views
+from rest_framework.exceptions import ValidationError
 
 
 class AppointmentViewSet(viewsets.ModelViewSet):
@@ -110,3 +111,35 @@ class GenerateRecommendationsAPIView(views.APIView):
         #         {"detail": "Nie udało się wygenerować rekomendacji."},
         #         status=status.HTTP_500_INTERNAL_SERVER_ERROR
         #     )
+        
+class PartViewSet(viewsets.ModelViewSet):
+    serializer_class = PartSerializer
+    permission_classes = [IsAuthenticated, IsWorkshopOwner | IsAdmin | IsMechanic]
+
+    def get_queryset(self):
+        workshop_id = self.kwargs['workshop_pk']
+        appointment_id = self.kwargs['appointment_pk']
+        return Part.objects.filter(
+            appointment__id=appointment_id,
+            appointment__workshop__id=workshop_id
+        )
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        workshop_id = self.kwargs['workshop_pk']
+        appointment_id = self.kwargs['appointment_pk']
+        try:
+            appointment = Appointment.objects.get(id=appointment_id, workshop__id=workshop_id)
+        except Appointment.DoesNotExist:
+            raise PermissionDenied("Nie znaleziono wizyty lub brak dostępu do tej wizyty.")
+        context['appointment'] = appointment
+        return context
+
+    def perform_create(self, serializer):
+        appointment = self.get_serializer_context()['appointment']
+        try:
+            serializer.save(appointment=appointment)
+        except ValidationError as e:
+            print(f"Błąd walidacji: {e.detail}")
+            raise e
+        print(f"Część zapisana: {serializer.data}")
