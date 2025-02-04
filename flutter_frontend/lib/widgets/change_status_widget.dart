@@ -37,32 +37,40 @@ class ChangeStatusWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return AlertDialog(
       title: const Text('Zmień status wizyty'),
-      content: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          IconButton(
-            icon: const Icon(Icons.check_circle, color: Colors.green),
-            onPressed: () {
+          ListTile(
+            leading: const Icon(Icons.pending, color: Colors.orange),
+            title: const Text('Do wykonania'),
+            onTap: () {
+              _updateAppointmentStatus(context, 'pending');
+              Navigator.pop(context);
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.timelapse, color: Colors.blue),
+            title: const Text('W trakcie'),
+            onTap: () {
+              _updateAppointmentStatus(context, 'in_progress');
+              Navigator.pop(context);
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.check_circle, color: Colors.green),
+            title: const Text('Zakończone'),
+            onTap: () {
               _updateAppointmentStatus(context, 'completed');
               Navigator.pop(context);
             },
-            tooltip: 'Zakończone',
           ),
-          IconButton(
-            icon: const Icon(Icons.cancel, color: Colors.red),
-            onPressed: () {
+          ListTile(
+            leading: const Icon(Icons.cancel, color: Colors.red),
+            title: const Text('Anulowane'),
+            onTap: () {
               _updateAppointmentStatus(context, 'canceled');
               Navigator.pop(context);
             },
-            tooltip: 'Anulowane',
-          ),
-          IconButton(
-            icon: const Icon(Icons.pending, color: Colors.orange),
-            onPressed: () {
-              _updateAppointmentStatus(context, 'schedudled');
-              Navigator.pop(context);
-            },
-            tooltip: 'Oczekujące',
           ),
         ],
       ),

@@ -3,6 +3,11 @@
 import uuid
 from django.db import migrations, models
 
+def create_initial_roles(apps, schema_editor):
+    Role = apps.get_model('accounts', 'Role')
+    roles = ['mechanic', 'workshop_owner', 'client']
+    for role in roles:
+        Role.objects.create(name=role)
 
 class Migration(migrations.Migration):
 
@@ -49,4 +54,5 @@ class Migration(migrations.Migration):
                 'abstract': False,
             },
         ),
+        migrations.RunPython(create_initial_roles),
     ]

@@ -1,8 +1,10 @@
+from django.utils import timezone
+import random
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets, permissions, generics, status
 from rest_framework.views import APIView
 from accounts.models import Role
-from employees.models import Employee, ScheduleEntry
+from employees.models import Employee, ScheduleEntry, TemporaryCode
 from employees.serializers import EmployeeSerializer, EmployeeStatusUpdateSerializer, ScheduleEntrySerializer, EmployeeAssignmentSerializer
 from workshops.models import Workshop
 from rest_framework.exceptions import PermissionDenied
@@ -161,4 +163,57 @@ class PendingAssignmentListView(generics.ListAPIView):
         return Employee.objects.filter(workshop=workshop, status='PENDING')
 
 
+class GenerateTemporaryCodeView(APIView):
+    permission_classes = [IsAuthenticated, IsWorkshopOwner]
 
+    def post(self, request, workshop_id):
+        workshop = get_object_or_404(Workshop, id=workshop_id)
+        if workshop.owner != request.user:
+            return Response({"detail": "Not authorized"}, status=status.HTTP_403_FORBIDDEN)
+
+        # Generowanie 6-cyfrowego kodu
+        code = str(random.randint(100000, 999999))  # Generate a random 6-digit code
+        expires_at = timezone.now() + timezone.timedelta(minutes=15)
+
+        temporary_code = TemporaryCode.objects.create(
+            code=code,
+            workshop=workshop,
+            created_by=request.user,
+            expires_at=expires_at
+        )
+
+        return Response({"code": code, "expires_at": expires_at}, status=status.HTTP_201_CREATED)
+    
+class UseTemporaryCodeView(APIView):
+    permission_classes = [IsAuthenticated, IsMechanic]
+
+    def post(self, request):
+        code = request.data.get('code')
+        if not code:
+            return Response({"detail": "Code is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            temporary_code = TemporaryCode.objects.get(code=code)
+        except TemporaryCode.DoesNotExist:
+            return Response({"detail": "Invalid code"}, status=status.HTTP_404_NOT_FOUND)
+
+        if not temporary_code.is_valid():
+            return Response({"detail": "Code has expired"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Sprawdź, czy użytkownik już jest przypisany do warsztatu
+        if Employee.objects.filter(user=request.user, workshop=temporary_code.workshop).exists():
+            return Response({"detail": "You are already assigned to this workshop"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Dodanie mechanika do warsztatu
+        Employee.objects.create(
+            user=request.user,
+            workshop=temporary_code.workshop,
+            position="Mechanic",
+            status='APPROVED',
+            hire_date=timezone.now()
+        )
+
+        # Usunięcie kodu po użyciu
+        temporary_code.delete()
+
+        return Response({"detail": "You have been successfully added to the workshop"}, status=status.HTTP_200_OK)

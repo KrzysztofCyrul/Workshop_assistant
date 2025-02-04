@@ -3,11 +3,13 @@ from employees.views import (
     EmployeeViewSet,
     EmployeeAssignRoleView,
     EmployeeRemoveRoleView,
+    GenerateTemporaryCodeView,
     ScheduleEntryListCreateView,
     ScheduleEntryDetailView,
     RequestAssignmentView,
     ApproveAssignmentView,
     PendingAssignmentListView,
+    UseTemporaryCodeView,
 )
 
 employee_list = EmployeeViewSet.as_view({'get': 'list', 'post': 'create'})
@@ -23,6 +25,7 @@ urlpatterns = [
     path('workshops/<uuid:workshop_id>/request-assignment/', RequestAssignmentView.as_view(), name='request-assignment'),
     path('employees/<uuid:employee_id>/approve-assignment/', ApproveAssignmentView.as_view(), name='approve-assignment'),
     path('workshops/<uuid:workshop_id>/pending-requests/', PendingAssignmentListView.as_view(), name='pending-requests'),
-
-
+    path('workshops/<uuid:workshop_id>/generate-code/', GenerateTemporaryCodeView.as_view(), name='generate-temporary-code'),
+    path('use-code/', UseTemporaryCodeView.as_view(), name='use-temporary-code'),
 ]
+

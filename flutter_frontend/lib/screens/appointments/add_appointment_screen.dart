@@ -1,6 +1,5 @@
-import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
+import 'package:dropdown_search/dropdown_search.dart';
 import 'package:provider/provider.dart';
 import 'package:multi_select_flutter/multi_select_flutter.dart';
 import '../../models/client.dart';
@@ -12,10 +11,10 @@ import '../../services/appointment_service.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/client_service.dart';
 import '../../services/employee_service.dart';
-import '../../utils/colors.dart';
 import '../../widgets/client_search_widget.dart';
 import '../../screens/vehicles/add_vehicle_screen.dart';
 import 'appointment_details_screen.dart';
+import 'package:intl/intl.dart';
 
 class AddAppointmentScreen extends StatefulWidget {
   static const routeName = '/add-appointment';
@@ -38,8 +37,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
   String? _recommendations;
   Duration? _estimatedDuration;
   double? _totalCost;
-  // List<Employee> _assignedMechanics = [];
-  String _status = 'scheduled';
+  String _status = 'pending';
 
   // Listy danych
   List<Client> _clients = [];
@@ -61,56 +59,33 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
   @override
   void initState() {
     super.initState();
-    SchedulerBinding.instance.addPostFrameCallback((_) {
-      _fetchInitialData();
-    });
     _fetchInitialData();
   }
 
+  Future<void> _fetchInitialData() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
 
-  Color _getSegmentColor(String? segment) {
-    switch (segment) {
-      case 'A':
-        return SegmentColors.segmentA;
-      case 'B':
-        return SegmentColors.segmentB;
-      case 'C':
-        return SegmentColors.segmentC;
-      case 'D':
-        return SegmentColors.segmentD;
-      default:
-        return SegmentColors.defaultColor;
-    }
-  }
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final accessToken = authProvider.accessToken;
+    final workshopId = authProvider.user?.employeeProfiles.first.workshopId;
 
-Future<void> _fetchInitialData() async {
-  setState(() {
-    _isLoading = true;
-    _errorMessage = null;
-  });
-
-  final authProvider = Provider.of<AuthProvider>(context, listen: false);
-  final accessToken = authProvider.accessToken;
-  final workshopId = authProvider.user?.employeeProfiles.first.workshopId;
-
-  try {
-    await Provider.of<ClientProvider>(context, listen: false).fetchClients(accessToken!, workshopId!);
-    _clients = await ClientService.getClients(accessToken, workshopId);
-    _mechanics = await EmployeeService.getMechanics(accessToken, workshopId);
-  } catch (e) {
-    SchedulerBinding.instance.addPostFrameCallback((_) {
+    try {
+      await Provider.of<ClientProvider>(context, listen: false).fetchClients(accessToken!, workshopId!);
+      _clients = await ClientService.getClients(accessToken, workshopId);
+      _mechanics = await EmployeeService.getMechanics(accessToken, workshopId);
+    } catch (e) {
       setState(() {
         _errorMessage = 'Błąd podczas pobierania danych: $e';
       });
-    });
-  } finally {
-    SchedulerBinding.instance.addPostFrameCallback((_) {
+    } finally {
       setState(() {
         _isLoading = false;
       });
-    });
+    }
   }
-}
 
   Future<void> _fetchVehicles(String clientId) async {
     setState(() {
@@ -119,9 +94,21 @@ Future<void> _fetchInitialData() async {
       _errorMessage = null;
     });
 
-    Provider.of<AuthProvider>(context, listen: false);
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final accessToken = authProvider.accessToken;
+    final workshopId = authProvider.user?.employeeProfiles.first.workshopId;
 
-    try {} catch (e) {
+    if (accessToken == null || workshopId == null) {
+      setState(() {
+        _isLoading = false;
+        _errorMessage = 'Brak dostępu do danych użytkownika.';
+      });
+      return;
+    }
+
+    try {
+      await Provider.of<VehicleProvider>(context, listen: false).fetchVehiclesForClient(accessToken, workshopId, clientId);
+    } catch (e) {
       setState(() {
         _errorMessage = 'Błąd podczas pobierania pojazdów: $e';
       });
@@ -132,75 +119,64 @@ Future<void> _fetchInitialData() async {
     }
   }
 
-  String? _validateNumber(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'To pole jest wymagane';
+  Future<void> _submitForm() async {
+    if (!_formKey.currentState!.validate()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Proszę poprawić błędy w formularzu')),
+      );
+      return;
     }
-    final number = num.tryParse(value);
-    if (number == null) {
-      return 'Proszę wprowadzić poprawną liczbę';
-    }
-    return null;
-  }
 
-Future<void> _submitForm() async {
-  if (!_formKey.currentState!.validate()) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Proszę poprawić błędy w formularzu')),
-    );
-    return;
-  }
-
-  _formKey.currentState!.save();
-
-  setState(() {
-    _isSubmitting = true;
-    _errorMessage = null;
-  });
-
-  final authProvider = Provider.of<AuthProvider>(context, listen: false);
-  final accessToken = authProvider.accessToken;
-  final workshopId = authProvider.user?.employeeProfiles.first.workshopId;
-
-  try {
-    final appointmentId = await AppointmentService.createAppointment(
-      accessToken: accessToken!,
-      workshopId: workshopId!,
-      clientId: _selectedClient!.id,
-      vehicleId: _selectedVehicle!.id,
-      scheduledTime: _scheduledTime!,
-      notes: _notes,
-      mileage: _mileage,
-      recommendations: _recommendations,
-      estimatedDuration: _estimatedDuration,
-      totalCost: _totalCost,
-      status: _status,
-    );
+    _formKey.currentState!.save();
 
     setState(() {
-      _isSubmitting = false;
+      _isSubmitting = true;
+      _errorMessage = null;
     });
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Zlecenie zostało dodane')),
-    );
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final accessToken = authProvider.accessToken;
+    final workshopId = authProvider.user?.employeeProfiles.first.workshopId;
 
-    Navigator.of(context).pushReplacementNamed(
-      AppointmentDetailsScreen.routeName,
-      arguments: {
-        'workshopId': workshopId,
-        'appointmentId': appointmentId,
-      },
-    );
-  } catch (e) {
-    setState(() {
-      _isSubmitting = false;
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Błąd podczas tworzenia zlecenia: $e')),
-    );
+    try {
+      final appointmentId = await AppointmentService.createAppointment(
+        accessToken: accessToken!,
+        workshopId: workshopId!,
+        clientId: _selectedClient!.id,
+        vehicleId: _selectedVehicle!.id,
+        scheduledTime: _scheduledTime!,
+        notes: _notes,
+        mileage: _mileage,
+        recommendations: _recommendations,
+        estimatedDuration: _estimatedDuration,
+        totalCost: _totalCost,
+        status: _status,
+      );
+
+      setState(() {
+        _isSubmitting = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Zlecenie zostało dodane')),
+      );
+
+      Navigator.of(context).pushReplacementNamed(
+        AppointmentDetailsScreen.routeName,
+        arguments: {
+          'workshopId': workshopId,
+          'appointmentId': appointmentId,
+        },
+      );
+    } catch (e) {
+      setState(() {
+        _isSubmitting = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Błąd podczas tworzenia zlecenia: $e')),
+      );
+    }
   }
-}
 
   void _onVehicleChanged(Vehicle? vehicle) {
     setState(() {
@@ -216,6 +192,42 @@ Future<void> _submitForm() async {
     _estimatedDurationController.dispose();
     _totalCostController.dispose();
     super.dispose();
+  }
+
+  Future<void> _selectDateTime(BuildContext context) async {
+    final DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime.now(),
+      lastDate: DateTime(2100),
+      locale: const Locale('pl', 'PL'), // Ustawienie języka na polski
+    );
+
+    if (pickedDate != null) {
+      final TimeOfDay? pickedTime = await showTimePicker(
+        context: context,
+        initialTime: TimeOfDay.now(),
+        builder: (BuildContext context, Widget? child) {
+          return MediaQuery(
+            data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true), // Format 24-godzinny
+            child: child!,
+          );
+        },
+      );
+
+      if (pickedTime != null) {
+        setState(() {
+          _scheduledTime = DateTime(
+            pickedDate.year,
+            pickedDate.month,
+            pickedDate.day,
+            pickedTime.hour,
+            pickedTime.minute,
+          );
+          _dateTimeController.text = DateFormat('dd-MM-yyyy HH:mm').format(_scheduledTime!);
+        });
+      }
+    }
   }
 
   @override
@@ -268,7 +280,7 @@ Future<void> _submitForm() async {
                               onChanged: (value) async {
                                 setState(() {
                                   _selectedClient = value;
-                                  _selectedVehicle = null; // Resetuj wybrany pojazd
+                                  _selectedVehicle = null;
                                 });
                                 if (value != null) {
                                   await _fetchVehicles(value.id);
@@ -280,7 +292,6 @@ Future<void> _submitForm() async {
                             if (_selectedClient != null)
                               DropdownSearch<Vehicle>(
                                 asyncItems: (String filter) async {
-                                  // Pobieranie listy pojazdów dla danego klienta z filtrowaniem
                                   final authProvider = Provider.of<AuthProvider>(context, listen: false);
                                   final accessToken = authProvider.accessToken;
                                   final workshopId = authProvider.user?.employeeProfiles.first.workshopId;
@@ -298,19 +309,13 @@ Future<void> _submitForm() async {
                                   }).toList();
                                 },
                                 selectedItem: _selectedVehicle,
-
-                                // Formatowanie wyświetlanego tekstu dla wybranego elementu
                                 itemAsString: (Vehicle vehicle) => '${vehicle.make} ${vehicle.model} - ${vehicle.licensePlate}',
-
-                                // Dekoracja pola rozwijanego
                                 dropdownDecoratorProps: DropDownDecoratorProps(
                                   dropdownSearchDecoration: InputDecoration(
                                     labelText: 'Pojazd',
                                     border: const OutlineInputBorder(),
                                   ),
                                 ),
-
-                                // Konfiguracja popupu listy rozwijanej
                                 popupProps: PopupProps.menu(
                                   showSearchBox: true,
                                   searchFieldProps: TextFieldProps(
@@ -331,12 +336,11 @@ Future<void> _submitForm() async {
                                             return;
                                           }
 
-                                          // Przekazanie wybranego klienta do ekranu AddVehicleScreen
                                           final result = await Navigator.of(context).push<bool>(
                                             MaterialPageRoute(
                                               builder: (context) => AddVehicleScreen(
                                                 workshopId: workshopId,
-                                                selectedClient: _selectedClient, // Przekazanie wybranego klienta
+                                                selectedClient: _selectedClient,
                                               ),
                                             ),
                                           );
@@ -345,7 +349,7 @@ Future<void> _submitForm() async {
                                             await Provider.of<VehicleProvider>(context, listen: false).fetchVehiclesForClient(accessToken, workshopId, _selectedClient!.id);
 
                                             setState(() {
-                                              _selectedVehicle = Provider.of<VehicleProvider>(context, listen: false).vehicles.last; // Ustaw ostatni pojazd jako wybrany
+                                              _selectedVehicle = Provider.of<VehicleProvider>(context, listen: false).vehicles.last;
                                             });
                                           }
                                         },
@@ -359,8 +363,6 @@ Future<void> _submitForm() async {
                                     subtitle: Text('Rejestracja: ${vehicle.licensePlate}'),
                                   ),
                                 ),
-
-                                // Obsługa "onChanged"
                                 onChanged: (Vehicle? vehicle) {
                                   setState(() {
                                     _selectedVehicle = vehicle;
@@ -368,8 +370,6 @@ Future<void> _submitForm() async {
                                     _mileageController.text = _mileage.toString();
                                   });
                                 },
-
-                                // Walidacja pola
                                 validator: (Vehicle? value) => value == null ? 'Wybierz pojazd' : null,
                               ),
                           ],
@@ -396,33 +396,13 @@ Future<void> _submitForm() async {
                               ),
                               readOnly: true,
                               controller: _dateTimeController,
-                              onTap: () async {
-                                final date = await showDatePicker(
-                                  context: context,
-                                  initialDate: DateTime.now(),
-                                  firstDate: DateTime.now(),
-                                  lastDate: DateTime(2100),
-                                );
-                                if (date != null) {
-                                  final time = await showTimePicker(
-                                    context: context,
-                                    initialTime: TimeOfDay.now(),
-                                  );
-                                  if (time != null) {
-                                    setState(() {
-                                      _scheduledTime = DateTime(
-                                        date.year,
-                                        date.month,
-                                        date.day,
-                                        time.hour,
-                                        time.minute,
-                                      );
-                                      _dateTimeController.text = '${_scheduledTime!.toLocal()}'.split('.')[0];
-                                    });
-                                  }
+                              onTap: () => _selectDateTime(context),
+                              validator: (value) {
+                                if (_scheduledTime == null) {
+                                  return 'Wybierz datę i godzinę';
                                 }
+                                return null;
                               },
-                              validator: (value) => _scheduledTime == null ? 'Wybierz datę i godzinę' : null,
                             ),
                             const SizedBox(height: 16.0),
                             TextFormField(
@@ -431,37 +411,10 @@ Future<void> _submitForm() async {
                                 border: OutlineInputBorder(),
                               ),
                               keyboardType: TextInputType.number,
-                              validator: _validateNumber,
                               onSaved: (value) {
                                 _mileage = int.tryParse(value!) ?? 0;
                               },
                             ),
-                            // const SizedBox(height: 16.0),
-                            // TextFormField(
-                            //   decoration: const InputDecoration(
-                            //     labelText: 'Szacowany czas trwania (min)',
-                            //     border: OutlineInputBorder(),
-                            //   ),
-                            //   keyboardType: TextInputType.number,
-                            //   validator: _validateNumber,
-                            //   controller: _estimatedDurationController,
-                            //   onSaved: (value) {
-                            //     final minutes = int.tryParse(value!) ?? 0;
-                            //     _estimatedDuration = Duration(minutes: minutes);
-                            //   },
-                            // ),
-                            // const SizedBox(height: 16.0),
-                            // TextFormField(
-                            //   decoration: const InputDecoration(
-                            //     labelText: 'Całkowity koszt (PLN)',
-                            //     border: OutlineInputBorder(),
-                            //   ),
-                            //   keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                            //   controller: _totalCostController,
-                            //   onSaved: (value) {
-                            //     _totalCost = double.tryParse(value!) ?? 0.0;
-                            //   },
-                            // ),
                             const SizedBox(height: 16.0),
                             DropdownButtonFormField<String>(
                               decoration: const InputDecoration(
@@ -470,7 +423,8 @@ Future<void> _submitForm() async {
                               ),
                               value: _status,
                               items: const [
-                                DropdownMenuItem(value: 'scheduled', child: Text('Zaplanowana')),
+                                DropdownMenuItem(value: 'pending', child: Text('Do wykonania')),
+                                DropdownMenuItem(value: 'in_progress', child: Text('W trakcie')),
                                 DropdownMenuItem(value: 'completed', child: Text('Zakończona')),
                                 DropdownMenuItem(value: 'canceled', child: Text('Anulowana')),
                               ],
@@ -484,6 +438,7 @@ Future<void> _submitForm() async {
                         ),
                       ),
                     ),
+
                     // Wybór mechaników
                     if (_mechanics.isNotEmpty)
                       Card(
@@ -519,15 +474,10 @@ Future<void> _submitForm() async {
                                 // _assignedMechanics = results;
                               });
                             },
-                            validator: (values) {
-                              if (values == null || values.isEmpty) {
-                                return 'Wybierz przynajmniej jednego mechanika';
-                              }
-                              return null;
-                            },
                           ),
                         ),
                       ),
+
                     // Dodatkowe informacje
                     Card(
                       elevation: 2.0,
@@ -566,6 +516,7 @@ Future<void> _submitForm() async {
                         ),
                       ),
                     ),
+
                     // Przycisk zapisu
                     SizedBox(
                       width: double.infinity,

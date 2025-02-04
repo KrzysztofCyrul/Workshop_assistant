@@ -6,11 +6,10 @@ import '../screens/auth/register_screen.dart';
 import '../screens/home/home_screen.dart';
 import '../screens/appointments/appointments_screen.dart';
 import '../screens/appointments/completed_appointments_screen.dart';
-import '../screens/appointments/canceled_appointments_screen.dart';
+import '../screens/appointments/pending_appointments_screen.dart';
 import '../screens/appointments/appointment_details_screen.dart';
 import '../screens/appointments/add_appointment_screen.dart';
 import '../screens/settings/settings_screen.dart';
-import '../screens/workshop/workshop_list_screen.dart';
 import '../screens/clients/clients_screen.dart';
 import '../screens/clients/client_details_screen.dart';
 import '../screens/employee/employee_details_screen.dart';
@@ -25,6 +24,8 @@ import '../screens/workshop/add_workshop_screen.dart';
 import '../screens/relationships/client_statistics_screen.dart';
 import '../screens/settings/email_settings_screen.dart';
 import '../screens/relationships/send_email_screen.dart';
+import '../screens/appointments/canceled_appointments_screen.dart';
+import '../screens/employee/use_code_screen.dart';
 
 class AppRoutes {
   static final routes = <String, WidgetBuilder>{
@@ -34,24 +35,44 @@ class AppRoutes {
     AppointmentsScreen.routeName: (context) => const AppointmentsScreen(),
     CompletedAppointmentsScreen.routeName: (context) => const CompletedAppointmentsScreen(),
     CanceledAppointmentsScreen.routeName: (context) => const CanceledAppointmentsScreen(),
-    AppointmentDetailsScreen.routeName: (context) {
-      final args = ModalRoute.of(context)!.settings.arguments as Map<String, String>;
-      final workshopId = args['workshopId']!;
-      final appointmentId = args['appointmentId']!;
-      return AppointmentDetailsScreen(
-        workshopId: workshopId,
-        appointmentId: appointmentId,
-      );
-    },
+    PendingAppointmentsScreen.routeName: (context) => const PendingAppointmentsScreen(),
+AppointmentDetailsScreen.routeName: (context) {
+  final args = ModalRoute.of(context)!.settings.arguments as Map<String, String>?;
+  
+  if (args == null) {
+    Navigator.of(context).pushReplacementNamed(LoginScreen.routeName);
+    return const Scaffold(
+      body: Center(
+        child: Text('Błąd: Brak wymaganych argumentów.'),
+      ),
+    );
+  }
+
+  final workshopId = args['workshopId'];
+  final appointmentId = args['appointmentId'];
+
+  if (workshopId == null || appointmentId == null) {
+    // Obsłuż przypadek, gdy brakuje wymaganych argumentów
+    return const Scaffold(
+      body: Center(
+        child: Text('Błąd: Brak wymaganych argumentów.'),
+      ),
+    );
+  }
+
+  return AppointmentDetailsScreen(
+    workshopId: workshopId,
+    appointmentId: appointmentId,
+  );
+},
     AddAppointmentScreen.routeName: (context) => const AddAppointmentScreen(),
     AppointmentCalendarScreen.routeName: (context) => const AppointmentCalendarScreen(),
-    WorkshopListScreen.routeName: (context) => const WorkshopListScreen(),
     ClientsScreen.routeName: (context) => const ClientsScreen(),
     AddClientScreen.routeName: (context) => AddClientScreen(),
-EditClientScreen.routeName: (context) {
-  final client = ModalRoute.of(context)!.settings.arguments as Client;
-  return EditClientScreen(client: client);
-},
+    EditClientScreen.routeName: (context) {
+      final client = ModalRoute.of(context)!.settings.arguments as Client;
+      return EditClientScreen(client: client);
+    },
     EmployeeDetailsScreen.routeName: (context) {
       final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
       final workshopId = args['workshopId']!;
@@ -80,10 +101,10 @@ EditClientScreen.routeName: (context) {
       final vehicleId = args['vehicleId']!;
       return VehicleDetailsScreen(workshopId: workshopId, vehicleId: vehicleId);
     },
-ClientDetailsScreen.routeName: (context) {
-  final client = ModalRoute.of(context)!.settings.arguments as Client;
-  return ClientDetailsScreen(client: client);
-},
+    ClientDetailsScreen.routeName: (context) {
+      final client = ModalRoute.of(context)!.settings.arguments as Client;
+      return ClientDetailsScreen(client: client);
+    },
     SettingsScreen.routeName: (context) => SettingsScreen(),
     VehicleServiceHistoryScreen.routeName: (context) {
       final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
@@ -95,5 +116,6 @@ ClientDetailsScreen.routeName: (context) {
     ClientsStatisticsScreen.routeName: (context) => const ClientsStatisticsScreen(),
     EmailSettingsScreen.routeName: (context) => EmailSettingsScreen(),
     SendEmailScreen.routeName: (context) => const SendEmailScreen(),
+    UseCodeScreen.routeName: (context) => const UseCodeScreen(),
   };
 }

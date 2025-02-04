@@ -15,6 +15,7 @@ import '../clients/edit_client_screen.dart ';
 import '../appointments/appointment_calendar_screen.dart';
 import '../relationships/client_statistics_screen.dart';
 import '../relationships/send_email_screen.dart';
+import '../employee/use_code_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   static const routeName = '/home';
@@ -40,7 +41,7 @@ class HomeScreen extends StatelessWidget {
       if (isWorkshopOwner && employeeProfiles.isEmpty) {
         Navigator.of(context).pushReplacementNamed(CreateWorkshopScreen.routeName);
       } else if (employeeProfiles.isEmpty) {
-        Navigator.of(context).pushReplacementNamed(WorkshopListScreen.routeName);
+        Navigator.of(context).pushReplacementNamed(UseCodeScreen.routeName);
       }
     });
 

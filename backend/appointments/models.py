@@ -9,9 +9,10 @@ from vehicles.models import Vehicle
 
 class Appointment(models.Model):
     STATUS_CHOICES = [
-        ('scheduled', 'Zaplanowana'),
-        ('completed', 'Zakończona'),
-        ('canceled', 'Anulowana'),
+        ('pending', 'Do wykonania'),
+        ('in_progress', 'W trakcie'),
+        ('completed', 'Zakończone'),
+        ('canceled', 'Anulowane'),
     ]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -36,7 +37,7 @@ class Appointment(models.Model):
         blank=True
     )
     scheduled_time = models.DateTimeField()
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='scheduled')
+    status = models.CharField(max_length=15, choices=STATUS_CHOICES, default='pending')
     notes = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

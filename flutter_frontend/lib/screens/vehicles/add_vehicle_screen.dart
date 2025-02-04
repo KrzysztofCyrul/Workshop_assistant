@@ -37,17 +37,16 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
   String? _selectedClientId;
   bool _isSubmitting = false;
 
-@override
-void initState() {
-  super.initState();
-  _selectedClientId = widget.selectedClient?.id;
-  WidgetsBinding.instance.addPostFrameCallback((_) {
-    _loadClients();
-  });
-}
+  @override
+  void initState() {
+    super.initState();
+    _selectedClientId = widget.selectedClient?.id;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadClients();
+    });
+  }
 
-
-    Color _getSegmentColor(String? segment) {
+  Color _getSegmentColor(String? segment) {
     switch (segment) {
       case 'A':
         return SegmentColors.segmentA;
@@ -83,54 +82,56 @@ void initState() {
     }).toList();
   }
 
-  void _submitForm() async {
-    if (!_formKey.currentState!.validate()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Proszę poprawić błędy w formularzu')),
-      );
-      return;
-    }
-
-    setState(() {
-      _isSubmitting = true;
-    });
-
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final accessToken = authProvider.accessToken;
-
-    if (accessToken == null || _selectedClientId == null) {
-      setState(() {
-        _isSubmitting = false;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Brak dostępu do danych użytkownika lub klienta')),
-      );
-      return;
-    }
-
-    try {
-      await Provider.of<VehicleProvider>(context, listen: false).addVehicle(
-        accessToken,
-        widget.workshopId,
-        clientId: _selectedClientId!,
-        make: _makeController.text,
-        model: _modelController.text,
-        year: int.parse(_yearController.text),
-        vin: _vinController.text,
-        licensePlate: _licensePlateController.text,
-        mileage: int.parse(_mileageController.text),
-      );
-      Navigator.of(context).pop(true); // Powrót po dodaniu pojazdu
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Błąd podczas dodawania pojazdu: $e')),
-      );
-    } finally {
-      setState(() {
-        _isSubmitting = false;
-      });
-    }
+  Future<void> _submitForm() async {
+  if (!_formKey.currentState!.validate()) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Proszę poprawić błędy w formularzu')),
+    );
+    return;
   }
+
+  setState(() {
+    _isSubmitting = true;
+  });
+
+  final authProvider = Provider.of<AuthProvider>(context, listen: false);
+  final accessToken = authProvider.accessToken;
+
+  if (accessToken == null || _selectedClientId == null) {
+    setState(() {
+      _isSubmitting = false;
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Brak dostępu do danych użytkownika lub klienta')),
+    );
+    return;
+  }
+
+  try {
+    final vehicleProvider = Provider.of<VehicleProvider>(context, listen: false);
+    await vehicleProvider.addVehicle(
+      accessToken,
+      widget.workshopId,
+      clientId: _selectedClientId!,
+      make: _makeController.text,
+      model: _modelController.text,
+      year: _yearController.text.isNotEmpty ? int.parse(_yearController.text) : 0, // Domyślna wartość 0
+      vin: _vinController.text.isNotEmpty ? _vinController.text : '', // Domyślna wartość pusty ciąg
+      licensePlate: _licensePlateController.text,
+      mileage: _mileageController.text.isNotEmpty ? int.parse(_mileageController.text) : 0, // Domyślna wartość 0
+    );
+
+    Navigator.of(context).pop(true); // Powrót po dodaniu pojazdu
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Błąd podczas dodawania pojazdu: $e')),
+    );
+  } finally {
+    setState(() {
+      _isSubmitting = false;
+    });
+  }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -147,16 +148,15 @@ void initState() {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-ClientSearchWidget(
-  selectedClient: widget.selectedClient, // Automatyczne ustawienie klienta
-  onChanged: (client) {
-    setState(() {
-      _selectedClientId = client?.id;
-    });
-  },
-  validator: (client) => client == null ? 'Wybierz klienta' : null,
-),
-
+              ClientSearchWidget(
+                selectedClient: widget.selectedClient, // Automatyczne ustawienie klienta
+                onChanged: (client) {
+                  setState(() {
+                    _selectedClientId = client?.id;
+                  });
+                },
+                validator: (client) => client == null ? 'Wybierz klienta' : null,
+              ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _makeController,
@@ -193,14 +193,6 @@ ClientSearchWidget(
                   border: OutlineInputBorder(),
                 ),
                 keyboardType: TextInputType.number,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Rok produkcji jest wymagany';
-                  } else if (int.tryParse(value) == null) {
-                    return 'Podaj poprawny rok';
-                  }
-                  return null;
-                },
               ),
               const SizedBox(height: 16),
               TextFormField(
@@ -232,14 +224,6 @@ ClientSearchWidget(
                   border: OutlineInputBorder(),
                 ),
                 keyboardType: TextInputType.number,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Przebieg jest wymagany';
-                  } else if (int.tryParse(value) == null) {
-                    return 'Podaj poprawny przebieg';
-                  }
-                  return null;
-                },
               ),
               const SizedBox(height: 20),
               _isSubmitting

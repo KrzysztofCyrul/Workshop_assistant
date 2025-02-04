@@ -1,6 +1,6 @@
 # Instrukcja uruchomienia aplikacji
 
-Aplikacja składa się z backendu w Django i frontendu w Flutter. Baza danych SQLite na potrzeby testów jest dołączona do projektu i nie wymaga dodatkowej konfiguracji.
+Aplikacja składa się z backendu w Django i frontendu w Flutter. Baza danych SQLite jest dołączona do projektu i nie wymaga dodatkowej konfiguracji.
 
 ---
 

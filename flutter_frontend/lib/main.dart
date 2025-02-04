@@ -11,6 +11,8 @@ import 'screens/auth/login_screen.dart';
 import 'providers/employee_provider.dart';
 import 'screens/appointments/appointments_screen.dart';
 import 'utils/colors.dart';
+import 'providers/temporary_code_provider.dart';
+import 'providers/generate_code_provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,6 +27,8 @@ Future<void> main() async {
         ChangeNotifierProvider(create: (_) => VehicleProvider()),
         ChangeNotifierProvider(create: (_) => ServiceRecordProvider()),    
         ChangeNotifierProvider(create: (_) => EmailProvider()),    
+        ChangeNotifierProvider(create: (_) => TemporaryCodeProvider()),
+        ChangeNotifierProvider(create: (_) => GenerateCodeProvider()),
       ],
       child: const MyApp(),
     ),

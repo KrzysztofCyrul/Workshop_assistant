@@ -1,3 +1,4 @@
+from django.utils import timezone
 import uuid
 from django.db import models
 from django.conf import settings
@@ -49,3 +50,17 @@ class ScheduleEntry(models.Model):
     
     def __str__(self):
         return f"Schedule for {self.employee.user.get_full_name()} on {self.start_time.date()}"
+    
+class TemporaryCode(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    code = models.CharField(max_length=6, unique=True)
+    workshop = models.ForeignKey(Workshop, on_delete=models.CASCADE, related_name='temporary_codes')
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='generated_codes')
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+
+    def is_valid(self):
+        return timezone.now() < self.expires_at
+
+    def __str__(self):
+        return f"{self.code} for {self.workshop.name} (expires at {self.expires_at})"

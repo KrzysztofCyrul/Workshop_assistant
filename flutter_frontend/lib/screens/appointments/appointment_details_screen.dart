@@ -8,6 +8,8 @@ import '../../providers/auth_provider.dart';
 import '../service_records/service_history_screen.dart';
 import 'add_repair_item_dialog.dart';
 import 'package:intl/intl.dart';
+import 'dart:convert';
+import 'package:flutter/services.dart';
 
 class AppointmentDetailsScreen extends StatefulWidget {
   static const routeName = '/appointment-details';
@@ -32,6 +34,9 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
   final List<Part> parts = [];
   final List<RepairItem> repairItems = [];
 
+  List<String> partsSuggestions = []; // Globalna zmienna do przechowywania części
+  bool isSuggestionsLoaded = false; // Flaga wczytania danych
+
   final TextEditingController partNameController = TextEditingController();
   final TextEditingController quantityController = TextEditingController();
   final TextEditingController partCostController = TextEditingController();
@@ -51,9 +56,7 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
     partCostController.text = '0';
     repairCostController.text = '0';
     serviceCostController.text = '0';
-
   }
-
   
 
   Future<Appointment> _fetchAppointmentDetails() async {
@@ -82,6 +85,7 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
       throw Exception('Błąd podczas pobierania szczegółów zlecenia.');
     }
   }
+
 
   double _calculateDiscountedCost(double originalCost, String? segment) {
     double discountPercentage;
@@ -190,54 +194,69 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
     );
   }
 
-  void _addPart() async {
-    if (partNameController.text.isEmpty || quantityController.text.isEmpty || partCostController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Wypełnij wszystkie pola')),
-      );
-      return;
-    }
+void _addPart() async {
+  // Sprawdzenie, czy wszystkie wymagane pola zostały wypełnione
+  if (partNameController.text.isEmpty || 
+      quantityController.text.isEmpty || 
+      partCostController.text.isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Wypełnij wszystkie pola')),
+    );
+    return;
+  }
 
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final accessToken = authProvider.accessToken!;
+  // Pobranie dostępu do tokenu i przygotowanie danych nowej części
+  final authProvider = Provider.of<AuthProvider>(context, listen: false);
+  final accessToken = authProvider.accessToken!;
 
-    final newPart = Part(
-      id: UniqueKey().toString(),
-      appointmentId: widget.appointmentId,
-      name: partNameController.text,
-      description: '', // Pole 'description', można rozszerzyć formularz
-      quantity: int.parse(quantityController.text),
-      costPart: double.parse(partCostController.text),
-      costService: double.parse(serviceCostController.text),
+  final newPart = Part(
+    id: UniqueKey().toString(),
+    appointmentId: widget.appointmentId,
+    name: partNameController.text.trim(),
+    description: '', // Pole 'description', można rozszerzyć formularz
+    quantity: int.parse(quantityController.text),
+    costPart: double.parse(partCostController.text),
+    costService: double.parse(serviceCostController.text),
+  );
+
+  try {
+    // Wywołanie API w celu zapisania nowej części
+    await AppointmentService.createPart(
+      accessToken,
+      widget.workshopId,
+      widget.appointmentId,
+      newPart.name,
+      newPart.description,
+      newPart.quantity,
+      newPart.costPart,
+      newPart.costService,
     );
 
-    try {
-      await AppointmentService.createPart(
-        accessToken,
-        widget.workshopId,
-        widget.appointmentId,
-        newPart.name,
-        newPart.description,
-        newPart.quantity,
-        newPart.costPart,
-        newPart.costService,
-      );
+    // Aktualizacja lokalnej listy części i podpowiedzi
+    setState(() {
+      parts.add(newPart); // Dodanie nowej części do listy wyświetlanej na ekranie
+      if (!partsSuggestions.contains(newPart.name)) {
+        partsSuggestions.add(newPart.name); // Dodanie nowej części do podpowiedzi
+      }
+    });
 
-      // Aktualizuj lokalną listę
-      setState(() {
-        parts.add(newPart);
-      });
+    // Czyszczenie pól formularza po dodaniu
+    partNameController.clear();
+    quantityController.clear();
+    partCostController.clear();
+    serviceCostController.clear();
 
-      // Czyszczenie pól
-      partNameController.clear();
-      quantityController.clear();
-      partCostController.clear();
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Błąd podczas dodawania części')),
-      );
-    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Część została dodana')),
+    );
+  } catch (e) {
+    // Obsługa błędów podczas dodawania części
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Błąd podczas dodawania części')),
+    );
+    print('Error adding part: $e');
   }
+}
 
   void _editPart(int index) async {
     final part = parts[index];
@@ -334,86 +353,90 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
   }
 
   void _editPartValue(int index, String field, dynamic newValue) async {
-  final part = parts[index];
-  final authProvider = Provider.of<AuthProvider>(context, listen: false);
-  final accessToken = authProvider.accessToken!;
-
-  // Aktualizacja pola lokalnie
-  Part updatedPart;
-  switch (field) {
-    case 'name':
-      updatedPart = part.copyWith(name: newValue);
-      break;
-    case 'quantity':
-      updatedPart = part.copyWith(quantity: newValue);
-      break;
-    case 'costPart':
-      updatedPart = part.copyWith(costPart: newValue);
-      break;
-    case 'costService':
-      updatedPart = part.copyWith(costService: newValue);
-      break;
-    default:
-      return;
-  }
-
-  setState(() {
-    parts[index] = updatedPart;
-  });
-
-  // Aktualizacja w backendzie
-  try {
-    await AppointmentService.updatePart(
-      accessToken,
-      widget.workshopId,
-      widget.appointmentId,
-      part.id,
-      name: updatedPart.name,
-      description: part.description,
-      quantity: updatedPart.quantity,
-      costPart: updatedPart.costPart,
-      costService: updatedPart.costService,
-    );
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Zaktualizowano pole: $field')),
-    );
-  } catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Błąd podczas aktualizacji pola: $field - $e')),
-    );
-
-    // Przywracanie starej wartości w przypadku błędu
-    setState(() {
-      parts[index] = part;
-    });
-  }
-}
-
-
-  void _removePart(int index) async {
     final part = parts[index];
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final accessToken = authProvider.accessToken!;
 
+    // Aktualizacja pola lokalnie
+    Part updatedPart;
+    switch (field) {
+      case 'name':
+        updatedPart = part.copyWith(name: newValue);
+        break;
+      case 'quantity':
+        updatedPart = part.copyWith(quantity: newValue);
+        break;
+      case 'costPart':
+        updatedPart = part.copyWith(costPart: newValue);
+        break;
+      case 'costService':
+        updatedPart = part.copyWith(costService: newValue);
+        break;
+      default:
+        return;
+    }
+
+    setState(() {
+      parts[index] = updatedPart;
+    });
+
+    // Aktualizacja w backendzie
     try {
-      await AppointmentService.deletePart(
+      await AppointmentService.updatePart(
         accessToken,
         widget.workshopId,
         widget.appointmentId,
         part.id,
+        name: updatedPart.name,
+        description: part.description,
+        quantity: updatedPart.quantity,
+        costPart: updatedPart.costPart,
+        costService: updatedPart.costService,
       );
-      setState(() {
-        parts.removeAt(index);
-      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Zaktualizowano pole: $field')),
+      );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Błąd podczas usuwania części')),
+        SnackBar(content: Text('Błąd podczas aktualizacji pola: $field - $e')),
       );
+
+      // Przywracanie starej wartości w przypadku błędu
+      setState(() {
+        parts[index] = part;
+      });
     }
   }
 
-Widget _buildPartsTable() {
+Future<void> _removePart(int index) async {
+  final part = parts[index];
+  final authProvider = Provider.of<AuthProvider>(context, listen: false);
+  final accessToken = authProvider.accessToken!;
+
+  try {
+    await AppointmentService.deletePart(
+      accessToken,
+      widget.workshopId,
+      widget.appointmentId,
+      part.id,
+    );
+
+    setState(() {
+      parts.removeAt(index);
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Część została usunięta')),
+    );
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Błąd podczas usuwania części')),
+    );
+  }
+}
+
+  Widget _buildPartsTable() {
   return DataTable(
     columnSpacing: MediaQuery.of(context).size.width * 0.02,
     headingRowColor: WidgetStateColor.resolveWith((states) => Colors.green.shade100),
@@ -448,17 +471,28 @@ Widget _buildPartsTable() {
           ),
         ),
       ),
-      DataColumn(label: Center(
-        child: Text(
-          'Suma części',
-          style: TextStyle(fontWeight: FontWeight.bold),
-          textAlign: TextAlign.center,
+      DataColumn(
+        label: Center(
+          child: Text(
+            'Suma części',
+            style: TextStyle(fontWeight: FontWeight.bold),
+            textAlign: TextAlign.center,
+          ),
         ),
-      )),
+      ),
       DataColumn(
         label: Center(
           child: Text(
             'Cena usługi',
+            style: TextStyle(fontWeight: FontWeight.bold),
+            textAlign: TextAlign.center,
+          ),
+        ),
+      ),
+      DataColumn(
+        label: Center(
+          child: Text(
+            'Akcje',
             style: TextStyle(fontWeight: FontWeight.bold),
             textAlign: TextAlign.center,
           ),
@@ -472,45 +506,87 @@ Widget _buildPartsTable() {
       return DataRow(
         cells: [
           DataCell(
-            TextFormField(
-              initialValue: part.name,
-              decoration: const InputDecoration(border: InputBorder.none),
-              onFieldSubmitted: (newValue) {
-                _editPartValue(index, 'name', newValue);
-              },
+            Center(
+              child: TextFormField(
+                initialValue: part.name,
+                decoration: const InputDecoration(
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.zero, // Usunięcie domyślnego paddingu
+                ),
+                textAlign: TextAlign.center, // Wyśrodkowanie tekstu
+                onFieldSubmitted: (newValue) {
+                  _editPartValue(index, 'name', newValue);
+                },
+              ),
             ),
           ),
           DataCell(
-            TextFormField(
-              initialValue: part.quantity.toString(),
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(border: InputBorder.none),
-              onFieldSubmitted: (newValue) {
-                _editPartValue(index, 'quantity', int.tryParse(newValue) ?? part.quantity);
-              },
+            Center(
+              child: TextFormField(
+                initialValue: part.quantity.toString(),
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.zero, // Usunięcie domyślnego paddingu
+                ),
+                textAlign: TextAlign.center, // Wyśrodkowanie tekstu
+                onFieldSubmitted: (newValue) {
+                  _editPartValue(index, 'quantity', int.tryParse(newValue) ?? part.quantity);
+                },
+              ),
             ),
           ),
           DataCell(
-            TextFormField(
-              initialValue: part.costPart.toStringAsFixed(2),
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(border: InputBorder.none),
-              onFieldSubmitted: (newValue) {
-                _editPartValue(index, 'costPart', double.tryParse(newValue) ?? part.costPart);
-              },
+            Center(
+              child: TextFormField(
+                initialValue: part.costPart.toStringAsFixed(2),
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.zero, // Usunięcie domyślnego paddingu
+                ),
+                textAlign: TextAlign.center, // Wyśrodkowanie tekstu
+                onFieldSubmitted: (newValue) {
+                  _editPartValue(index, 'costPart', double.tryParse(newValue) ?? part.costPart);
+                },
+              ),
             ),
           ),
           DataCell(
-            Text((part.costPart * part.quantity).toStringAsFixed(2)),
+            Center(
+              child: Text(
+                (part.costPart * part.quantity).toStringAsFixed(2),
+                textAlign: TextAlign.center, // Wyśrodkowanie tekstu
+              ),
             ),
+          ),
           DataCell(
-            TextFormField(
-              initialValue: part.costService.toStringAsFixed(2),
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(border: InputBorder.none),
-              onFieldSubmitted: (newValue) {
-                _editPartValue(index, 'costService', double.tryParse(newValue) ?? part.costService);
-              },
+            Center(
+              child: TextFormField(
+                initialValue: part.costService.toStringAsFixed(2),
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.zero, // Usunięcie domyślnego paddingu
+                ),
+                textAlign: TextAlign.center, // Wyśrodkowanie tekstu
+                onFieldSubmitted: (newValue) {
+                  _editPartValue(index, 'costService', double.tryParse(newValue) ?? part.costService);
+                },
+              ),
+            ),
+          ),
+          DataCell(
+            Center(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.delete, color: Colors.red),
+                    onPressed: () => _confirmDeletePartItem(index),
+                  ),
+                ],
+              ),
             ),
           ),
         ],
@@ -519,31 +595,33 @@ Widget _buildPartsTable() {
   );
 }
 
-
-  void _confirmRemovePart(int index) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Potwierdzenie usunięcia'),
-          content: Text('Czy na pewno chcesz usunąć część "${parts[index].name}"?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Anuluj'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                _removePart(index);
-                Navigator.of(context).pop();
-              },
-              child: const Text('Usuń'),
-            ),
-          ],
-        );
-      },
-    );
-  }
+void _confirmDeletePartItem(int index) {
+  showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        title: const Text('Potwierdzenie usunięcia'),
+        content: Text('Czy na pewno chcesz usunąć część "${parts[index].name}"?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Anuluj'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              await _removePart(index);
+              Navigator.of(context).pop();
+              setState(() {
+                _appointmentFuture = _fetchAppointmentDetails();
+              });
+            },
+            child: const Text('Usuń'),
+          ),
+        ],
+      );
+    },
+  );
+}
 
   void _addRepairItem() async {
     if (repairDescriptionController.text.isEmpty || repairCostController.text.isEmpty) {
@@ -609,42 +687,41 @@ Widget _buildPartsTable() {
   }
 
   void _editRepairItemValue(int index, String field, dynamic value) async {
-  final item = repairItems[index];
+    final item = repairItems[index];
 
-  final updatedItem = item.copyWith(
-    description: field == 'description' ? value : item.description,
-    cost: field == 'cost' ? value : item.cost,
-    estimatedDuration: field == 'estimatedDuration' ? value : item.estimatedDuration,
-  );
-
-  setState(() {
-    repairItems[index] = updatedItem;
-  });
-
-  try {
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final accessToken = authProvider.accessToken!;
-
-    await AppointmentService.updateRepairItem(
-      accessToken,
-      widget.workshopId,
-      widget.appointmentId,
-      item.id,
-      description: updatedItem.description ?? '',
-      status: updatedItem.status,
-      cost: updatedItem.cost,
-      order: updatedItem.order,
-      estimatedDuration: updatedItem.estimatedDuration,
+    final updatedItem = item.copyWith(
+      description: field == 'description' ? value : item.description,
+      cost: field == 'cost' ? value : item.cost,
+      estimatedDuration: field == 'estimatedDuration' ? value : item.estimatedDuration,
     );
-  } catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Błąd podczas aktualizacji elementu naprawy')),
-    );
+
+    setState(() {
+      repairItems[index] = updatedItem;
+    });
+
+    try {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final accessToken = authProvider.accessToken!;
+
+      await AppointmentService.updateRepairItem(
+        accessToken,
+        widget.workshopId,
+        widget.appointmentId,
+        item.id,
+        description: updatedItem.description ?? '',
+        status: updatedItem.status,
+        cost: updatedItem.cost,
+        order: updatedItem.order,
+        estimatedDuration: updatedItem.estimatedDuration,
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Błąd podczas aktualizacji elementu naprawy')),
+      );
+    }
   }
-}
 
-
-Widget _buildRepairItemsTable() {
+  Widget _buildRepairItemsTable() {
   return DataTable(
     columnSpacing: MediaQuery.of(context).size.width * 0.02, // Dostosowanie odstępów
     headingRowColor: WidgetStateColor.resolveWith((states) => Colors.blue.shade100),
@@ -689,7 +766,7 @@ Widget _buildRepairItemsTable() {
         label: Expanded(
           child: Center(
             child: Text(
-              'Szacowany czas',
+              'Czas',
               style: TextStyle(fontWeight: FontWeight.bold),
               textAlign: TextAlign.center,
             ),
@@ -739,21 +816,25 @@ Widget _buildRepairItemsTable() {
             ),
           ),
           DataCell(
-            TextFormField(
-              initialValue: item.cost.toStringAsFixed(2),
-              decoration: const InputDecoration(border: InputBorder.none),
-              keyboardType: TextInputType.number,
-              onFieldSubmitted: (newValue) {
-                _editRepairItemValue(index, 'cost', double.parse(newValue));
-              },
+            Center(
+              child: TextFormField(
+                initialValue: item.cost.toStringAsFixed(2),
+                decoration: const InputDecoration(border: InputBorder.none),
+                keyboardType: TextInputType.number,
+                textAlign: TextAlign.center, // Wyśrodkowanie tekstu
+                onFieldSubmitted: (newValue) {
+                  _editRepairItemValue(index, 'cost', double.parse(newValue));
+                },
+              ),
             ),
           ),
           DataCell(
-          Text(
-            item.estimatedDuration != null
-                ? _formatDuration(item.estimatedDuration!)
-                : 'Brak',
-          )
+            Center(
+              child: Text(
+                item.estimatedDuration != null ? _formatDuration(item.estimatedDuration!) : 'Brak',
+                textAlign: TextAlign.center, // Wyśrodkowanie tekstu
+              ),
+            ),
           ),
           DataCell(
             Row(
@@ -772,70 +853,108 @@ Widget _buildRepairItemsTable() {
   );
 }
 
+ Future<void> _loadPartsSuggestions() async {
+  if (!isSuggestionsLoaded) {
+    try {
+      // Wczytanie danych z pliku JSON
+      final String response = await rootBundle.loadString('assets/parts.json');
+      final List<dynamic> data = json.decode(response);
+      partsSuggestions = List<String>.from(data);
+      isSuggestionsLoaded = true; // Ustawienie flagi na true
+    } catch (e) {
+      print('Błąd podczas ładowania danych: $e');
+    }
+  }
+}
 
-  Widget _buildAddPartForm() {
-    return Row(
-      children: [
-        Expanded(
-          flex: 3,
-          child: TextField(
-            controller: partNameController,
-            decoration: const InputDecoration(
-              labelText: 'Część',
-              border: OutlineInputBorder(),
-              contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 12),
-            ),
-          ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          flex: 2,
-          child: TextField(
-            controller: quantityController,
-            keyboardType: TextInputType.number,
-            decoration: const InputDecoration(
-              labelText: 'Ilość',
-              border: OutlineInputBorder(),
-              contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 12),
-            ),
-          ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          flex: 2,
-          child: TextField(
-            controller: partCostController,
-            keyboardType: TextInputType.number,
-            decoration: const InputDecoration(
-              labelText: 'Cena części',
-              border: OutlineInputBorder(),
-              contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 12),
-            ),
-          ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          flex: 2,
-          child: TextField(
-            controller: serviceCostController,
-            keyboardType: TextInputType.number,
-            decoration: const InputDecoration(
-              labelText: 'Cena usługi',
-              border: OutlineInputBorder(),
-              contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 12),
-            ),
-          ),
-        ),
-        const SizedBox(width: 8),
-        IconButton(
-          icon: const Icon(Icons.add, color: Colors.green),
-          onPressed: _addPart,
-          tooltip: 'Dodaj część',
-        ),
-      ],
-    );
+Widget _buildAddPartForm() {
+  // Ładowanie danych przy pierwszym uruchomieniu
+  if (!isSuggestionsLoaded) {
+    _loadPartsSuggestions();
   }
 
+  return Row(
+    children: [
+      Expanded(
+        flex: 3,
+        child: Autocomplete<String>(
+          optionsBuilder: (TextEditingValue textEditingValue) {
+            if (textEditingValue.text.isEmpty) {
+              return const Iterable<String>.empty();
+            }
+            return partsSuggestions.where((String part) {
+              return part
+                  .toLowerCase()
+                  .contains(textEditingValue.text.toLowerCase());
+            });
+          },
+          onSelected: (String selection) {
+            partNameController.text = selection;
+          },
+          fieldViewBuilder: (context, textEditingController, focusNode, onFieldSubmitted) {
+            return TextField(
+              controller: textEditingController,
+              focusNode: focusNode,
+              decoration: const InputDecoration(
+                labelText: 'Część',
+                border: OutlineInputBorder(),
+                contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+              ),
+              onChanged: (value) {
+                partNameController.text = value; // Synchronizuj wartość z kontrolerem
+              },
+            );
+          },
+        ),
+      ),
+      const SizedBox(width: 8),
+      Expanded(
+        flex: 2,
+        child: TextField(
+          controller: quantityController,
+          keyboardType: TextInputType.number,
+          decoration: const InputDecoration(
+            labelText: 'Ilość',
+            border: OutlineInputBorder(),
+            contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+          ),
+        ),
+      ),
+      const SizedBox(width: 8),
+      Expanded(
+        flex: 2,
+        child: TextField(
+          controller: partCostController,
+          keyboardType: TextInputType.number,
+          decoration: const InputDecoration(
+            labelText: 'Cena części',
+            border: OutlineInputBorder(),
+            contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+          ),
+        ),
+      ),
+      const SizedBox(width: 8),
+      Expanded(
+        flex: 2,
+        child: TextField(
+          controller: serviceCostController,
+          keyboardType: TextInputType.number,
+          decoration: const InputDecoration(
+            labelText: 'Cena usługi',
+            border: OutlineInputBorder(),
+            contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+          ),
+        ),
+      ),
+      const SizedBox(width: 8),
+      IconButton(
+        icon: const Icon(Icons.add, color: Colors.green),
+        onPressed: _addPart, // Wywołanie funkcji dodania części
+        tooltip: 'Dodaj część',
+      ),
+    ],
+  );
+}
   Widget _buildAddRepairItemForm() {
     return Row(
       children: [
@@ -1090,40 +1209,64 @@ Widget _buildRepairItemsTable() {
     }
   }
 
+  void _showRecommendations(BuildContext context, String recommendations) {
+  showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        title: const Text('Rekomendacje'),
+        content: SingleChildScrollView(
+          child: Text(recommendations),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: const Text('Zamknij'),
+          ),
+        ],
+      );
+    },
+  );
+}
+
   @override
   Widget build(BuildContext context) {
     // Wyliczamy dynamicznie akcje w AppBar w zależności od tego, czy mamy załadowane dane.
     List<Widget> appBarActions = [];
 
 // Jeśli mamy dane o wizycie, dodaj ikonę historii jako pierwszą:
-    if (_currentAppointment != null) {
-      appBarActions.add(
-        IconButton(
-          icon: const Icon(Icons.history),
-          tooltip: 'Historia pojazdu',
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => VehicleServiceHistoryScreen(
-                  workshopId: widget.workshopId,
-                  vehicleId: _currentAppointment!.vehicle.id,
-                ),
-              ),
-            );
-          },
-        ),
-      );
-    }
-
-// Na końcu dodaj ikonę plusa:
+  if (_currentAppointment != null) {
     appBarActions.add(
       IconButton(
-        icon: const Icon(Icons.add),
-        tooltip: 'Dodaj element naprawy',
-        onPressed: _navigateToAddRepairItem,
+        icon: const Icon(Icons.history),
+        tooltip: 'Historia pojazdu',
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => VehicleServiceHistoryScreen(
+                workshopId: widget.workshopId,
+                vehicleId: _currentAppointment!.vehicle.id,
+              ),
+            ),
+          );
+        },
       ),
     );
+
+    // Dodaj przycisk do wyświetlania rekomendacji
+    appBarActions.add(
+      IconButton(
+        icon: const Icon(Icons.recommend),
+        tooltip: 'Pokaż rekomendacje',
+        onPressed: () {
+          _showRecommendations(context, _currentAppointment!.recommendations);
+        },
+      ),
+    );
+  }
 
     return Scaffold(
       appBar: AppBar(
@@ -1321,21 +1464,30 @@ Widget _buildRepairItemsTable() {
                     child: _buildPartsTable(),
                   ),
                   // Podsumowanie kosztów
-                  const Divider(),
-                  Padding(
-                    padding: const EdgeInsets.only(top: 16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Suma cen części: ${totalPartCost.toStringAsFixed(2)} PLN'),
-                        Text('Suma cen usług: ${totalServiceCost.toStringAsFixed(2)} PLN'),
-                        Text(
-                          'Łączna cena: ${totalCost.toStringAsFixed(2)} PLN',
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ],
-                    ),
-                  ),
+                  // Podsumowanie kosztów
+const Divider(),
+Padding(
+  padding: const EdgeInsets.only(top: 16.0),
+  child: Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text('Suma cen części: ${totalPartCost.toStringAsFixed(2)} PLN'),
+      Text('Suma cen usług: ${totalServiceCost.toStringAsFixed(2)} PLN'),
+      Text(
+        'Łączna cena: ${(totalPartCost + totalServiceCost).toStringAsFixed(2)} PLN',
+        style: const TextStyle(fontWeight: FontWeight.bold),
+      ),
+      const SizedBox(height: 8), // Dodatkowy odstęp
+      Text(
+        'Cena po rabacie: ${_calculateDiscountedCost(totalPartCost + totalServiceCost, _currentAppointment?.client.segment).toStringAsFixed(2)} PLN',
+        style: const TextStyle(
+          fontWeight: FontWeight.bold,
+          color: Colors.green, // Możesz zmienić kolor na inny, aby wyróżnić cenę po rabacie
+        ),
+      ),
+    ],
+  ),
+),
                 ],
               ),
             );

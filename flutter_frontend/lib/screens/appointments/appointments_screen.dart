@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_frontend/screens/appointments/canceled_appointments_screen.dart';
+import 'package:flutter_frontend/screens/appointments/pending_appointments_screen.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../models/appointment.dart';
@@ -8,7 +10,6 @@ import '../../widgets/change_status_widget.dart';
 import 'appointment_details_screen.dart';
 import 'add_appointment_screen.dart';
 import 'completed_appointments_screen.dart';
-import 'canceled_appointments_screen.dart';
 
 class AppointmentsScreen extends StatefulWidget {
   static const routeName = '/appointments';
@@ -53,7 +54,7 @@ Future<List<Appointment>> _fetchScheduledAppointments() async {
       _workshopId!,
     );
 
-    appointments = appointments.where((appointment) => appointment.status.toLowerCase() == 'scheduled').toList();
+    appointments = appointments.where((appointment) => appointment.status.toLowerCase() == 'in_progress').toList();
     appointments.sort((a, b) => b.scheduledTime.compareTo(a.scheduledTime));
 
     return appointments;
@@ -76,6 +77,12 @@ Future<List<Appointment>> _fetchScheduledAppointments() async {
         title: const Text('Aktualne'),
         actions: [
           IconButton(
+            icon: const Icon(Icons.pending),
+            tooltip: 'Zaplanowane zlecenia',
+            onPressed: _navigateToPendingAppointments,
+
+          ),
+          IconButton(
             icon: const Icon(Icons.check_circle),
             tooltip: 'Zakończone zlecenia',
             onPressed: _navigateToCompletedAppointments,
@@ -90,6 +97,7 @@ Future<List<Appointment>> _fetchScheduledAppointments() async {
             tooltip: 'Dodaj zlecenie',
             onPressed: _navigateToAddAppointment,
           ),
+          
         ],
       ),
       body: FutureBuilder<List<Appointment>>(
@@ -277,5 +285,9 @@ onTap: () {
 
   void _navigateToCanceledAppointments() {
     Navigator.pushNamed(context, CanceledAppointmentsScreen.routeName);
+  }
+
+  void _navigateToPendingAppointments() {
+    Navigator.pushNamed(context, PendingAppointmentsScreen.routeName);
   }
 }
