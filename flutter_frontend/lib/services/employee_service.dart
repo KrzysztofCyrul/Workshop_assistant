@@ -14,7 +14,7 @@ class EmployeeService {
     );
 
     if (response.statusCode == 200) {
-      final data = json.decode(response.body) as List<dynamic>;
+      final data = json.decode(utf8.decode(response.bodyBytes)) as List<dynamic>;
       return data.map((item) => Employee.fromJson(item)).toList();
     } else {
       throw Exception('Błąd podczas pobierania listy mechaników: ${response.body}');
@@ -32,7 +32,7 @@ class EmployeeService {
     );
 
     if (response.statusCode == 200) {
-      final data = json.decode(response.body);
+      final data = json.decode(utf8.decode(response.bodyBytes));
       return Employee.fromJson(data);
     } else {
       throw Exception('Błąd podczas pobierania szczegółów pracownika: ${response.statusCode}');
@@ -65,7 +65,7 @@ class EmployeeService {
     );
 
     if (response.statusCode == 200) {
-      final data = json.decode(response.body) as List<dynamic>;
+      final data = json.decode(utf8.decode(response.bodyBytes)) as List<dynamic>;
       return data.map((item) => Employee.fromJson(item)).toList();
     } else {
       throw Exception('Błąd podczas pobierania oczekujących mechaników: ${response.body}');

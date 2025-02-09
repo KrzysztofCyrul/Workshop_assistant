@@ -465,7 +465,7 @@ Future<void> _removePart(int index) async {
       DataColumn(
         label: Center(
           child: Text(
-            'Cena części',
+            'Części',
             style: TextStyle(fontWeight: FontWeight.bold),
             textAlign: TextAlign.center,
           ),
@@ -474,7 +474,7 @@ Future<void> _removePart(int index) async {
       DataColumn(
         label: Center(
           child: Text(
-            'Suma części',
+            'Suma',
             style: TextStyle(fontWeight: FontWeight.bold),
             textAlign: TextAlign.center,
           ),
@@ -483,7 +483,7 @@ Future<void> _removePart(int index) async {
       DataColumn(
         label: Center(
           child: Text(
-            'Cena usługi',
+            'Usługa',
             style: TextStyle(fontWeight: FontWeight.bold),
             textAlign: TextAlign.center,
           ),

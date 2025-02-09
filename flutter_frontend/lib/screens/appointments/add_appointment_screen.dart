@@ -200,19 +200,12 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
       initialDate: DateTime.now(),
       firstDate: DateTime.now(),
       lastDate: DateTime(2100),
-      locale: const Locale('pl', 'PL'), // Ustawienie języka na polski
     );
 
     if (pickedDate != null) {
       final TimeOfDay? pickedTime = await showTimePicker(
         context: context,
         initialTime: TimeOfDay.now(),
-        builder: (BuildContext context, Widget? child) {
-          return MediaQuery(
-            data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true), // Format 24-godzinny
-            child: child!,
-          );
-        },
       );
 
       if (pickedTime != null) {
@@ -310,10 +303,10 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                                 },
                                 selectedItem: _selectedVehicle,
                                 itemAsString: (Vehicle vehicle) => '${vehicle.make} ${vehicle.model} - ${vehicle.licensePlate}',
-                                dropdownDecoratorProps: DropDownDecoratorProps(
+                                dropdownDecoratorProps: const DropDownDecoratorProps(
                                   dropdownSearchDecoration: InputDecoration(
                                     labelText: 'Pojazd',
-                                    border: const OutlineInputBorder(),
+                                    border: OutlineInputBorder(),
                                   ),
                                 ),
                                 popupProps: PopupProps.menu(

@@ -39,7 +39,7 @@ class TemporaryCodeService {
       );
 
       if (response.statusCode == 201) {
-        final data = jsonDecode(response.body);
+      final data = json.decode(utf8.decode(response.bodyBytes));
         return {
           'success': true,
           'code': data['code'],

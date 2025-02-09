@@ -18,7 +18,7 @@ class AppointmentService {
     );
 
     if (response.statusCode == 200) {
-            final data = json.decode(utf8.decode(response.bodyBytes)) as List<dynamic>;
+      final data = json.decode(utf8.decode(response.bodyBytes)) as List<dynamic>;
       return data.map((json) => Appointment.fromJson(json)).toList();
     } else {
       throw Exception('Błąd podczas pobierania listy zleceń: ${response.statusCode}');
@@ -59,7 +59,7 @@ class AppointmentService {
     );
 
     if (response.statusCode == 201) {
-      final data = json.decode(response.body);
+      final data = json.decode(utf8.decode(response.bodyBytes));
       return data['id'];
     } else {
       throw Exception('Błąd podczas tworzenia zlecenia: ${response.statusCode}');
@@ -253,8 +253,7 @@ static Future<void> updateRepairItem(
     );
 
     if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      print(data);
+      final data = json.decode(utf8.decode(response.bodyBytes));
       return RepairItem.fromJson(data);
     } else {
       throw Exception(
@@ -341,10 +340,7 @@ static Future<void> createPart(
     );
 
     if (response.statusCode == 200) {
-      final data = json.decode(response.body) as List;
-      print('URL: $url');
-print('Response: ${response.body}');
-print('Status Code: ${response.statusCode}');
+      final data = json.decode(utf8.decode(response.bodyBytes)) as List;
 
       return data.map((json) => Part.fromJson(json)).toList();
     } else {

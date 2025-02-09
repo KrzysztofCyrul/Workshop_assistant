@@ -11,7 +11,7 @@ import '../employee/employee_details_screen.dart';
 import '../vehicles/vehicle_list_screen.dart';
 import '../settings/settings_screen.dart';
 import '../clients/add_client_screen.dart';
-import '../clients/edit_client_screen.dart ';
+import '../clients/edit_client_screen.dart';
 import '../appointments/appointment_calendar_screen.dart';
 import '../relationships/client_statistics_screen.dart';
 import '../relationships/send_email_screen.dart';
@@ -63,18 +63,17 @@ class HomeScreen extends StatelessWidget {
         centerTitle: true,
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () => _logout(context),
-          ),
-          IconButton(
             icon: const Icon(Icons.calendar_month),
             onPressed: () => _navigateToCalendar(context),
+          ),
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () => _logout(context),
           ),
         ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        // ignore: unnecessary_null_comparison
         child: workshopId == null ? _buildNoWorkshopView(context) : _buildWorkshopActions(context, workshopId, employeeId),
       ),
     );
@@ -88,6 +87,10 @@ class HomeScreen extends StatelessWidget {
         label: const Text('Lista Warsztatów'),
         style: ElevatedButton.styleFrom(
           padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 24.0),
+          backgroundColor: Colors.blueAccent,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12.0),
+          ),
         ),
       ),
     );
@@ -127,7 +130,7 @@ class HomeScreen extends StatelessWidget {
       },
       {
         'title': 'Statystyki Klientów',
-        'icon': Icons.person,
+        'icon': Icons.analytics,
         'action': () => _navigateToClientStatistics(context),
       },
       {
@@ -147,33 +150,44 @@ class HomeScreen extends StatelessWidget {
       itemCount: actions.length,
       itemBuilder: (ctx, index) {
         final action = actions[index];
-        return ElevatedButton(
-          onPressed: action['action'] as void Function()?,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.blueGrey,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12.0),
-            ),
+        return Card(
+          elevation: 4.0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12.0),
           ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                action['icon'] as IconData?,
-                size: 40.0,
-                color: Colors.white,
-              ),
-              const SizedBox(height: 8.0),
-              Text(
-                action['title'] as String,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14.0,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(12.0),
+            onTap: action['action'] as void Function()?,
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Colors.blueAccent, Colors.lightBlueAccent],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                 ),
+                borderRadius: BorderRadius.circular(12.0),
               ),
-            ],
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    action['icon'] as IconData?,
+                    size: 40.0,
+                    color: Colors.white,
+                  ),
+                  const SizedBox(height: 8.0),
+                  Text(
+                    action['title'] as String,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14.0,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         );
       },

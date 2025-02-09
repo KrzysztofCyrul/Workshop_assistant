@@ -179,3 +179,40 @@ class Command(BaseCommand):
             self.stdout.write(self.style.SUCCESS(f"Metadane modelu zapisano jako: {metadata_path}"))
 
         train_advanced_model()
+
+
+# Importowanie bibliotek
+# Django ORM do pobierania danych klientów.
+# Pandas, NumPy do analizy i przetwarzania danych.
+# Scikit-learn, Imbalanced-learn do uczenia maszynowego i balansowania danych.
+# Matplotlib, Seaborn do wizualizacji.
+# Joblib do zapisu modelu.
+# 3. Pobieranie i przygotowanie danych klientów
+# Funkcja prepare_dataset():
+
+# Pobiera klientów, którzy mają przypisany segment.
+# Liczy liczbę wizyt, wydane pieniądze, średni koszt usługi, wskaźnik anulowanych wizyt.
+# Wylicza recency (czas od ostatniej wizyty) i czas od pierwszej wizyty.
+# Pobiera dane o pojeździe klienta (rok, przebieg).
+# Tworzy tabelę Pandas i uzupełnia brakujące wartości medianą.
+# 4. Balansowanie danych z SMOTE
+# Funkcja balance_data() stosuje SMOTE (Synthetic Minority Over-sampling Technique) do zbalansowania klas klientów, zapobiegając problemowi niezrównoważonego zbioru danych.
+
+# 5. Trening modelu Random Forest
+# Funkcja train_advanced_model():
+
+# Przygotowuje zbiór danych (prepare_dataset()).
+# Balansuje dane (balance_data()).
+# Tworzy Pipeline:
+# Skalowanie cech (StandardScaler).
+# Klasyfikator RandomForestClassifier.
+# Grid Search CV – testuje różne parametry modelu.
+# Trenuje model na 5-krotnej walidacji krzyżowej (StratifiedKFold).
+# Wyświetla najlepsze parametry i dokładność.
+# Generuje raport klasyfikacji oraz macierz konfuzji.
+# Zapisuje model i jego metadane w plikach .joblib i .json.
+# 6. Kluczowe funkcjonalności
+# Optymalizacja hiperparametrów poprzez Grid Search.
+# Balansowanie danych klientów.
+# Zapisanie modelu do ponownego wykorzystania.
+# Wizualizacja wyników (macierz konfuzji).

@@ -26,7 +26,7 @@ class EmailService {
     debugPrint('[EmailService] Response: ${response.statusCode} - ${response.body}');
 
     if (response.statusCode == 200) {
-      final data = json.decode(response.body) as Map<String, dynamic>;
+      final data = json.decode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
       return EmailSettings.fromJson(data);
     } else {
       throw Exception(

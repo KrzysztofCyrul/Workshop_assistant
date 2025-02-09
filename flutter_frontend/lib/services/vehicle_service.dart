@@ -15,7 +15,7 @@ class VehicleService {
     );
 
     if (response.statusCode == 200) {
-      final data = json.decode(response.body) as List<dynamic>;
+      final data = json.decode(utf8.decode(response.bodyBytes)) as List<dynamic>;
       return data.map((json) => Vehicle.fromJson(json)).toList();
     } else {
       throw Exception('Błąd podczas pobierania listy pojazdów: ${response.statusCode} - ${response.body}');
@@ -33,7 +33,7 @@ class VehicleService {
     );
 
     if (response.statusCode == 200) {
-      final data = json.decode(response.body) as List<dynamic>;
+      final data = json.decode(utf8.decode(response.bodyBytes)) as List<dynamic>;
       return data.map((json) => Vehicle.fromJson(json)).toList();
     } else {
       throw Exception('Błąd podczas pobierania listy pojazdów klienta: ${response.statusCode} - ${response.body}');
@@ -51,7 +51,7 @@ class VehicleService {
     );
 
     if (response.statusCode == 200) {
-      final data = json.decode(response.body);
+      final data = json.decode(utf8.decode(response.bodyBytes));
       return Vehicle.fromJson(data);
     } else {
       throw Exception('Błąd podczas pobierania szczegółów pojazdu: ${response.statusCode} - ${response.body}');

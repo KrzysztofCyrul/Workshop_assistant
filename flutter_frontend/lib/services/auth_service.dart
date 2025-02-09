@@ -14,7 +14,7 @@ class AuthService {
     );
 
     if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
+      final data = json.decode(utf8.decode(response.bodyBytes));
       // Zapisz tokeny tutaj, jeśli to konieczne
       return data;
     } else {
@@ -31,7 +31,7 @@ class AuthService {
     );
 
     if (response.statusCode == 201) {
-      final data = jsonDecode(response.body);
+      final data = json.decode(utf8.decode(response.bodyBytes));
       // Zapisz tokeny tutaj, jeśli to konieczne
       return data;
     } else {

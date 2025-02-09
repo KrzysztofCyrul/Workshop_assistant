@@ -57,7 +57,7 @@ class _AppointmentCalendarScreenState extends State<AppointmentCalendarScreen> {
         _workshopId!,
       );
 
-      appointments = appointments.where((appointment) => appointment.status.toLowerCase() == 'scheduled').toList();
+      appointments = appointments.where((appointment) => appointment.status.toLowerCase() == 'pending').toList();
       appointments.sort((a, b) => a.scheduledTime.compareTo(b.scheduledTime));
 
       return appointments;
