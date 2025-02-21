@@ -26,6 +26,9 @@ import '../screens/settings/email_settings_screen.dart';
 import '../screens/relationships/send_email_screen.dart';
 import '../screens/appointments/canceled_appointments_screen.dart';
 import '../screens/employee/use_code_screen.dart';
+import '../screens/quotations/add_quotation_screen.dart';
+import '../screens/quotations/quotation_details_screen.dart';
+import '../screens/quotations/quotations_screen.dart';
 
 class AppRoutes {
   static final routes = <String, WidgetBuilder>{
@@ -117,5 +120,13 @@ AppointmentDetailsScreen.routeName: (context) {
     EmailSettingsScreen.routeName: (context) => EmailSettingsScreen(),
     SendEmailScreen.routeName: (context) => const SendEmailScreen(),
     UseCodeScreen.routeName: (context) => const UseCodeScreen(),
+    AddQuotationScreen.routeName: (context) => const AddQuotationScreen(),
+    QuotationDetailsScreen.routeName: (context) {
+      final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+      final workshopId = args['workshopId']!;
+      final quotationId = args['quotationId']!;
+      return QuotationDetailsScreen(workshopId: workshopId, quotationId: quotationId);
+    },
+    QuotationsScreen.routeName: (context) => const QuotationsScreen(),
   };
 }

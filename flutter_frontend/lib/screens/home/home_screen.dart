@@ -16,6 +16,8 @@ import '../appointments/appointment_calendar_screen.dart';
 import '../relationships/client_statistics_screen.dart';
 import '../relationships/send_email_screen.dart';
 import '../employee/use_code_screen.dart';
+import '../quotations/quotations_screen.dart';
+import '../quotations/add_quotation_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   static const routeName = '/home';
@@ -108,6 +110,16 @@ class HomeScreen extends StatelessWidget {
         'title': 'Zlecenia',
         'icon': Icons.assignment,
         'action': () => _navigateToAppointments(context),
+      },
+      {
+        'title': 'Wyceny',
+        'icon': Icons.description,
+        'action': () => _navigateToQuotations(context, workshopId),
+      },
+      {
+        'title': 'Dodaj Wycenę',
+        'icon': Icons.add,
+        'action': () => _navigateToAddQuotation(context, workshopId),
       },
       {
         'title': 'Dodaj Klienta',
@@ -283,6 +295,24 @@ class HomeScreen extends StatelessWidget {
       arguments: {
         'workshopId': workshopId,
         'clientId': clientId,
+      },
+    );
+  }
+
+  void _navigateToQuotations(BuildContext context, String workshopId) {
+    Navigator.of(context).pushNamed(
+      QuotationsScreen.routeName,
+      arguments: {
+        'workshopId': workshopId,
+      },
+    );
+  }
+
+  void _navigateToAddQuotation(BuildContext context, String workshopId) {
+    Navigator.of(context).pushNamed(
+      AddQuotationScreen.routeName,
+      arguments: {
+        'workshopId': workshopId,
       },
     );
   }

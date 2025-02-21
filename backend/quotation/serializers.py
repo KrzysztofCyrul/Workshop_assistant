@@ -32,7 +32,7 @@ class QuotationRepairItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = QuotationRepairItem
         fields = (
-            'id', 'quotation', 'description', 'estimated_duration', 'cost',
+            'id', 'quotation', 'description', 'cost',
             'created_at', 'updated_at'
         )
         read_only_fields = ('id', 'quotation', 'created_at', 'updated_at')

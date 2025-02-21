@@ -26,12 +26,13 @@ class ClientSearchWidget extends StatefulWidget {
 }
 
 class _ClientSearchWidgetState extends State<ClientSearchWidget> {
-  Client? _selectedClient;
-
   @override
-  void initState() {
-    super.initState();
-    _selectedClient = widget.selectedClient;
+  void didUpdateWidget(ClientSearchWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Aktualizuj stan, gdy widget.selectedClient się zmienia
+    if (widget.selectedClient != oldWidget.selectedClient) {
+      setState(() {});
+    }
   }
 
   Color _getSegmentColor(String? segment) {
@@ -67,7 +68,7 @@ class _ClientSearchWidgetState extends State<ClientSearchWidget> {
   Widget build(BuildContext context) {
     return DropdownSearch<Client>(
       asyncItems: (String filter) => _fetchClients(context, filter),
-      selectedItem: _selectedClient,
+      selectedItem: widget.selectedClient, // Używamy widget.selectedClient zamiast stanu wewnętrznego
       itemAsString: (Client client) =>
           '${client.firstName} ${client.lastName} - ${client.phone ?? 'Brak'}',
       dropdownDecoratorProps: DropDownDecoratorProps(
@@ -92,10 +93,7 @@ class _ClientSearchWidgetState extends State<ClientSearchWidget> {
                 );
 
                 if (newClient != null) {
-                  setState(() {
-                    _selectedClient = newClient;
-                  });
-                  widget.onChanged(newClient);
+                  widget.onChanged(newClient); // Powiadom rodzica o nowym kliencie
                 }
               },
             ),
@@ -115,10 +113,7 @@ class _ClientSearchWidgetState extends State<ClientSearchWidget> {
         ),
       ),
       onChanged: (client) {
-        setState(() {
-          _selectedClient = client;
-        });
-        widget.onChanged(client);
+        widget.onChanged(client); // Powiadom rodzica o zmianie klienta
       },
       validator: widget.validator,
     );
