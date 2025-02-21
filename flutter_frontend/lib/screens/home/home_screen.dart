@@ -74,6 +74,7 @@ class HomeScreen extends StatelessWidget {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
+        // ignore: unnecessary_null_comparison
         child: workshopId == null ? _buildNoWorkshopView(context) : _buildWorkshopActions(context, workshopId, employeeId),
       ),
     );
