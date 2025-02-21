@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'drf_yasg',
     'ai_module',
     'emailer',
+    'quotation',
 ]
 
 MIDDLEWARE = [
