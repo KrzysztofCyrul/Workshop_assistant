@@ -16,8 +16,8 @@ class Client(models.Model):
         on_delete=models.CASCADE,
         related_name='clients'
     )
-    first_name = models.CharField(max_length=50)
-    last_name = models.CharField(max_length=50)
+    first_name = models.CharField(max_length=50, blank=True, null=True)
+    last_name = models.CharField(max_length=50, blank=True, null=True)
     email = models.EmailField(null=True, blank=True)
     phone = models.CharField(max_length=20)
     address = models.CharField(max_length=255, null=True, blank=True)

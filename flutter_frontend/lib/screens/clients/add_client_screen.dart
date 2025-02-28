@@ -91,12 +91,12 @@ void _submitForm() async {
                   labelText: 'Imię',
                   border: OutlineInputBorder(),
                 ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Imię jest wymagane';
-                  }
-                  return null;
-                },
+                // validator: (value) {
+                //   if (value == null || value.isEmpty) {
+                //     return 'Imię jest wymagane';
+                //   }
+                //   return null;
+                // },
               ),
               const SizedBox(height: 16),
               TextFormField(
@@ -105,12 +105,12 @@ void _submitForm() async {
                   labelText: 'Nazwisko',
                   border: OutlineInputBorder(),
                 ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Nazwisko jest wymagane';
-                  }
-                  return null;
-                },
+                // validator: (value) {
+                //   if (value == null || value.isEmpty) {
+                //     return 'Nazwisko jest wymagane';
+                //   }
+                //   return null;
+                // },
               ),
               const SizedBox(height: 16),
               TextFormField(

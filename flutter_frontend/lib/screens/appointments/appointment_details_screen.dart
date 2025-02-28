@@ -47,17 +47,17 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
   final TextEditingController estimatedDurationController = TextEditingController();
 
   double get totalPartCost => parts.fold(0, (sum, item) => sum + (item.costPart * item.quantity));
-  double get totalServiceCost => repairItems.fold(0, (sum, item) => sum + item.cost);
+  double get totalServiceCost => parts.fold(0, (sum, item) => sum + item.costService);
 
   @override
   void initState() {
     super.initState();
     _appointmentFuture = _fetchAppointmentDetails();
-    partCostController.text = '0';
-    repairCostController.text = '0';
+    quantityController.text = '1';
+    partCostController.text = '';
+    repairCostController.text = '';
     serviceCostController.text = '0';
   }
-  
 
   Future<Appointment> _fetchAppointmentDetails() async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
@@ -85,7 +85,6 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
       throw Exception('Błąd podczas pobierania szczegółów zlecenia.');
     }
   }
-
 
   double _calculateDiscountedCost(double originalCost, String? segment) {
     double discountPercentage;
@@ -194,69 +193,70 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
     );
   }
 
-void _addPart() async {
-  // Sprawdzenie, czy wszystkie wymagane pola zostały wypełnione
-  if (partNameController.text.isEmpty || 
-      quantityController.text.isEmpty || 
-      partCostController.text.isEmpty) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Wypełnij wszystkie pola')),
+  void _addPart() async {
+    // Sprawdzenie, czy wszystkie wymagane pola zostały wypełnione
+    if (partNameController.text.isEmpty || quantityController.text.isEmpty || partCostController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Wypełnij wszystkie pola')),
+      );
+      return;
+    }
+
+    // Pobranie dostępu do tokenu i przygotowanie danych nowej części
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final accessToken = authProvider.accessToken!;
+
+    final newPart = Part(
+      id: UniqueKey().toString(),
+      appointmentId: widget.appointmentId,
+      name: partNameController.text.trim(),
+      description: '', // Pole 'description', można rozszerzyć formularz
+      quantity: int.parse(quantityController.text),
+      costPart: double.parse(partCostController.text),
+      costService: double.parse(serviceCostController.text),
     );
-    return;
+
+    try {
+      // Wywołanie API w celu zapisania nowej części
+      await AppointmentService.createPart(
+        accessToken,
+        widget.workshopId,
+        widget.appointmentId,
+        newPart.name,
+        newPart.description,
+        newPart.quantity,
+        newPart.costPart,
+        newPart.costService,
+      );
+
+      // Aktualizacja lokalnej listy części i podpowiedzi
+      setState(() {
+        parts.add(newPart); // Dodanie nowej części do listy wyświetlanej na ekranie
+        if (!partsSuggestions.contains(newPart.name)) {
+          partsSuggestions.add(newPart.name); // Dodanie nowej części do podpowiedzi
+        }
+      });
+
+      // Czyszczenie pól formularza po dodaniu
+      partNameController.clear();
+      quantityController.clear();
+      partCostController.clear();
+      serviceCostController.clear();
+      FocusScope.of(context).unfocus(); // Ukryj klawiaturę
+setState(() {}); // Wymuś odświeżenie widgetu
+
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Część została dodana')),
+      );
+    } catch (e) {
+      // Obsługa błędów podczas dodawania części
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Błąd podczas dodawania części')),
+      );
+      print('Error adding part: $e');
+    }
   }
-
-  // Pobranie dostępu do tokenu i przygotowanie danych nowej części
-  final authProvider = Provider.of<AuthProvider>(context, listen: false);
-  final accessToken = authProvider.accessToken!;
-
-  final newPart = Part(
-    id: UniqueKey().toString(),
-    appointmentId: widget.appointmentId,
-    name: partNameController.text.trim(),
-    description: '', // Pole 'description', można rozszerzyć formularz
-    quantity: int.parse(quantityController.text),
-    costPart: double.parse(partCostController.text),
-    costService: double.parse(serviceCostController.text),
-  );
-
-  try {
-    // Wywołanie API w celu zapisania nowej części
-    await AppointmentService.createPart(
-      accessToken,
-      widget.workshopId,
-      widget.appointmentId,
-      newPart.name,
-      newPart.description,
-      newPart.quantity,
-      newPart.costPart,
-      newPart.costService,
-    );
-
-    // Aktualizacja lokalnej listy części i podpowiedzi
-    setState(() {
-      parts.add(newPart); // Dodanie nowej części do listy wyświetlanej na ekranie
-      if (!partsSuggestions.contains(newPart.name)) {
-        partsSuggestions.add(newPart.name); // Dodanie nowej części do podpowiedzi
-      }
-    });
-
-    // Czyszczenie pól formularza po dodaniu
-    partNameController.clear();
-    quantityController.clear();
-    partCostController.clear();
-    serviceCostController.clear();
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Część została dodana')),
-    );
-  } catch (e) {
-    // Obsługa błędów podczas dodawania części
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Błąd podczas dodawania części')),
-    );
-    print('Error adding part: $e');
-  }
-}
 
   void _editPart(int index) async {
     final part = parts[index];
@@ -409,219 +409,219 @@ void _addPart() async {
     }
   }
 
-Future<void> _removePart(int index) async {
-  final part = parts[index];
-  final authProvider = Provider.of<AuthProvider>(context, listen: false);
-  final accessToken = authProvider.accessToken!;
+  Future<void> _removePart(int index) async {
+    final part = parts[index];
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final accessToken = authProvider.accessToken!;
 
-  try {
-    await AppointmentService.deletePart(
-      accessToken,
-      widget.workshopId,
-      widget.appointmentId,
-      part.id,
-    );
+    try {
+      await AppointmentService.deletePart(
+        accessToken,
+        widget.workshopId,
+        widget.appointmentId,
+        part.id,
+      );
 
-    setState(() {
-      parts.removeAt(index);
-    });
+      setState(() {
+        parts.removeAt(index);
+      });
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Część została usunięta')),
-    );
-  } catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Błąd podczas usuwania części')),
-    );
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Część została usunięta')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Błąd podczas usuwania części')),
+      );
+    }
   }
-}
 
   Widget _buildPartsTable() {
-  return DataTable(
-    columnSpacing: MediaQuery.of(context).size.width * 0.02,
-    headingRowColor: WidgetStateColor.resolveWith((states) => Colors.green.shade100),
-    dataRowColor: WidgetStateColor.resolveWith((states) {
-      return states.contains(WidgetState.selected) ? Colors.green.shade50 : Colors.grey.shade100;
-    }),
-    columns: const [
-      DataColumn(
-        label: Center(
-          child: Text(
-            'Część',
-            style: TextStyle(fontWeight: FontWeight.bold),
-            textAlign: TextAlign.center,
+    return DataTable(
+      columnSpacing: MediaQuery.of(context).size.width * 0.02,
+      headingRowColor: WidgetStateColor.resolveWith((states) => Colors.green.shade100),
+      dataRowColor: WidgetStateColor.resolveWith((states) {
+        return states.contains(WidgetState.selected) ? Colors.green.shade50 : Colors.grey.shade100;
+      }),
+      columns: const [
+        DataColumn(
+          label: Center(
+            child: Text(
+              'Część',
+              style: TextStyle(fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            ),
           ),
         ),
-      ),
-      DataColumn(
-        label: Center(
-          child: Text(
-            'Ilość',
-            style: TextStyle(fontWeight: FontWeight.bold),
-            textAlign: TextAlign.center,
+        DataColumn(
+          label: Center(
+            child: Text(
+              'Ilość',
+              style: TextStyle(fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            ),
           ),
         ),
-      ),
-      DataColumn(
-        label: Center(
-          child: Text(
-            'Części',
-            style: TextStyle(fontWeight: FontWeight.bold),
-            textAlign: TextAlign.center,
+        DataColumn(
+          label: Center(
+            child: Text(
+              'Części',
+              style: TextStyle(fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            ),
           ),
         ),
-      ),
-      DataColumn(
-        label: Center(
-          child: Text(
-            'Suma',
-            style: TextStyle(fontWeight: FontWeight.bold),
-            textAlign: TextAlign.center,
+        DataColumn(
+          label: Center(
+            child: Text(
+              'Suma',
+              style: TextStyle(fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            ),
           ),
         ),
-      ),
-      DataColumn(
-        label: Center(
-          child: Text(
-            'Usługa',
-            style: TextStyle(fontWeight: FontWeight.bold),
-            textAlign: TextAlign.center,
+        DataColumn(
+          label: Center(
+            child: Text(
+              'Usługa',
+              style: TextStyle(fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            ),
           ),
         ),
-      ),
-      DataColumn(
-        label: Center(
-          child: Text(
-            'Akcje',
-            style: TextStyle(fontWeight: FontWeight.bold),
-            textAlign: TextAlign.center,
+        DataColumn(
+          label: Center(
+            child: Text(
+              'Akcje',
+              style: TextStyle(fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            ),
           ),
         ),
-      ),
-    ],
-    rows: parts.asMap().entries.map((entry) {
-      final index = entry.key;
-      final part = entry.value;
+      ],
+      rows: parts.asMap().entries.map((entry) {
+        final index = entry.key;
+        final part = entry.value;
 
-      return DataRow(
-        cells: [
-          DataCell(
-            Center(
-              child: TextFormField(
-                initialValue: part.name,
-                decoration: const InputDecoration(
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.zero, // Usunięcie domyślnego paddingu
-                ),
-                textAlign: TextAlign.center, // Wyśrodkowanie tekstu
-                onFieldSubmitted: (newValue) {
-                  _editPartValue(index, 'name', newValue);
-                },
-              ),
-            ),
-          ),
-          DataCell(
-            Center(
-              child: TextFormField(
-                initialValue: part.quantity.toString(),
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.zero, // Usunięcie domyślnego paddingu
-                ),
-                textAlign: TextAlign.center, // Wyśrodkowanie tekstu
-                onFieldSubmitted: (newValue) {
-                  _editPartValue(index, 'quantity', int.tryParse(newValue) ?? part.quantity);
-                },
-              ),
-            ),
-          ),
-          DataCell(
-            Center(
-              child: TextFormField(
-                initialValue: part.costPart.toStringAsFixed(2),
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.zero, // Usunięcie domyślnego paddingu
-                ),
-                textAlign: TextAlign.center, // Wyśrodkowanie tekstu
-                onFieldSubmitted: (newValue) {
-                  _editPartValue(index, 'costPart', double.tryParse(newValue) ?? part.costPart);
-                },
-              ),
-            ),
-          ),
-          DataCell(
-            Center(
-              child: Text(
-                (part.costPart * part.quantity).toStringAsFixed(2),
-                textAlign: TextAlign.center, // Wyśrodkowanie tekstu
-              ),
-            ),
-          ),
-          DataCell(
-            Center(
-              child: TextFormField(
-                initialValue: part.costService.toStringAsFixed(2),
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.zero, // Usunięcie domyślnego paddingu
-                ),
-                textAlign: TextAlign.center, // Wyśrodkowanie tekstu
-                onFieldSubmitted: (newValue) {
-                  _editPartValue(index, 'costService', double.tryParse(newValue) ?? part.costService);
-                },
-              ),
-            ),
-          ),
-          DataCell(
-            Center(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.delete, color: Colors.red),
-                    onPressed: () => _confirmDeletePartItem(index),
+        return DataRow(
+          cells: [
+            DataCell(
+              Center(
+                child: TextFormField(
+                  initialValue: part.name,
+                  decoration: const InputDecoration(
+                    border: InputBorder.none,
+                    contentPadding: EdgeInsets.zero, // Usunięcie domyślnego paddingu
                   ),
-                ],
+                  textAlign: TextAlign.center, // Wyśrodkowanie tekstu
+                  onFieldSubmitted: (newValue) {
+                    _editPartValue(index, 'name', newValue);
+                  },
+                ),
               ),
             ),
-          ),
-        ],
-      );
-    }).toList(),
-  );
-}
+            DataCell(
+              Center(
+                child: TextFormField(
+                  initialValue: part.quantity.toString(),
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                    border: InputBorder.none,
+                    contentPadding: EdgeInsets.zero, // Usunięcie domyślnego paddingu
+                  ),
+                  textAlign: TextAlign.center, // Wyśrodkowanie tekstu
+                  onFieldSubmitted: (newValue) {
+                    _editPartValue(index, 'quantity', int.tryParse(newValue) ?? part.quantity);
+                  },
+                ),
+              ),
+            ),
+            DataCell(
+              Center(
+                child: TextFormField(
+                  initialValue: part.costPart.toStringAsFixed(2),
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                    border: InputBorder.none,
+                    contentPadding: EdgeInsets.zero, // Usunięcie domyślnego paddingu
+                  ),
+                  textAlign: TextAlign.center, // Wyśrodkowanie tekstu
+                  onFieldSubmitted: (newValue) {
+                    _editPartValue(index, 'costPart', double.tryParse(newValue) ?? part.costPart);
+                  },
+                ),
+              ),
+            ),
+            DataCell(
+              Center(
+                child: Text(
+                  (part.costPart * part.quantity).toStringAsFixed(2),
+                  textAlign: TextAlign.center, // Wyśrodkowanie tekstu
+                ),
+              ),
+            ),
+            DataCell(
+              Center(
+                child: TextFormField(
+                  initialValue: part.costService.toStringAsFixed(2),
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                    border: InputBorder.none,
+                    contentPadding: EdgeInsets.zero, // Usunięcie domyślnego paddingu
+                  ),
+                  textAlign: TextAlign.center, // Wyśrodkowanie tekstu
+                  onFieldSubmitted: (newValue) {
+                    _editPartValue(index, 'costService', double.tryParse(newValue) ?? part.costService);
+                  },
+                ),
+              ),
+            ),
+            DataCell(
+              Center(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.delete, color: Colors.red),
+                      onPressed: () => _confirmDeletePartItem(index),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        );
+      }).toList(),
+    );
+  }
 
-void _confirmDeletePartItem(int index) {
-  showDialog(
-    context: context,
-    builder: (context) {
-      return AlertDialog(
-        title: const Text('Potwierdzenie usunięcia'),
-        content: Text('Czy na pewno chcesz usunąć część "${parts[index].name}"?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Anuluj'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              await _removePart(index);
-              Navigator.of(context).pop();
-              setState(() {
-                _appointmentFuture = _fetchAppointmentDetails();
-              });
-            },
-            child: const Text('Usuń'),
-          ),
-        ],
-      );
-    },
-  );
-}
+  void _confirmDeletePartItem(int index) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Potwierdzenie usunięcia'),
+          content: Text('Czy na pewno chcesz usunąć część "${parts[index].name}"?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Anuluj'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                await _removePart(index);
+                Navigator.of(context).pop();
+                setState(() {
+                  _appointmentFuture = _fetchAppointmentDetails();
+                });
+              },
+              child: const Text('Usuń'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   void _addRepairItem() async {
     if (repairDescriptionController.text.isEmpty || repairCostController.text.isEmpty) {
@@ -722,153 +722,152 @@ void _confirmDeletePartItem(int index) {
   }
 
   Widget _buildRepairItemsTable() {
-  return DataTable(
-    columnSpacing: MediaQuery.of(context).size.width * 0.02, // Dostosowanie odstępów
-    headingRowColor: WidgetStateColor.resolveWith((states) => Colors.blue.shade100),
-    dataRowColor: WidgetStateColor.resolveWith((states) {
-      return states.contains(WidgetState.selected) ? Colors.blue.shade50 : Colors.grey.shade100;
-    }),
-    columns: const [
-      DataColumn(
-        label: Expanded(
-          child: Center(
-            child: Text(
-              'Opis',
-              style: TextStyle(fontWeight: FontWeight.bold),
-              textAlign: TextAlign.center,
-            ),
-          ),
-        ),
-      ),
-      DataColumn(
-        label: Expanded(
-          child: Center(
-            child: Text(
-              'Status',
-              style: TextStyle(fontWeight: FontWeight.bold),
-              textAlign: TextAlign.center,
-            ),
-          ),
-        ),
-      ),
-      DataColumn(
-        label: Expanded(
-          child: Center(
-            child: Text(
-              'Koszt',
-              style: TextStyle(fontWeight: FontWeight.bold),
-              textAlign: TextAlign.center,
-            ),
-          ),
-        ),
-      ),
-      DataColumn(
-        label: Expanded(
-          child: Center(
-            child: Text(
-              'Czas',
-              style: TextStyle(fontWeight: FontWeight.bold),
-              textAlign: TextAlign.center,
-            ),
-          ),
-        ),
-      ),
-      DataColumn(
-        label: Expanded(
-          child: Center(
-            child: Text(
-              'Akcje',
-              style: TextStyle(fontWeight: FontWeight.bold),
-              textAlign: TextAlign.center,
-            ),
-          ),
-        ),
-      ),
-    ],
-    rows: repairItems.asMap().entries.map((entry) {
-      final index = entry.key;
-      final item = entry.value;
-
-      return DataRow(
-        cells: [
-          DataCell(
-            TextFormField(
-              initialValue: item.description ?? 'Brak opisu',
-              decoration: const InputDecoration(border: InputBorder.none),
-              onFieldSubmitted: (newValue) {
-                _editRepairItemValue(index, 'description', newValue);
-              },
-            ),
-          ),
-          DataCell(
-            GestureDetector(
-              onTap: () => _showStatusChangeDialog(item),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    _getStatusIcon(item.status),
-                    color: _getStatusColor(item.status),
-                  ),
-                  const SizedBox(width: 8),
-                ],
+    return DataTable(
+      columnSpacing: MediaQuery.of(context).size.width * 0.02, // Dostosowanie odstępów
+      headingRowColor: WidgetStateColor.resolveWith((states) => Colors.blue.shade100),
+      dataRowColor: WidgetStateColor.resolveWith((states) {
+        return states.contains(WidgetState.selected) ? Colors.blue.shade50 : Colors.grey.shade100;
+      }),
+      columns: const [
+        DataColumn(
+          label: Expanded(
+            child: Center(
+              child: Text(
+                'Opis',
+                style: TextStyle(fontWeight: FontWeight.bold),
+                textAlign: TextAlign.center,
               ),
             ),
           ),
-          DataCell(
-            Center(
-              child: TextFormField(
-                initialValue: item.cost.toStringAsFixed(2),
+        ),
+        DataColumn(
+          label: Expanded(
+            child: Center(
+              child: Text(
+                'Status',
+                style: TextStyle(fontWeight: FontWeight.bold),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ),
+        ),
+        DataColumn(
+          label: Expanded(
+            child: Center(
+              child: Text(
+                'Koszt',
+                style: TextStyle(fontWeight: FontWeight.bold),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ),
+        ),
+        DataColumn(
+          label: Expanded(
+            child: Center(
+              child: Text(
+                'Czas',
+                style: TextStyle(fontWeight: FontWeight.bold),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ),
+        ),
+        DataColumn(
+          label: Expanded(
+            child: Center(
+              child: Text(
+                'Akcje',
+                style: TextStyle(fontWeight: FontWeight.bold),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ),
+        ),
+      ],
+      rows: repairItems.asMap().entries.map((entry) {
+        final index = entry.key;
+        final item = entry.value;
+
+        return DataRow(
+          cells: [
+            DataCell(
+              TextFormField(
+                initialValue: item.description ?? 'Brak opisu',
                 decoration: const InputDecoration(border: InputBorder.none),
-                keyboardType: TextInputType.number,
-                textAlign: TextAlign.center, // Wyśrodkowanie tekstu
                 onFieldSubmitted: (newValue) {
-                  _editRepairItemValue(index, 'cost', double.parse(newValue));
+                  _editRepairItemValue(index, 'description', newValue);
                 },
               ),
             ),
-          ),
-          DataCell(
-            Center(
-              child: Text(
-                item.estimatedDuration != null ? _formatDuration(item.estimatedDuration!) : 'Brak',
-                textAlign: TextAlign.center, // Wyśrodkowanie tekstu
+            DataCell(
+              GestureDetector(
+                onTap: () => _showStatusChangeDialog(item),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      _getStatusIcon(item.status),
+                      color: _getStatusColor(item.status),
+                    ),
+                    const SizedBox(width: 8),
+                  ],
+                ),
               ),
             ),
-          ),
-          DataCell(
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.delete, color: Colors.red),
-                  onPressed: () => _confirmDeleteRepairItem(index),
+            DataCell(
+              Center(
+                child: TextFormField(
+                  initialValue: item.cost.toStringAsFixed(2),
+                  decoration: const InputDecoration(border: InputBorder.none),
+                  keyboardType: TextInputType.number,
+                  textAlign: TextAlign.center, // Wyśrodkowanie tekstu
+                  onFieldSubmitted: (newValue) {
+                    _editRepairItemValue(index, 'cost', double.parse(newValue));
+                  },
                 ),
-              ],
+              ),
             ),
-          ),
-        ],
-      );
-    }).toList(),
-  );
-}
+            DataCell(
+              Center(
+                child: Text(
+                  item.estimatedDuration != null ? _formatDuration(item.estimatedDuration!) : 'Brak',
+                  textAlign: TextAlign.center, // Wyśrodkowanie tekstu
+                ),
+              ),
+            ),
+            DataCell(
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.delete, color: Colors.red),
+                    onPressed: () => _confirmDeleteRepairItem(index),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        );
+      }).toList(),
+    );
+  }
 
- Future<void> _loadPartsSuggestions() async {
-  if (!isSuggestionsLoaded) {
-    try {
-      // Wczytanie danych z pliku JSON
-      final String response = await rootBundle.loadString('assets/parts.json');
-      final List<dynamic> data = json.decode(response);
-      partsSuggestions = List<String>.from(data);
-      isSuggestionsLoaded = true; // Ustawienie flagi na true
-    } catch (e) {
-      print('Błąd podczas ładowania danych: $e');
+  Future<void> _loadPartsSuggestions() async {
+    if (!isSuggestionsLoaded) {
+      try {
+        // Wczytanie danych z pliku JSON
+        final String response = await rootBundle.loadString('assets/parts.json');
+        final List<dynamic> data = json.decode(response);
+        partsSuggestions = List<String>.from(data);
+        isSuggestionsLoaded = true; // Ustawienie flagi na true
+      } catch (e) {
+        print('Błąd podczas ładowania danych: $e');
+      }
     }
   }
-}
 
 Widget _buildAddPartForm() {
-  // Ładowanie danych przy pierwszym uruchomieniu
   if (!isSuggestionsLoaded) {
     _loadPartsSuggestions();
   }
@@ -883,17 +882,22 @@ Widget _buildAddPartForm() {
               return const Iterable<String>.empty();
             }
             return partsSuggestions.where((String part) {
-              return part
-                  .toLowerCase()
-                  .contains(textEditingValue.text.toLowerCase());
+              return part.toLowerCase().contains(textEditingValue.text.toLowerCase());
             });
           },
           onSelected: (String selection) {
-            partNameController.text = selection;
+            partNameController.text = selection; // Aktualizuj partNameController po wybraniu podpowiedzi
           },
           fieldViewBuilder: (context, textEditingController, focusNode, onFieldSubmitted) {
+            // Synchronizuj partNameController z textEditingController
+            partNameController.addListener(() {
+              if (partNameController.text != textEditingController.text) {
+                textEditingController.text = partNameController.text;
+              }
+            });
+
             return TextField(
-              controller: textEditingController,
+              controller: partNameController, // Używamy partNameController
               focusNode: focusNode,
               decoration: const InputDecoration(
                 labelText: 'Część',
@@ -901,7 +905,7 @@ Widget _buildAddPartForm() {
                 contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 12),
               ),
               onChanged: (value) {
-                partNameController.text = value; // Synchronizuj wartość z kontrolerem
+                partNameController.text = value; // Aktualizuj partNameController
               },
             );
           },
@@ -949,12 +953,13 @@ Widget _buildAddPartForm() {
       const SizedBox(width: 8),
       IconButton(
         icon: const Icon(Icons.add, color: Colors.green),
-        onPressed: _addPart, // Wywołanie funkcji dodania części
+        onPressed: _addPart,
         tooltip: 'Dodaj część',
       ),
     ],
   );
 }
+
   Widget _buildAddRepairItemForm() {
     return Row(
       children: [
@@ -1112,7 +1117,6 @@ Widget _buildAddPartForm() {
     );
   }
 
-
   void _removeRepairItem(int index) async {
     final item = repairItems[index];
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
@@ -1136,26 +1140,26 @@ Widget _buildAddPartForm() {
   }
 
   void _showRecommendations(BuildContext context, String recommendations) {
-  showDialog(
-    context: context,
-    builder: (context) {
-      return AlertDialog(
-        title: const Text('Rekomendacje'),
-        content: SingleChildScrollView(
-          child: Text(recommendations),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: const Text('Zamknij'),
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Rekomendacje'),
+          content: SingleChildScrollView(
+            child: Text(recommendations),
           ),
-        ],
-      );
-    },
-  );
-}
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Zamknij'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1163,36 +1167,36 @@ Widget _buildAddPartForm() {
     List<Widget> appBarActions = [];
 
 // Jeśli mamy dane o wizycie, dodaj ikonę historii jako pierwszą:
-  if (_currentAppointment != null) {
-    appBarActions.add(
-      IconButton(
-        icon: const Icon(Icons.history),
-        tooltip: 'Historia pojazdu',
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => VehicleServiceHistoryScreen(
-                workshopId: widget.workshopId,
-                vehicleId: _currentAppointment!.vehicle.id,
+    if (_currentAppointment != null) {
+      appBarActions.add(
+        IconButton(
+          icon: const Icon(Icons.history),
+          tooltip: 'Historia pojazdu',
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => VehicleServiceHistoryScreen(
+                  workshopId: widget.workshopId,
+                  vehicleId: _currentAppointment!.vehicle.id,
+                ),
               ),
-            ),
-          );
-        },
-      ),
-    );
+            );
+          },
+        ),
+      );
 
-    // Dodaj przycisk do wyświetlania rekomendacji
-    appBarActions.add(
-      IconButton(
-        icon: const Icon(Icons.recommend),
-        tooltip: 'Pokaż rekomendacje',
-        onPressed: () {
-          _showRecommendations(context, _currentAppointment!.recommendations);
-        },
-      ),
-    );
-  }
+      // Dodaj przycisk do wyświetlania rekomendacji
+      appBarActions.add(
+        IconButton(
+          icon: const Icon(Icons.recommend),
+          tooltip: 'Pokaż rekomendacje',
+          onPressed: () {
+            _showRecommendations(context, _currentAppointment!.recommendations);
+          },
+        ),
+      );
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -1391,29 +1395,29 @@ Widget _buildAddPartForm() {
                   ),
                   // Podsumowanie kosztów
                   // Podsumowanie kosztów
-const Divider(),
-Padding(
-  padding: const EdgeInsets.only(top: 16.0),
-  child: Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text('Suma cen części: ${totalPartCost.toStringAsFixed(2)} PLN'),
-      Text('Suma cen usług: ${totalServiceCost.toStringAsFixed(2)} PLN'),
-      Text(
-        'Łączna cena: ${(totalPartCost + totalServiceCost).toStringAsFixed(2)} PLN',
-        style: const TextStyle(fontWeight: FontWeight.bold),
-      ),
-      const SizedBox(height: 8), // Dodatkowy odstęp
-      Text(
-        'Cena po rabacie: ${_calculateDiscountedCost(totalPartCost + totalServiceCost, _currentAppointment?.client.segment).toStringAsFixed(2)} PLN',
-        style: const TextStyle(
-          fontWeight: FontWeight.bold,
-          color: Colors.green, // Możesz zmienić kolor na inny, aby wyróżnić cenę po rabacie
-        ),
-      ),
-    ],
-  ),
-),
+                  const Divider(),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Suma cen części: ${totalPartCost.toStringAsFixed(2)} PLN'),
+                        Text('Suma cen usług: ${totalServiceCost.toStringAsFixed(2)} PLN'),
+                        Text(
+                          'Łączna cena: ${(totalPartCost + totalServiceCost).toStringAsFixed(2)} PLN',
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 8), // Dodatkowy odstęp
+                        Text(
+                          'Cena po rabacie: ${_calculateDiscountedCost(totalPartCost + totalServiceCost, _currentAppointment?.client.segment).toStringAsFixed(2)} PLN',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.green, // Możesz zmienić kolor na inny, aby wyróżnić cenę po rabacie
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             );
