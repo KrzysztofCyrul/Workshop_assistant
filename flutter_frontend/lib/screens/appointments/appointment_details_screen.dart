@@ -1305,9 +1305,11 @@ Future<void> generatePdf(Appointment appointment, List<Part> parts, List<RepairI
     ),
   );
 
-  // Zapisz PDF do pliku
+  // Zapisz PDF do pliku z automatycznie wygenerowaną nazwą
+  final fileName = '${appointment.vehicle.make}_${appointment.vehicle.model}_${DateFormat('ddMMyyyy').format(appointment.scheduledTime.toLocal())}.pdf';
   await Printing.layoutPdf(
     onLayout: (PdfPageFormat format) async => pdf.save(),
+    name: fileName,
   );
 }
 
