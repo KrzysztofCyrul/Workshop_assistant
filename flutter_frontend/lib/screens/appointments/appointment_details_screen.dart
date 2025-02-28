@@ -10,6 +10,9 @@ import 'add_repair_item_dialog.dart';
 import 'package:intl/intl.dart';
 import 'dart:convert';
 import 'package:flutter/services.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
 
 class AppointmentDetailsScreen extends StatefulWidget {
   static const routeName = '/appointment-details';
@@ -1164,6 +1167,150 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
     );
   }
 
+
+Future<void> generatePdf(Appointment appointment, List<Part> parts, List<RepairItem> repairItems) async {
+  final pdf = pw.Document();
+
+  // Załaduj czcionkę z assets
+  final font = await rootBundle.load("assets/fonts/Roboto-Regular.ttf");
+  final ttf = pw.Font.ttf(font);
+
+  final boldFont = await rootBundle.load("assets/fonts/Roboto-Bold.ttf");
+  final boldTtf = pw.Font.ttf(boldFont);
+
+  pdf.addPage(
+    pw.Page(
+      pageFormat: PdfPageFormat.a4,
+      build: (pw.Context context) {
+        return pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          children: [
+            pw.Text(
+              'ZLECENIE NAPRAWY DATA ${DateFormat('dd.MM.yyyy').format(appointment.scheduledTime.toLocal())}',
+              style: pw.TextStyle(font: boldTtf, fontSize: 20),
+            ),
+            pw.SizedBox(height: 20),
+            pw.Table(
+              border: pw.TableBorder.all(),
+              children: [
+                pw.TableRow(
+                  children: [
+                    pw.Padding(
+                      padding: const pw.EdgeInsets.all(8.0),
+                      child: pw.Text('Marka:', style: pw.TextStyle(font: ttf)),
+                    ),
+                    pw.Padding(
+                      padding: const pw.EdgeInsets.all(8.0),
+                      child: pw.Text(appointment.vehicle.make, style: pw.TextStyle(font: ttf)),
+                    ),
+                  ],
+                ),
+                pw.TableRow(
+                  children: [
+                    pw.Padding(
+                      padding: const pw.EdgeInsets.all(8.0),
+                      child: pw.Text('Model:', style: pw.TextStyle(font: ttf)),
+                    ),
+                    pw.Padding(
+                      padding: const pw.EdgeInsets.all(8.0),
+                      child: pw.Text(appointment.vehicle.model, style: pw.TextStyle(font: ttf)),
+                    ),
+                  ],
+                ),
+                pw.TableRow(
+                  children: [
+                    pw.Padding(
+                      padding: const pw.EdgeInsets.all(8.0),
+                      child: pw.Text('Rejestracja:', style: pw.TextStyle(font: ttf)),
+                    ),
+                    pw.Padding(
+                      padding: const pw.EdgeInsets.all(8.0),
+                      child: pw.Text(appointment.vehicle.licensePlate, style: pw.TextStyle(font: ttf)),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            pw.SizedBox(height: 20),
+            pw.Table(
+              border: pw.TableBorder.all(),
+              columnWidths: {
+                0: const pw.FlexColumnWidth(2),
+                1: const pw.FlexColumnWidth(1),
+                2: const pw.FlexColumnWidth(1),
+                3: const pw.FlexColumnWidth(1),
+                4: const pw.FlexColumnWidth(1),
+              },
+              children: [
+                pw.TableRow(
+                  children: [
+                    pw.Padding(
+                      padding: const pw.EdgeInsets.all(8.0),
+                      child: pw.Text('DO ZROBIENIA', style: pw.TextStyle(font: boldTtf)),
+                    ),
+                    pw.Padding(
+                      padding: const pw.EdgeInsets.all(8.0),
+                      child: pw.Text('ILOŚĆ', style: pw.TextStyle(font: boldTtf)),
+                    ),
+                    pw.Padding(
+                      padding: const pw.EdgeInsets.all(8.0),
+                      child: pw.Text('CENA CZĘŚCI', style: pw.TextStyle(font: boldTtf)),
+                    ),
+                    pw.Padding(
+                      padding: const pw.EdgeInsets.all(8.0),
+                      child: pw.Text('RAZEM (PLN)', style: pw.TextStyle(font: boldTtf)),
+                    ),
+                    pw.Padding(
+                      padding: const pw.EdgeInsets.all(8.0),
+                      child: pw.Text('USŁUGA (PLN)', style: pw.TextStyle(font: boldTtf)),
+                    ),
+                  ],
+                ),
+                for (var part in parts)
+                  pw.TableRow(
+                    children: [
+                      pw.Padding(
+                        padding: const pw.EdgeInsets.all(8.0),
+                        child: pw.Text(part.name, style: pw.TextStyle(font: ttf)),
+                      ),
+                      pw.Padding(
+                        padding: const pw.EdgeInsets.all(8.0),
+                        child: pw.Text(part.quantity.toString(), style: pw.TextStyle(font: ttf)),
+                      ),
+                      pw.Padding(
+                        padding: const pw.EdgeInsets.all(8.0),
+                        child: pw.Text(part.costPart.toStringAsFixed(2), style: pw.TextStyle(font: ttf)),
+                      ),
+                      pw.Padding(
+                        padding: const pw.EdgeInsets.all(8.0),
+                        child: pw.Text((part.costPart * part.quantity).toStringAsFixed(2), style: pw.TextStyle(font: ttf)),
+                      ),
+                      pw.Padding(
+                        padding: const pw.EdgeInsets.all(8.0),
+                        child: pw.Text(part.costService.toStringAsFixed(2), style: pw.TextStyle(font: ttf)),
+                      ),
+                    ],
+                  ),
+              ],
+            ),
+            pw.SizedBox(height: 20),
+            pw.Text('IN-CARS Beata Inglot', style: pw.TextStyle(font: ttf, fontSize: 14)),
+            pw.Text('Malawa 827', style: pw.TextStyle(font: ttf, fontSize: 14)),
+            pw.Text('36–007 Krasne', style: pw.TextStyle(font: ttf, fontSize: 14)),
+            pw.Text('NIP 8131190318', style: pw.TextStyle(font: ttf, fontSize: 14)),
+            pw.Text('servisincars@gmail.com', style: pw.TextStyle(font: ttf, fontSize: 14)),
+          ],
+        );
+      },
+    ),
+  );
+
+  // Zapisz PDF do pliku
+  await Printing.layoutPdf(
+    onLayout: (PdfPageFormat format) async => pdf.save(),
+  );
+}
+
   @override
   Widget build(BuildContext context) {
     // Wyliczamy dynamicznie akcje w AppBar w zależności od tego, czy mamy załadowane dane.
@@ -1196,6 +1343,16 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
           tooltip: 'Pokaż rekomendacje',
           onPressed: () {
             _showRecommendations(context, _currentAppointment!.recommendations);
+          },
+        ),
+      );
+
+      appBarActions.add(
+        IconButton(
+          icon: const Icon(Icons.print),
+          tooltip: 'Drukuj',
+          onPressed: () {
+            generatePdf(_currentAppointment!, parts, repairItems);
           },
         ),
       );

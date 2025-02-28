@@ -112,14 +112,14 @@ class HomeScreen extends StatelessWidget {
         'action': () => _navigateToAppointments(context),
       },
       {
-        'title': 'Wyceny',
-        'icon': Icons.description,
-        'action': () => _navigateToQuotations(context, workshopId),
-      },
-      {
         'title': 'Dodaj Wycenę',
         'icon': Icons.add,
         'action': () => _navigateToAddQuotation(context, workshopId),
+      },
+      {
+        'title': 'Wyceny',
+        'icon': Icons.description,
+        'action': () => _navigateToQuotations(context, workshopId),
       },
       {
         'title': 'Dodaj Klienta',
