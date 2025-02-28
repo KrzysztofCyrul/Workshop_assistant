@@ -54,9 +54,9 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
     super.initState();
     _appointmentFuture = _fetchAppointmentDetails();
     quantityController.text = '1';
-    partCostController.text = '';
-    repairCostController.text = '';
-    serviceCostController.text = '0';
+    partCostController.text;
+    repairCostController.text;
+    serviceCostController.text;
   }
 
   Future<Appointment> _fetchAppointmentDetails() async {
@@ -195,12 +195,16 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
 
   void _addPart() async {
     // Sprawdzenie, czy wszystkie wymagane pola zostały wypełnione
-    if (partNameController.text.isEmpty || quantityController.text.isEmpty || partCostController.text.isEmpty) {
+    if (partNameController.text.isEmpty || quantityController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Wypełnij wszystkie pola')),
       );
       return;
     }
+
+    // Ustawienie domyślnej wartości 0, jeśli pola kosztu części lub usługi są puste
+    final costPart = partCostController.text.isEmpty ? 0.0 : double.parse(partCostController.text);
+    final costService = serviceCostController.text.isEmpty ? 0.0 : double.parse(serviceCostController.text);
 
     // Pobranie dostępu do tokenu i przygotowanie danych nowej części
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
@@ -212,8 +216,8 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
       name: partNameController.text.trim(),
       description: '', // Pole 'description', można rozszerzyć formularz
       quantity: int.parse(quantityController.text),
-      costPart: double.parse(partCostController.text),
-      costService: double.parse(serviceCostController.text),
+      costPart: costPart,
+      costService: costService,
     );
 
     try {
@@ -243,8 +247,7 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
       partCostController.clear();
       serviceCostController.clear();
       FocusScope.of(context).unfocus(); // Ukryj klawiaturę
-setState(() {}); // Wymuś odświeżenie widgetu
-
+      setState(() {}); // Wymuś odświeżenie widgetu
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Część została dodana')),
@@ -513,7 +516,7 @@ setState(() {}); // Wymuś odświeżenie widgetu
                     border: InputBorder.none,
                     contentPadding: EdgeInsets.zero, // Usunięcie domyślnego paddingu
                   ),
-                  textAlign: TextAlign.center, // Wyśrodkowanie tekstu
+                  textAlign: TextAlign.left, // Wyśrodkowanie tekstu
                   onFieldSubmitted: (newValue) {
                     _editPartValue(index, 'name', newValue);
                   },
@@ -545,7 +548,7 @@ setState(() {}); // Wymuś odświeżenie widgetu
                     border: InputBorder.none,
                     contentPadding: EdgeInsets.zero, // Usunięcie domyślnego paddingu
                   ),
-                  textAlign: TextAlign.center, // Wyśrodkowanie tekstu
+                  textAlign: TextAlign.left, // Wyśrodkowanie tekstu
                   onFieldSubmitted: (newValue) {
                     _editPartValue(index, 'costPart', double.tryParse(newValue) ?? part.costPart);
                   },
@@ -556,7 +559,7 @@ setState(() {}); // Wymuś odświeżenie widgetu
               Center(
                 child: Text(
                   (part.costPart * part.quantity).toStringAsFixed(2),
-                  textAlign: TextAlign.center, // Wyśrodkowanie tekstu
+                  textAlign: TextAlign.left,
                 ),
               ),
             ),
@@ -567,9 +570,9 @@ setState(() {}); // Wymuś odświeżenie widgetu
                   keyboardType: TextInputType.number,
                   decoration: const InputDecoration(
                     border: InputBorder.none,
-                    contentPadding: EdgeInsets.zero, // Usunięcie domyślnego paddingu
+                    contentPadding: EdgeInsets.zero,
                   ),
-                  textAlign: TextAlign.center, // Wyśrodkowanie tekstu
+                  textAlign: TextAlign.left,
                   onFieldSubmitted: (newValue) {
                     _editPartValue(index, 'costService', double.tryParse(newValue) ?? part.costService);
                   },
@@ -867,98 +870,98 @@ setState(() {}); // Wymuś odświeżenie widgetu
     }
   }
 
-Widget _buildAddPartForm() {
-  if (!isSuggestionsLoaded) {
-    _loadPartsSuggestions();
-  }
+  Widget _buildAddPartForm() {
+    if (!isSuggestionsLoaded) {
+      _loadPartsSuggestions();
+    }
 
-  return Row(
-    children: [
-      Expanded(
-        flex: 3,
-        child: Autocomplete<String>(
-          optionsBuilder: (TextEditingValue textEditingValue) {
-            if (textEditingValue.text.isEmpty) {
-              return const Iterable<String>.empty();
-            }
-            return partsSuggestions.where((String part) {
-              return part.toLowerCase().contains(textEditingValue.text.toLowerCase());
-            });
-          },
-          onSelected: (String selection) {
-            partNameController.text = selection; // Aktualizuj partNameController po wybraniu podpowiedzi
-          },
-          fieldViewBuilder: (context, textEditingController, focusNode, onFieldSubmitted) {
-            // Synchronizuj partNameController z textEditingController
-            partNameController.addListener(() {
-              if (partNameController.text != textEditingController.text) {
-                textEditingController.text = partNameController.text;
+    return Row(
+      children: [
+        Expanded(
+          flex: 3,
+          child: Autocomplete<String>(
+            optionsBuilder: (TextEditingValue textEditingValue) {
+              if (textEditingValue.text.isEmpty) {
+                return const Iterable<String>.empty();
               }
-            });
+              return partsSuggestions.where((String part) {
+                return part.toLowerCase().contains(textEditingValue.text.toLowerCase());
+              });
+            },
+            onSelected: (String selection) {
+              partNameController.text = selection; // Aktualizuj partNameController po wybraniu podpowiedzi
+            },
+            fieldViewBuilder: (context, textEditingController, focusNode, onFieldSubmitted) {
+              // Synchronizuj partNameController z textEditingController
+              partNameController.addListener(() {
+                if (partNameController.text != textEditingController.text) {
+                  textEditingController.text = partNameController.text;
+                }
+              });
 
-            return TextField(
-              controller: partNameController, // Używamy partNameController
-              focusNode: focusNode,
-              decoration: const InputDecoration(
-                labelText: 'Część',
-                border: OutlineInputBorder(),
-                contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 12),
-              ),
-              onChanged: (value) {
-                partNameController.text = value; // Aktualizuj partNameController
-              },
-            );
-          },
-        ),
-      ),
-      const SizedBox(width: 8),
-      Expanded(
-        flex: 2,
-        child: TextField(
-          controller: quantityController,
-          keyboardType: TextInputType.number,
-          decoration: const InputDecoration(
-            labelText: 'Ilość',
-            border: OutlineInputBorder(),
-            contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+              return TextField(
+                controller: partNameController, // Używamy partNameController
+                focusNode: focusNode,
+                decoration: const InputDecoration(
+                  labelText: 'Część',
+                  border: OutlineInputBorder(),
+                  contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+                ),
+                onChanged: (value) {
+                  partNameController.text = value; // Aktualizuj partNameController
+                },
+              );
+            },
           ),
         ),
-      ),
-      const SizedBox(width: 8),
-      Expanded(
-        flex: 2,
-        child: TextField(
-          controller: partCostController,
-          keyboardType: TextInputType.number,
-          decoration: const InputDecoration(
-            labelText: 'Cena części',
-            border: OutlineInputBorder(),
-            contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+        const SizedBox(width: 8),
+        Expanded(
+          flex: 2,
+          child: TextField(
+            controller: quantityController,
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(
+              labelText: 'Ilość',
+              border: OutlineInputBorder(),
+              contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+            ),
           ),
         ),
-      ),
-      const SizedBox(width: 8),
-      Expanded(
-        flex: 2,
-        child: TextField(
-          controller: serviceCostController,
-          keyboardType: TextInputType.number,
-          decoration: const InputDecoration(
-            labelText: 'Cena usługi',
-            border: OutlineInputBorder(),
-            contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+        const SizedBox(width: 8),
+        Expanded(
+          flex: 2,
+          child: TextField(
+            controller: partCostController,
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(
+              labelText: 'Cena części',
+              border: OutlineInputBorder(),
+              contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+            ),
           ),
         ),
-      ),
-      const SizedBox(width: 8),
-      IconButton(
-        icon: const Icon(Icons.add, color: Colors.green),
-        onPressed: _addPart,
-        tooltip: 'Dodaj część',
-      ),
-    ],
-  );
-}
+        const SizedBox(width: 8),
+        Expanded(
+          flex: 2,
+          child: TextField(
+            controller: serviceCostController,
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(
+              labelText: 'Cena usługi',
+              border: OutlineInputBorder(),
+              contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        IconButton(
+          icon: const Icon(Icons.add, color: Colors.green),
+          onPressed: _addPart,
+          tooltip: 'Dodaj część',
+        ),
+      ],
+    );
+  }
 
   Widget _buildAddRepairItemForm() {
     return Row(
