@@ -11,6 +11,10 @@ class Workshop(models.Model):
         related_name='workshops'
     )
     address = models.CharField(max_length=255)
+    post_code = models.CharField(max_length=10)
+    nip_number = models.CharField(max_length=13, blank=True, null=True)
+    email = models.EmailField(blank=True, null=True)
+    phone = models.CharField(max_length=20, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     

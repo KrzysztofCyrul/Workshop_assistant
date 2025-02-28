@@ -52,6 +52,8 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
   double get totalPartCost => parts.fold(0, (sum, item) => sum + (item.costPart * item.quantity));
   double get totalServiceCost => parts.fold(0, (sum, item) => sum + item.costService);
 
+  double get totalRepairItemsCost => repairItems.fold(0, (sum, item) => sum + item.cost);
+
   @override
   void initState() {
     super.initState();
@@ -1298,7 +1300,7 @@ Future<void> generatePdf(Appointment appointment, List<Part> parts, List<RepairI
             pw.Text('Malawa 827', style: pw.TextStyle(font: ttf, fontSize: 14)),
             pw.Text('36–007 Krasne', style: pw.TextStyle(font: ttf, fontSize: 14)),
             pw.Text('NIP 8131190318', style: pw.TextStyle(font: ttf, fontSize: 14)),
-            pw.Text('servisincars@gmail.com', style: pw.TextStyle(font: ttf, fontSize: 14)),
+            pw.Text('serwisincars@gmail.com', style: pw.TextStyle(font: ttf, fontSize: 14)),
           ],
         );
       },
@@ -1564,17 +1566,17 @@ Future<void> generatePdf(Appointment appointment, List<Part> parts, List<RepairI
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text('Suma cen części: ${totalPartCost.toStringAsFixed(2)} PLN'),
-                        Text('Suma cen usług: ${totalServiceCost.toStringAsFixed(2)} PLN'),
+                        Text('Suma cen usług: ${(totalServiceCost+totalRepairItemsCost).toStringAsFixed(2)} PLN'),
                         Text(
-                          'Łączna cena: ${(totalPartCost + totalServiceCost).toStringAsFixed(2)} PLN',
+                          'Łączna cena: ${(totalPartCost + totalServiceCost+totalRepairItemsCost).toStringAsFixed(2)} PLN',
                           style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
-                        const SizedBox(height: 8), // Dodatkowy odstęp
+                        const SizedBox(height: 8),
                         Text(
-                          'Cena po rabacie: ${_calculateDiscountedCost(totalPartCost + totalServiceCost, _currentAppointment?.client.segment).toStringAsFixed(2)} PLN',
+                          'Cena po rabacie: ${_calculateDiscountedCost(totalPartCost + totalServiceCost+totalRepairItemsCost, _currentAppointment?.client.segment).toStringAsFixed(2)} PLN',
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
-                            color: Colors.green, // Możesz zmienić kolor na inny, aby wyróżnić cenę po rabacie
+                            color: Colors.green,
                           ),
                         ),
                       ],
