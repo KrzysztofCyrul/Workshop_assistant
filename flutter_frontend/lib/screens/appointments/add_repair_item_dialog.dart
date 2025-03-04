@@ -8,10 +8,10 @@ class AddMultipleRepairItemsDialog extends StatefulWidget {
   final String appointmentId;
 
   const AddMultipleRepairItemsDialog({
-    Key? key,
+    super.key,
     required this.workshopId,
     required this.appointmentId,
-  }) : super(key: key);
+  });
 
   @override
   _AddMultipleRepairItemsDialogState createState() =>

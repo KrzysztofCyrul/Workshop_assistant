@@ -57,7 +57,7 @@ class ClientProvider with ChangeNotifier {
       return newClient;
     } catch (e) {
       _errorMessage = 'Błąd podczas dodawania klienta: $e';
-      throw e;
+      rethrow;
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -76,7 +76,7 @@ Future<void> deleteClient(String accessToken, String workshopId, String clientId
   } catch (e) {
     _errorMessage = 'Błąd podczas usuwania klienta: $e';
     notifyListeners();
-    throw e;
+    rethrow;
   } finally {
     _isLoading = false;
     notifyListeners();
@@ -129,7 +129,7 @@ Future<void> updateClient(
   } catch (e) {
     _errorMessage = 'Błąd podczas aktualizacji klienta: $e';
     notifyListeners();
-    throw e;
+    rethrow;
   } finally {
     _isLoading = false;
     notifyListeners();

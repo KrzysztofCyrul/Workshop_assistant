@@ -10,10 +10,10 @@ class EmployeeDetailsScreen extends StatelessWidget {
   final String employeeId;
 
   const EmployeeDetailsScreen({
-    Key? key,
+    super.key,
     required this.workshopId,
     required this.employeeId,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

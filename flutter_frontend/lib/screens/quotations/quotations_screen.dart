@@ -178,8 +178,8 @@ class _QuotationsScreenState extends State<QuotationsScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _navigateToAddQuotation,
-        child: const Icon(Icons.add),
         tooltip: 'Dodaj wycenę',
+        child: const Icon(Icons.add),
       ),
     );
   }

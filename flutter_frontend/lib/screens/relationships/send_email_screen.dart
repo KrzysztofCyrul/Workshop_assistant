@@ -12,7 +12,7 @@ import '../../widgets/client_search_widget.dart';
 class SendEmailScreen extends StatefulWidget {
   static const routeName = '/send-email';
 
-  const SendEmailScreen({Key? key}) : super(key: key);
+  const SendEmailScreen({super.key});
 
   @override
   _SendEmailScreenState createState() => _SendEmailScreenState();

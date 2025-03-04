@@ -10,11 +10,11 @@ class ChangeStatusWidget extends StatelessWidget {
   final VoidCallback onStatusChanged;
 
   const ChangeStatusWidget({
-    Key? key,
+    super.key,
     required this.appointment,
     required this.workshopId,
     required this.onStatusChanged,
-  }) : super(key: key);
+  });
 
   Future<void> _updateAppointmentStatus(BuildContext context, String newStatus) async {
     try {

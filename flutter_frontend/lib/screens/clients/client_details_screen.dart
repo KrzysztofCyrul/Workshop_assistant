@@ -13,7 +13,7 @@ class ClientDetailsScreen extends StatefulWidget {
 
   final Client client;
 
-  const ClientDetailsScreen({Key? key, required this.client}) : super(key: key);
+  const ClientDetailsScreen({super.key, required this.client});
 
   @override
   _ClientDetailsScreenState createState() => _ClientDetailsScreenState();

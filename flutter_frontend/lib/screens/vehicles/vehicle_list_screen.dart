@@ -9,7 +9,7 @@ class VehicleListScreen extends StatefulWidget {
 
   final String workshopId;
 
-  const VehicleListScreen({Key? key, required this.workshopId}) : super(key: key);
+  const VehicleListScreen({super.key, required this.workshopId});
 
   @override
   _VehicleListScreenState createState() => _VehicleListScreenState();

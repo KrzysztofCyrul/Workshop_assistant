@@ -12,7 +12,7 @@ class VehicleDetailsScreen extends StatefulWidget {
   final String workshopId;
   final String vehicleId;
 
-  const VehicleDetailsScreen({Key? key, required this.workshopId, required this.vehicleId}) : super(key: key);
+  const VehicleDetailsScreen({super.key, required this.workshopId, required this.vehicleId});
 
   @override
   _VehicleDetailsScreenState createState() => _VehicleDetailsScreenState();
@@ -150,9 +150,9 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen> {
                 children: [
                   // Tabela z danymi pojazdu
                   Table(
-                    columnWidths: {
-                      0: IntrinsicColumnWidth(),
-                      1: FlexColumnWidth(),
+                    columnWidths: const {
+                      0: const IntrinsicColumnWidth(),
+                      1: const FlexColumnWidth(),
                     },
                     defaultVerticalAlignment: TableCellVerticalAlignment.middle,
                     children: [

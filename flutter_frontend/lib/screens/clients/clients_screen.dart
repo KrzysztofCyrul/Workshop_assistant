@@ -10,7 +10,7 @@ import 'add_client_screen.dart';
 class ClientsScreen extends StatefulWidget {
   static const routeName = '/clients';
 
-  const ClientsScreen({Key? key}) : super(key: key);
+  const ClientsScreen({super.key});
 
   @override
   _ClientsScreenState createState() => _ClientsScreenState();

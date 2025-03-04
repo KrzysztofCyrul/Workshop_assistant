@@ -38,6 +38,10 @@ static Future<Map<String, dynamic>> createWorkshop({
     required String accessToken,
     required String name,
     required String address,
+    required String postCode,
+    required String nipNumber,
+    required String email,
+    required String phoneNumber,
   }) async {
     final url = Uri.parse('$baseUrl/workshops/');
     final response = await http.post(
@@ -49,6 +53,10 @@ static Future<Map<String, dynamic>> createWorkshop({
       body: jsonEncode({
         'name': name,
         'address': address,
+        'post_code': postCode,
+        'nip_number': nipNumber,
+        'email': email,
+        'phone_number': phoneNumber,
       }),
     );
 

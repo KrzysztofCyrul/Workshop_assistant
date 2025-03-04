@@ -3,7 +3,7 @@ import '../../utils/colors.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 
 class SegmentColorsScreen extends StatefulWidget {
-  const SegmentColorsScreen({Key? key}) : super(key: key);
+  const SegmentColorsScreen({super.key});
 
   @override
   _SegmentColorsScreenState createState() => _SegmentColorsScreenState();

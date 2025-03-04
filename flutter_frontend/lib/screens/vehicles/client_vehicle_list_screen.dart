@@ -10,7 +10,7 @@ class ClientVehicleListScreen extends StatelessWidget {
   final String workshopId;
   final String clientId;
 
-  const ClientVehicleListScreen({Key? key, required this.workshopId, required this.clientId}) : super(key: key);
+  const ClientVehicleListScreen({super.key, required this.workshopId, required this.clientId});
 
   @override
   Widget build(BuildContext context) {

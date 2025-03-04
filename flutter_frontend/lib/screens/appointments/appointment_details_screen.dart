@@ -21,10 +21,10 @@ class AppointmentDetailsScreen extends StatefulWidget {
   final String appointmentId;
 
   const AppointmentDetailsScreen({
-    Key? key,
+    super.key,
     required this.workshopId,
     required this.appointmentId,
-  }) : super(key: key);
+  });
 
   @override
   _AppointmentDetailsScreenState createState() => _AppointmentDetailsScreenState();
@@ -1180,6 +1180,11 @@ Future<void> generatePdf(Appointment appointment, List<Part> parts, List<RepairI
   final boldFont = await rootBundle.load("assets/fonts/Roboto-Bold.ttf");
   final boldTtf = pw.Font.ttf(boldFont);
 
+  // Oblicz sumy
+  double totalPartsCost = parts.fold(0, (sum, part) => sum + (part.costPart * part.quantity));
+  double totalServiceCost = parts.fold(0, (sum, part) => sum + part.costService);
+  double totalCost = totalPartsCost + totalServiceCost;
+
   pdf.addPage(
     pw.Page(
       pageFormat: PdfPageFormat.a4,
@@ -1293,6 +1298,53 @@ Future<void> generatePdf(Appointment appointment, List<Part> parts, List<RepairI
                       ),
                     ],
                   ),
+              ],
+            ),
+            pw.SizedBox(height: 20),
+            // Podsumowanie
+            pw.Table(
+              border: pw.TableBorder.all(),
+              columnWidths: {
+                0: const pw.FlexColumnWidth(3),
+                1: const pw.FlexColumnWidth(2),
+              },
+              children: [
+                pw.TableRow(
+                  children: [
+                    pw.Padding(
+                      padding: const pw.EdgeInsets.all(8.0),
+                      child: pw.Text('SUMA CZĘŚCI (PLN):', style: pw.TextStyle(font: boldTtf)),
+                    ),
+                    pw.Padding(
+                      padding: const pw.EdgeInsets.all(8.0),
+                      child: pw.Text(totalPartsCost.toStringAsFixed(2), style: pw.TextStyle(font: ttf)),
+                    ),
+                  ],
+                ),
+                pw.TableRow(
+                  children: [
+                    pw.Padding(
+                      padding: const pw.EdgeInsets.all(8.0),
+                      child: pw.Text('SUMA USŁUG (PLN):', style: pw.TextStyle(font: boldTtf)),
+                    ),
+                    pw.Padding(
+                      padding: const pw.EdgeInsets.all(8.0),
+                      child: pw.Text(totalServiceCost.toStringAsFixed(2), style: pw.TextStyle(font: ttf)),
+                    ),
+                  ],
+                ),
+                pw.TableRow(
+                  children: [
+                    pw.Padding(
+                      padding: const pw.EdgeInsets.all(8.0),
+                      child: pw.Text('CAŁKOWITA SUMA (PLN):', style: pw.TextStyle(font: boldTtf)),
+                    ),
+                    pw.Padding(
+                      padding: const pw.EdgeInsets.all(8.0),
+                      child: pw.Text(totalCost.toStringAsFixed(2), style: pw.TextStyle(font: ttf)),
+                    ),
+                  ],
+                ),
               ],
             ),
             pw.SizedBox(height: 20),
@@ -1540,7 +1592,7 @@ Future<void> generatePdf(Appointment appointment, List<Part> parts, List<RepairI
                   const SizedBox(height: 16),
 
                   // Tabela elementów naprawy
-                  Container(
+                  SizedBox(
                     width: double.infinity,
                     child: _buildRepairItemsTable(),
                   ),
@@ -1553,7 +1605,7 @@ Future<void> generatePdf(Appointment appointment, List<Part> parts, List<RepairI
                   const SizedBox(height: 16),
 
                   // Tabela części
-                  Container(
+                  SizedBox(
                     width: double.infinity,
                     child: _buildPartsTable(),
                   ),

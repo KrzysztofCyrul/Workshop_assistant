@@ -14,10 +14,10 @@ class AddVehicleScreen extends StatefulWidget {
   final Client? selectedClient;
 
   const AddVehicleScreen({
-    Key? key,
+    super.key,
     required this.workshopId,
     this.selectedClient,
-  }) : super(key: key);
+  });
 
   @override
   _AddVehicleScreenState createState() => _AddVehicleScreenState();

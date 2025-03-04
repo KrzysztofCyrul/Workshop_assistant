@@ -178,13 +178,6 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
     }
   }
 
-  void _onVehicleChanged(Vehicle? vehicle) {
-    setState(() {
-      _selectedVehicle = vehicle;
-      _mileage = vehicle?.mileage ?? 0;
-      _mileageController.text = _mileage.toString();
-    });
-  }
 
   @override
   void dispose() {

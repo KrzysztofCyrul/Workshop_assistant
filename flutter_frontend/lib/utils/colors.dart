@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SegmentColors {
-  static Color segmentA = Color.fromARGB(255, 235, 199, 0);
+  static Color segmentA = const Color.fromARGB(255, 235, 199, 0);
   static Color segmentB = const Color.fromARGB(255, 33, 243, 79);
-  static Color segmentC = Color.fromARGB(255, 90, 181, 255);
-  static Color segmentD = Color.fromARGB(255, 161, 11, 0);
+  static Color segmentC = const Color.fromARGB(255, 90, 181, 255);
+  static Color segmentD = const Color.fromARGB(255, 161, 11, 0);
   static Color defaultColor = Colors.grey;
 
   static Future<void> loadColors() async {

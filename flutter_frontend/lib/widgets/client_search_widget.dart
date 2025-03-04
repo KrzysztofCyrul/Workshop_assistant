@@ -14,12 +14,12 @@ class ClientSearchWidget extends StatefulWidget {
   final String labelText;
 
   const ClientSearchWidget({
-    Key? key,
+    super.key,
     this.selectedClient,
     required this.onChanged,
     this.validator,
     this.labelText = 'Klient',
-  }) : super(key: key);
+  });
 
   @override
   _ClientSearchWidgetState createState() => _ClientSearchWidgetState();

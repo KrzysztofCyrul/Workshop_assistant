@@ -9,6 +9,8 @@ import '../../providers/auth_provider.dart'; // Importujemy AuthProvider
 class SettingsScreen extends StatelessWidget {
   static const routeName = '/settings';
 
+  const SettingsScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);

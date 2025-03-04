@@ -7,6 +7,8 @@ import '../../providers/auth_provider.dart';
 class EmailSettingsScreen extends StatefulWidget {
   static const routeName = '/email-settings';
 
+  const EmailSettingsScreen({super.key});
+
   @override
   _EmailSettingsScreenState createState() => _EmailSettingsScreenState();
 }
@@ -108,7 +110,7 @@ class _EmailSettingsScreenState extends State<EmailSettingsScreen> {
           newSettings,
         );
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Ustawienia e-mail zostały zapisane.')),
+          const SnackBar(content: Text('Ustawienia e-mail zostały zapisane.')),
         );
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -124,10 +126,10 @@ class _EmailSettingsScreenState extends State<EmailSettingsScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Ustawienia e-mail'),
+        title: const Text('Ustawienia e-mail'),
       ),
       body: emailProvider.isLoading
-          ? Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator())
           : Padding(
               padding: const EdgeInsets.all(16.0),
               child: Form(
@@ -136,7 +138,7 @@ class _EmailSettingsScreenState extends State<EmailSettingsScreen> {
                   children: [
                     TextFormField(
                         controller: _mailFromController,
-                        decoration: InputDecoration(labelText: 'Mail From'),
+                        decoration: const InputDecoration(labelText: 'Mail From'),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'To pole jest wymagane';
@@ -145,7 +147,7 @@ class _EmailSettingsScreenState extends State<EmailSettingsScreen> {
                         }),
                     TextFormField(
                       controller: _smtpHostController,
-                      decoration: InputDecoration(labelText: 'SMTP Host'),
+                      decoration: const InputDecoration(labelText: 'SMTP Host'),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'To pole jest wymagane';
@@ -155,7 +157,7 @@ class _EmailSettingsScreenState extends State<EmailSettingsScreen> {
                     ),
                     TextFormField(
                       controller: _smtpPortController,
-                      decoration: InputDecoration(labelText: 'SMTP Port'),
+                      decoration: const InputDecoration(labelText: 'SMTP Port'),
                       keyboardType: TextInputType.number,
                       validator: (value) {
                         if (value == null || int.tryParse(value) == null) {
@@ -166,7 +168,7 @@ class _EmailSettingsScreenState extends State<EmailSettingsScreen> {
                     ),
                     TextFormField(
                       controller: _smtpUserController,
-                      decoration: InputDecoration(labelText: 'SMTP User'),
+                      decoration: const InputDecoration(labelText: 'SMTP User'),
                       keyboardType: TextInputType.emailAddress,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
@@ -179,7 +181,7 @@ class _EmailSettingsScreenState extends State<EmailSettingsScreen> {
                     ),
                     TextFormField(
                       controller: _smtpPasswordController,
-                      decoration: InputDecoration(labelText: 'SMTP Password'),
+                      decoration: const InputDecoration(labelText: 'SMTP Password'),
                       obscureText: true,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
@@ -189,7 +191,7 @@ class _EmailSettingsScreenState extends State<EmailSettingsScreen> {
                       },
                     ),
                     SwitchListTile(
-                      title: Text('Użyj TLS'),
+                      title: const Text('Użyj TLS'),
                       value: _useTls,
                       onChanged: (value) {
                         setState(() {
@@ -197,10 +199,10 @@ class _EmailSettingsScreenState extends State<EmailSettingsScreen> {
                         });
                       },
                     ),
-                    SizedBox(height: 20),
+                    const SizedBox(height: 20),
                     ElevatedButton(
                       onPressed: _saveSettings,
-                      child: Text('Zapisz'),
+                      child: const Text('Zapisz'),
                     ),
                   ],
                 ),

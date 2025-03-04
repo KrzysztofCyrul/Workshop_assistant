@@ -6,6 +6,8 @@ import '../../providers/client_provider.dart';
 class AddClientScreen extends StatefulWidget {
   static const routeName = '/add-client';
 
+  const AddClientScreen({super.key});
+
   @override
   _AddClientScreenState createState() => _AddClientScreenState();
 }

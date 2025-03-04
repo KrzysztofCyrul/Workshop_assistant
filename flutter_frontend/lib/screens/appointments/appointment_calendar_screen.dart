@@ -11,7 +11,7 @@ import 'add_appointment_screen.dart';
 class AppointmentCalendarScreen extends StatefulWidget {
   static const routeName = '/appointments_calendar';
 
-  const AppointmentCalendarScreen({Key? key}) : super(key: key);
+  const AppointmentCalendarScreen({super.key});
 
   @override
   _AppointmentCalendarScreenState createState() =>
@@ -134,8 +134,8 @@ class _AppointmentCalendarScreenState extends State<AppointmentCalendarScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _navigateToAddAppointment,
-        child: const Icon(Icons.add),
         tooltip: 'Dodaj zlecenie',
+        child: const Icon(Icons.add),
       ),
     );
   }

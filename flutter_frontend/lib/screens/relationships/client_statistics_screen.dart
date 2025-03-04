@@ -14,7 +14,7 @@ import '../../utils/colors.dart';
 class ClientsStatisticsScreen extends StatefulWidget {
   static const routeName = '/clients-statistics';
 
-  const ClientsStatisticsScreen({Key? key}) : super(key: key);
+  const ClientsStatisticsScreen({super.key});
 
   @override
   _ClientsStatisticsScreenState createState() => _ClientsStatisticsScreenState();

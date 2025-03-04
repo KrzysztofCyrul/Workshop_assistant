@@ -34,5 +34,10 @@ class Vehicle(models.Model):
         if Vehicle.objects.filter(license_plate=self.license_plate, client__workshop=self.client.workshop).exclude(id=self.id).exists():
             raise ValidationError(f"Vehicle with license plate {self.license_plate} already exists in this workshop.")
      
+    def save(self, *args, **kwargs):
+        # Convert license_plate to uppercase before saving
+        self.license_plate = self.license_plate.upper()
+        super().save(*args, **kwargs) 
+        
     def __str__(self):
         return f"{self.make} {self.model} ({self.license_plate})"

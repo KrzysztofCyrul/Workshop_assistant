@@ -6,7 +6,7 @@ import '../../services/workshop_service.dart';
 class CreateWorkshopScreen extends StatefulWidget {
   static const routeName = '/create-workshop';
 
-  const CreateWorkshopScreen({Key? key}) : super(key: key);
+  const CreateWorkshopScreen({super.key});
 
   @override
   _CreateWorkshopScreenState createState() => _CreateWorkshopScreenState();
@@ -16,6 +16,11 @@ class _CreateWorkshopScreenState extends State<CreateWorkshopScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _workshopNameController = TextEditingController();
   final TextEditingController _addressController = TextEditingController();
+  final TextEditingController _postCodeController = TextEditingController();
+  final TextEditingController _nipNumberController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _phoneNumberController = TextEditingController();
+
   bool _isSubmitting = false;
 
 void _submitForm() async {
@@ -48,6 +53,10 @@ void _submitForm() async {
       accessToken: accessToken,
       name: _workshopNameController.text,
       address: _addressController.text,
+      postCode: _postCodeController.text,
+      nipNumber: _nipNumberController.text,
+      email: _emailController.text,
+      phoneNumber: _phoneNumberController.text,
     );
 
     // Refresh user profile
@@ -113,6 +122,60 @@ void _submitForm() async {
                 },
               ),
               const SizedBox(height: 20),
+              TextFormField(
+                controller: _postCodeController,
+                decoration: const InputDecoration(
+                  labelText: 'Kod pocztowy',
+                  border: OutlineInputBorder(),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Kod pocztowy jest wymagany';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 20),
+              TextFormField(
+                controller: _nipNumberController,
+                decoration: const InputDecoration(
+                  labelText: 'NIP',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 20),
+              TextFormField(
+                controller: _emailController,
+                decoration: const InputDecoration(
+                  labelText: 'Email',
+                  border: OutlineInputBorder(),
+                ),
+                keyboardType: TextInputType.emailAddress,
+                validator: (value) {
+                  if (value != null &&
+                      value.isNotEmpty) {
+                    return 'Nieprawidłowy format email';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 20),
+              TextFormField(
+                controller: _phoneNumberController,
+                decoration: const InputDecoration(
+                  labelText: 'Telefon',
+                  border: OutlineInputBorder(),
+                ),
+                keyboardType: TextInputType.phone,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Telefon jest wymagany';
+                  } else if (value.length > 20) {
+                    return 'Telefon nie może mieć więcej niż 20 znaków';
+                  }
+                  return null;
+                },
+              ),
               _isSubmitting
                   ? const Center(child: CircularProgressIndicator())
                   : SizedBox(

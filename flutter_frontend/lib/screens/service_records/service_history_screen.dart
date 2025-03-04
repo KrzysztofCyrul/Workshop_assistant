@@ -12,10 +12,10 @@ class VehicleServiceHistoryScreen extends StatefulWidget {
   final String vehicleId;
 
   const VehicleServiceHistoryScreen({
-    Key? key,
+    super.key,
     required this.workshopId,
     required this.vehicleId,
-  }) : super(key: key);
+  });
 
   @override
   _VehicleServiceHistoryScreenState createState() => _VehicleServiceHistoryScreenState();

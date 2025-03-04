@@ -9,7 +9,7 @@ class EditClientScreen extends StatefulWidget {
 
   final Client client;
 
-  const EditClientScreen({Key? key, required this.client}) : super(key: key);
+  const EditClientScreen({super.key, required this.client});
 
   @override
   _EditClientScreenState createState() => _EditClientScreenState();

@@ -8,7 +8,7 @@ class GenerateCodeScreen extends StatelessWidget {
 
   final String workshopId;
 
-  const GenerateCodeScreen({Key? key, required this.workshopId}) : super(key: key);
+  const GenerateCodeScreen({super.key, required this.workshopId});
 
   @override
   Widget build(BuildContext context) {

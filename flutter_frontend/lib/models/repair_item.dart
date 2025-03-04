@@ -91,12 +91,6 @@ class RepairItem {
   }
 
   // Funkcja do formatowania Duration na string w formacie dziesiętnym "HH.HHHHHH"
-  static String? _formatDuration(Duration? duration) {
-    if (duration == null) return null;
-    double decimalHours =
-        duration.inMinutes / 60 + (duration.inSeconds.remainder(60) / 3600);
-    return decimalHours.toStringAsFixed(6);
-  }
 
   Map<String, dynamic> toJson() {
     return {

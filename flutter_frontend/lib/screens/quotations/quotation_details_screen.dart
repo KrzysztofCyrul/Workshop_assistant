@@ -16,10 +16,10 @@ class QuotationDetailsScreen extends StatefulWidget {
   final String quotationId;
 
   const QuotationDetailsScreen({
-    Key? key,
+    super.key,
     required this.workshopId,
     required this.quotationId,
-  }) : super(key: key);
+  });
 
   @override
   _QuotationDetailsScreenState createState() => _QuotationDetailsScreenState();
@@ -309,9 +309,9 @@ class _QuotationDetailsScreenState extends State<QuotationDetailsScreen> {
 Widget _buildRepairItemsTable() {
   return DataTable(
     columnSpacing: MediaQuery.of(context).size.width * 0.02, // Dostosowanie odstępów
-    headingRowColor: MaterialStateColor.resolveWith((states) => Colors.blue.shade100),
-    dataRowColor: MaterialStateColor.resolveWith((states) {
-      return states.contains(MaterialState.selected) ? Colors.blue.shade50 : Colors.grey.shade100;
+    headingRowColor: WidgetStateColor.resolveWith((states) => Colors.blue.shade100),
+    dataRowColor: WidgetStateColor.resolveWith((states) {
+      return states.contains(WidgetState.selected) ? Colors.blue.shade50 : Colors.grey.shade100;
     }),
     columns: const [
       DataColumn(
@@ -413,9 +413,9 @@ Widget _buildRepairItemsTable() {
 Widget _buildPartsTable() {
   return DataTable(
     columnSpacing: MediaQuery.of(context).size.width * 0.02,
-    headingRowColor: MaterialStateColor.resolveWith((states) => Colors.green.shade100),
-    dataRowColor: MaterialStateColor.resolveWith((states) {
-      return states.contains(MaterialState.selected) ? Colors.green.shade50 : Colors.grey.shade100;
+    headingRowColor: WidgetStateColor.resolveWith((states) => Colors.green.shade100),
+    dataRowColor: WidgetStateColor.resolveWith((states) {
+      return states.contains(WidgetState.selected) ? Colors.green.shade50 : Colors.grey.shade100;
     }),
     columns: const [
       DataColumn(
@@ -833,7 +833,7 @@ Widget _buildPartsTable() {
                   const SizedBox(height: 16),
 
                   // Tabela elementów naprawy
-                  Container(
+                  SizedBox(
                     width: double.infinity,
                     child: _buildRepairItemsTable(),
                   ),
@@ -846,7 +846,7 @@ Widget _buildPartsTable() {
                   const SizedBox(height: 16),
 
                   // Tabela części
-                  Container(
+                  SizedBox(
                     width: double.infinity,
                     child: _buildPartsTable(),
                   ),

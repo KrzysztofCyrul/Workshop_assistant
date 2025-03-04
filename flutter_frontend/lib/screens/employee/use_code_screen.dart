@@ -6,7 +6,7 @@ import '../../providers/temporary_code_provider.dart';
 class UseCodeScreen extends StatefulWidget {
   static const routeName = '/use-code';
 
-  const UseCodeScreen({Key? key}) : super(key: key);
+  const UseCodeScreen({super.key});
 
   @override
   _UseCodeScreenState createState() => _UseCodeScreenState();

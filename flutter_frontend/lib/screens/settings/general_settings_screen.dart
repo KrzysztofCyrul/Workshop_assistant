@@ -4,7 +4,7 @@ import '../../providers/auth_provider.dart';
 import '../employee/employee_details_screen.dart';
 
 class GeneralSettingsScreen extends StatelessWidget {
-  const GeneralSettingsScreen({Key? key}) : super(key: key);
+  const GeneralSettingsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

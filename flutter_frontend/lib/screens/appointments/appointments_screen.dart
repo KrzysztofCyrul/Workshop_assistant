@@ -152,8 +152,8 @@ Future<List<Appointment>> _fetchScheduledAppointments() async {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _navigateToAddAppointment,
-        child: const Icon(Icons.add),
         tooltip: 'Dodaj zlecenie',
+        child: const Icon(Icons.add),
       ),
     );
   }

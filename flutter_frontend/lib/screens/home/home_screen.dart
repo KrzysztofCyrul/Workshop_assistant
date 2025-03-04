@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../workshop/add_workshop_screen.dart';
-import '../workshop/workshop_list_screen.dart';
 import '../vehicles/add_vehicle_screen.dart';
 import '../appointments/add_appointment_screen.dart';
 import '../clients/clients_screen.dart';
@@ -77,27 +76,11 @@ class HomeScreen extends StatelessWidget {
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         // ignore: unnecessary_null_comparison
-        child: workshopId == null ? _buildNoWorkshopView(context) : _buildWorkshopActions(context, workshopId, employeeId),
+        child: _buildWorkshopActions(context, workshopId, employeeId),
       ),
     );
   }
 
-  Widget _buildNoWorkshopView(BuildContext context) {
-    return Center(
-      child: ElevatedButton.icon(
-        onPressed: () => _navigateToWorkshopList(context),
-        icon: const Icon(Icons.work),
-        label: const Text('Lista Warsztatów'),
-        style: ElevatedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 24.0),
-          backgroundColor: Colors.blueAccent,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12.0),
-          ),
-        ),
-      ),
-    );
-  }
 
   Widget _buildWorkshopActions(BuildContext context, String workshopId, String? employeeId) {
     final actions = [
@@ -173,7 +156,7 @@ class HomeScreen extends StatelessWidget {
             onTap: action['action'] as void Function()?,
             child: Container(
               decoration: BoxDecoration(
-                gradient: LinearGradient(
+                gradient: const LinearGradient(
                   colors: [Colors.blueAccent, Colors.lightBlueAccent],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
@@ -205,10 +188,6 @@ class HomeScreen extends StatelessWidget {
         );
       },
     );
-  }
-
-  void _navigateToWorkshopList(BuildContext context) {
-    Navigator.of(context).pushNamed(WorkshopListScreen.routeName);
   }
 
   void _navigateToAddAppointment(BuildContext context) {
