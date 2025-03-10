@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../models/client.dart';
+import '../data/models/client.dart';
 import '../services/client_service.dart';
 
 class ClientProvider with ChangeNotifier {

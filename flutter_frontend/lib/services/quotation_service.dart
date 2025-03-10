@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../models/quotation.dart';
-import '../models/quotation_repair_item.dart';
-import '../models/quotation_part.dart';
-import '../utils/constants.dart';
+import '../data/models/quotation.dart';
+import '../data/models/quotation_repair_item.dart';
+import '../data/models/quotation_part.dart';
+import '../core/utils/constants.dart';
 
 class QuotationService {
   // Pobieranie listy wycen dla danego warsztatu

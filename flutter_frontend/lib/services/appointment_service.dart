@@ -1,12 +1,12 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../models/appointment.dart';
-import '../models/part.dart';
-import '../models/repair_item.dart';
-import '../utils/constants.dart';
+import '../data/models/appointment.dart';
+import '../data/models/part.dart';
+import '../data/models/repair_item.dart';
+import '../core/utils/constants.dart';
 
 class AppointmentService {
-  static Future<List<Appointment>> getAppointments(
+  Future<List<Appointment>> getAppointments(
       String accessToken, String workshopId) async {
     final url = Uri.parse('$baseUrl/workshops/$workshopId/appointments/');
     final response = await http.get(
@@ -170,7 +170,7 @@ static Future<void> updateRepairItem(
 }
 
   // Metoda pobierająca szczegóły zlecenia
-  static Future<Appointment> getAppointmentDetails(
+  Future<Appointment> getAppointmentDetails(
       String accessToken, String workshopId, String appointmentId) async {
     final url =
         Uri.parse('$baseUrl/workshops/$workshopId/appointments/$appointmentId/');

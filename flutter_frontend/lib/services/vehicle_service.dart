@@ -1,10 +1,10 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../models/vehicle.dart';
-import '../utils/constants.dart';
+import '../data/models/vehicle_model.dart';
+import '../core/utils/constants.dart';
 
 class VehicleService {
-  static Future<List<Vehicle>> getVehicles(String accessToken, String workshopId) async {
+  static Future<List<VehicleModel>> getVehicles(String accessToken, String workshopId) async {
     final url = Uri.parse('$baseUrl/workshops/$workshopId/vehicles/');
     final response = await http.get(
       url,
@@ -16,13 +16,13 @@ class VehicleService {
 
     if (response.statusCode == 200) {
       final data = json.decode(utf8.decode(response.bodyBytes)) as List<dynamic>;
-      return data.map((json) => Vehicle.fromJson(json)).toList();
+      return data.map((json) => VehicleModel.fromJson(json)).toList();
     } else {
       throw Exception('Błąd podczas pobierania listy pojazdów: ${response.statusCode} - ${response.body}');
     }
   }
 
-  static Future<List<Vehicle>> getVehiclesForClient(String accessToken, String workshopId, String clientId) async {
+  static Future<List<VehicleModel>> getVehiclesForClient(String accessToken, String workshopId, String clientId) async {
     final url = Uri.parse('$baseUrl/workshops/$workshopId/clients/$clientId/vehicles/');
     final response = await http.get(
       url,
@@ -34,13 +34,13 @@ class VehicleService {
 
     if (response.statusCode == 200) {
       final data = json.decode(utf8.decode(response.bodyBytes)) as List<dynamic>;
-      return data.map((json) => Vehicle.fromJson(json)).toList();
+      return data.map((json) => VehicleModel.fromJson(json)).toList();
     } else {
       throw Exception('Błąd podczas pobierania listy pojazdów klienta: ${response.statusCode} - ${response.body}');
     }
   }
 
-  static Future<Vehicle> getVehicleDetails(String accessToken, String workshopId, String vehicleId) async {
+  static Future<VehicleModel> getVehicleDetails(String accessToken, String workshopId, String vehicleId) async {
     final url = Uri.parse('$baseUrl/workshops/$workshopId/vehicles/$vehicleId/');
     final response = await http.get(
       url,
@@ -52,7 +52,7 @@ class VehicleService {
 
     if (response.statusCode == 200) {
       final data = json.decode(utf8.decode(response.bodyBytes));
-      return Vehicle.fromJson(data);
+      return VehicleModel.fromJson(data);
     } else {
       throw Exception('Błąd podczas pobierania szczegółów pojazdu: ${response.statusCode} - ${response.body}');
     }

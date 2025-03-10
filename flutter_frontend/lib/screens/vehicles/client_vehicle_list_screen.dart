@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_frontend/presentation/screens/vehicles/vehicle_details_screen.dart';
 import 'package:provider/provider.dart';
 import '../../providers/vehicle_provider.dart';
 import '../../providers/auth_provider.dart';
-import 'vehicle_details_screen.dart';
+// import 'vehicle_details_screen.dart';
 
 class ClientVehicleListScreen extends StatelessWidget {
   static const routeName = '/client-vehicle-list';

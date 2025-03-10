@@ -35,8 +35,12 @@ class Vehicle(models.Model):
             raise ValidationError(f"Vehicle with license plate {self.license_plate} already exists in this workshop.")
      
     def save(self, *args, **kwargs):
-        # Convert license_plate to uppercase before saving
+        # Convert fields to uppercase before saving
         self.license_plate = self.license_plate.upper()
+        self.make = self.make.upper()
+        self.model = self.model.upper()
+        if self.vin:
+            self.vin = self.vin.upper()
         super().save(*args, **kwargs) 
         
     def __str__(self):

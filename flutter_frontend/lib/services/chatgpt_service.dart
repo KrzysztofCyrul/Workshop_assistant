@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../utils/constants.dart';
+import '../core/utils/constants.dart';
 
 class ChatGPTService {
   static Future<String> generateEmail({

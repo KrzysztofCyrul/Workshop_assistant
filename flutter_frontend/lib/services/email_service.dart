@@ -6,8 +6,8 @@ import 'package:http/http.dart' as http;
 import 'package:mailer/mailer.dart';
 import 'package:mailer/smtp_server.dart';
 
-import '../models/email_settings.dart';
-import '../utils/constants.dart'; // <-- tu pewnie masz 'baseUrl' zdefiniowane
+import '../data/models/email_settings.dart';
+import '../core/utils/constants.dart'; // <-- tu pewnie masz 'baseUrl' zdefiniowane
 
 class EmailService {
   /// Pobiera ustawienia e-mail z backendu (host, port, user, hasło, useTls).

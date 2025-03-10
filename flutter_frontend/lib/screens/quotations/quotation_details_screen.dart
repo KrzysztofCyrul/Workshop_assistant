@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-import '../../models/quotation.dart';
-import '../../models/quotation_repair_item.dart';
-import '../../models/quotation_part.dart';
+import '../../data/models/quotation.dart';
+import '../../data/models/quotation_repair_item.dart';
+import '../../data/models/quotation_part.dart';
 import '../../services/quotation_service.dart';
 import '../../providers/auth_provider.dart';
 import 'dart:convert';

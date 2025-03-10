@@ -5,11 +5,11 @@ import 'package:fl_chart/fl_chart.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/client_service.dart';
 import '../../services/appointment_service.dart';
-import '../../models/client.dart';
-import '../../models/appointment.dart';
+import '../../data/models/client.dart';
+import '../../data/models/appointment.dart';
 
 // Plik z klasą SegmentColors
-import '../../utils/colors.dart';
+import '../../core/utils/colors.dart';
 
 class ClientsStatisticsScreen extends StatefulWidget {
   static const routeName = '/clients-statistics';
@@ -74,7 +74,7 @@ class _ClientsStatisticsScreenState extends State<ClientsStatisticsScreen> {
     try {
       final results = await Future.wait([
         ClientService.getClients(accessToken, workshopId),
-        AppointmentService.getAppointments(accessToken, workshopId),
+        AppointmentService().getAppointments(accessToken, workshopId),
       ]);
 
       final allClients = results[0] as List<Client>;

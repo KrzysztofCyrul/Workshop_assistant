@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../models/email_settings.dart';
+import '../data/models/email_settings.dart';
 import '../services/email_service.dart';
 
 class EmailProvider with ChangeNotifier {

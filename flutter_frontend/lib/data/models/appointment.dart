@@ -1,4 +1,4 @@
-import 'vehicle.dart';
+import 'vehicle_model.dart';
 import 'client.dart';
 import 'repair_item.dart';
 import 'part.dart';
@@ -7,7 +7,7 @@ class Appointment {
   final String id;
   final String workshopId;
   final Client client;
-  final Vehicle vehicle;
+  final VehicleModel vehicle;
   final List<String> assignedMechanics; // List of mechanic IDs
   final int mileage;
   final DateTime scheduledTime;
@@ -45,7 +45,7 @@ class Appointment {
       id: json['id'] as String? ?? '',
       workshopId: json['workshop'] as String? ?? '',
       client: Client.fromJson(json['client'] as Map<String, dynamic>),
-      vehicle: Vehicle.fromJson(json['vehicle'] as Map<String, dynamic>),
+      vehicle: VehicleModel.fromJson(json['vehicle'] as Map<String, dynamic>),
       assignedMechanics: (json['assigned_mechanics'] as List<dynamic>?)
               ?.map((item) => item as String)
               .toList() ??

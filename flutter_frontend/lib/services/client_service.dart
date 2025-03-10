@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../models/client.dart';
-import '../utils/constants.dart';
+import '../data/models/client.dart';
+import '../core/utils/constants.dart';
 
 class ClientService {
   static Future<List<Client>> getClients(String accessToken, String workshopId) async {

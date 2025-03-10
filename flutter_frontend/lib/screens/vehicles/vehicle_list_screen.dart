@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_frontend/presentation/screens/vehicles/vehicle_details_screen.dart';
 import 'package:provider/provider.dart';
 import '../../providers/vehicle_provider.dart';
 import '../../providers/auth_provider.dart';
-import 'vehicle_details_screen.dart';
+// import 'vehicle_details_screen.dart';
 
 class VehicleListScreen extends StatefulWidget {
   static const routeName = '/vehicle-list';
@@ -60,6 +61,8 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final accessToken = authProvider.accessToken;
+    final vehicleProvider = context.watch<VehicleProvider>();
+
 
     if (accessToken == null) {
       return Scaffold(
@@ -74,8 +77,6 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
         ),
       );
     }
-
-    final vehicleProvider = Provider.of<VehicleProvider>(context);
 
     return Scaffold(
       appBar: AppBar(

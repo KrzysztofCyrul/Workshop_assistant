@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
-import '../../models/appointment.dart';
+import '../../data/models/appointment.dart';
 import '../../services/appointment_service.dart';
 import 'package:intl/intl.dart';
 import '../../widgets/change_status_widget.dart';
@@ -42,7 +42,8 @@ class _PendingAppointmentsScreenState extends State<PendingAppointmentsScreen> {
       final employee = user.employeeProfiles.first;
       _workshopId = employee.workshopId;
 
-      List<Appointment> appointments = await AppointmentService.getAppointments(
+      final appointmentService = AppointmentService();
+      List<Appointment> appointments = await appointmentService.getAppointments(
         authProvider.accessToken!,
         _workshopId!,
       );

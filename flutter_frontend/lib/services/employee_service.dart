@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../models/employee.dart';
-import '../utils/constants.dart';
+import '../data/models/employee.dart';
+import '../core/utils/constants.dart';
 
 class EmployeeService {
   static Future<List<Employee>> getMechanics(String accessToken, String workshopId) async {

@@ -3,9 +3,9 @@ import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/vehicle_provider.dart';
 import '../../providers/client_provider.dart';
-import '../../models/client.dart';
+import '../../data/models/client.dart';
 import '../../widgets/client_search_widget.dart';
-import '../../utils/colors.dart';
+import '../../core/utils/colors.dart';
 
 class AddVehicleScreen extends StatefulWidget {
   static const routeName = '/add-vehicle';

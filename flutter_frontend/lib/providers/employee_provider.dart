@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../models/employee.dart';
+import '../data/models/employee.dart';
 import '../services/employee_service.dart';
 
 class EmployeeProvider with ChangeNotifier {

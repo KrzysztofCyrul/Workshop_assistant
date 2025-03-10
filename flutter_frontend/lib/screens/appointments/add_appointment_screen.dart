@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:provider/provider.dart';
 import 'package:multi_select_flutter/multi_select_flutter.dart';
-import '../../models/client.dart';
-import '../../models/vehicle.dart';
-import '../../models/employee.dart';
+import '../../data/models/client.dart';
+import '../../data/models/vehicle_model.dart';
+import '../../data/models/employee.dart';
 import '../../providers/client_provider.dart';
 import '../../providers/vehicle_provider.dart';
 import '../../services/appointment_service.dart';
@@ -30,7 +30,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
 
   // Pola formularza
   Client? _selectedClient;
-  Vehicle? _selectedVehicle;
+  VehicleModel? _selectedVehicle;
   DateTime? _scheduledTime;
   String? _notes;
   int _mileage = 0;
@@ -276,7 +276,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                             ),
                             const SizedBox(height: 16.0),
                             if (_selectedClient != null)
-                              DropdownSearch<Vehicle>(
+                              DropdownSearch<VehicleModel>(
                                 asyncItems: (String filter) async {
                                   final authProvider = Provider.of<AuthProvider>(context, listen: false);
                                   final accessToken = authProvider.accessToken;
@@ -295,7 +295,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                                   }).toList();
                                 },
                                 selectedItem: _selectedVehicle,
-                                itemAsString: (Vehicle vehicle) => '${vehicle.make} ${vehicle.model} - ${vehicle.licensePlate}',
+                                itemAsString: (VehicleModel vehicle) => '${vehicle.make} ${vehicle.model} - ${vehicle.licensePlate}',
                                 dropdownDecoratorProps: const DropDownDecoratorProps(
                                   dropdownSearchDecoration: InputDecoration(
                                     labelText: 'Pojazd',
@@ -349,14 +349,14 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                                     subtitle: Text('Rejestracja: ${vehicle.licensePlate}'),
                                   ),
                                 ),
-                                onChanged: (Vehicle? vehicle) {
+                                onChanged: (VehicleModel? vehicle) {
                                   setState(() {
                                     _selectedVehicle = vehicle;
                                     _mileage = vehicle?.mileage ?? 0;
                                     _mileageController.text = _mileage.toString();
                                   });
                                 },
-                                validator: (Vehicle? value) => value == null ? 'Wybierz pojazd' : null,
+                                validator: (VehicleModel? value) => value == null ? 'Wybierz pojazd' : null,
                               ),
                           ],
                         ),

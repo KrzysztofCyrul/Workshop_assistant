@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../models/service_record.dart';
-import '../utils/constants.dart';
+import '../data/models/service_record.dart';
+import '../core/utils/constants.dart';
 
 class ServiceRecordService {
   static Future<List<ServiceRecord>> getServiceRecords(

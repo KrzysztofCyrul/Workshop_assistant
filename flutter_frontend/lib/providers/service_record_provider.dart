@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../models/service_record.dart';
+import '../data/models/service_record.dart';
 import '../services/service_record_service.dart';
 
 class ServiceRecordProvider extends ChangeNotifier {

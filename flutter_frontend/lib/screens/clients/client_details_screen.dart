@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_frontend/presentation/screens/vehicles/vehicle_details_screen.dart';
 import 'package:provider/provider.dart';
 
 import '../../providers/auth_provider.dart';
 import '../../providers/vehicle_provider.dart';
 import '../../providers/client_provider.dart';
-import '../../models/client.dart';
-import '../../models/vehicle.dart';
-import '../vehicles/vehicle_details_screen.dart';
+import '../../data/models/client.dart';
+import '../../data/models/vehicle_model.dart';
 
 class ClientDetailsScreen extends StatefulWidget {
   static const routeName = '/client-details';
@@ -50,7 +50,7 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
   }
 
   /// Filtrowanie pojazdów po marce, modelu i rejestracji
-  List<Vehicle> _filterVehicles(List<Vehicle> vehicles) {
+  List<VehicleModel> _filterVehicles(List<VehicleModel> vehicles) {
     if (_searchQuery.isEmpty) {
       return vehicles;
     }

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../utils/colors.dart';
+import '../../core/utils/colors.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 
 class SegmentColorsScreen extends StatefulWidget {

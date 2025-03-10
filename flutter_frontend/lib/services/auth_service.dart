@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../utils/constants.dart';
+import '../core/utils/constants.dart';
 
 class AuthService {
   static Future<Map<String, dynamic>?> login(String email, String password) async {

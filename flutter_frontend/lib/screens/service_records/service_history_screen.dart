@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/service_record_provider.dart';
-import '../../models/service_record.dart';
+import '../../data/models/service_record.dart';
 
 class VehicleServiceHistoryScreen extends StatefulWidget {
   static const routeName = '/vehicle-service-history';

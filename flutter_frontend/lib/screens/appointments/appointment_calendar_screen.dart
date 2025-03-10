@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 import '../../providers/auth_provider.dart';
-import '../../models/appointment.dart' as workshop_appointment;
+import '../../data/models/appointment.dart' as workshop_appointment;
 import '../../services/appointment_service.dart';
 import 'appointment_details_screen.dart';
 import 'add_appointment_screen.dart';
@@ -52,7 +52,8 @@ class _AppointmentCalendarScreenState extends State<AppointmentCalendarScreen> {
       final employee = user.employeeProfiles.first;
       _workshopId = employee.workshopId;
 
-      List<workshop_appointment.Appointment> appointments = await AppointmentService.getAppointments(
+      final appointmentService = AppointmentService();
+      List<workshop_appointment.Appointment> appointments = await appointmentService.getAppointments(
         authProvider.accessToken!,
         _workshopId!,
       );

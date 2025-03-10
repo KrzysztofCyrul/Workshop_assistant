@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../models/appointment.dart';
-import '../../models/repair_item.dart';
-import '../../models/part.dart';
+import '../../data/models/appointment.dart';
+import '../../data/models/repair_item.dart';
+import '../../data/models/part.dart';
 import '../../services/appointment_service.dart';
 import '../../providers/auth_provider.dart';
 import '../service_records/service_history_screen.dart';
-import 'add_repair_item_dialog.dart';
 import 'package:intl/intl.dart';
 import 'dart:convert';
 import 'package:flutter/services.dart';
@@ -69,7 +68,8 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
     final accessToken = authProvider.accessToken!;
 
     try {
-      final appointment = await AppointmentService.getAppointmentDetails(
+      final appointmentService = AppointmentService();
+      final appointment = await appointmentService.getAppointmentDetails(
         accessToken,
         widget.workshopId,
         widget.appointmentId,
@@ -111,24 +111,6 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
     return originalCost * (1 - discountPercentage);
   }
 
-  Future<void> _navigateToAddRepairItem() async {
-    final result = await showDialog(
-      context: context,
-      builder: (context) {
-        return AddMultipleRepairItemsDialog(
-          appointmentId: widget.appointmentId,
-          workshopId: widget.workshopId,
-        );
-      },
-    );
-
-    if (result == true) {
-      // Jeśli element został dodany, odśwież szczegóły zlecenia
-      setState(() {
-        _appointmentFuture = _fetchAppointmentDetails();
-      });
-    }
-  }
 
   String _getStatusLabel(String status) {
     switch (status) {

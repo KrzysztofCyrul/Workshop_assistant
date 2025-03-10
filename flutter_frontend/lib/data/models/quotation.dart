@@ -1,12 +1,13 @@
+import 'package:flutter_frontend/data/models/vehicle_model.dart';
+
 import 'client.dart';
-import 'vehicle.dart';
 import 'quotation_repair_item.dart';
 import 'quotation_part.dart';
 
 class Quotation {
   final String id;
   final Client client;
-  final Vehicle vehicle;
+  final VehicleModel vehicle;
   final String workshopId;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -32,7 +33,7 @@ class Quotation {
     return Quotation(
       id: json['id'] as String? ?? '',
       client: Client.fromJson(json['client'] as Map<String, dynamic>),
-      vehicle: Vehicle.fromJson(json['vehicle'] as Map<String, dynamic>),
+      vehicle: VehicleModel.fromJson(json['vehicle'] as Map<String, dynamic>),
       workshopId: json['workshop'] as String? ?? '',
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),

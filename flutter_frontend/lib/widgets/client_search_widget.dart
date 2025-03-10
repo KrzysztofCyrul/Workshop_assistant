@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:provider/provider.dart';
 
-import '../../models/client.dart';
+import '../data/models/client.dart';
 import '../../providers/client_provider.dart';
-import '../../utils/colors.dart';
+import '../core/utils/colors.dart';
 import '../screens/clients/add_client_screen.dart';
 
 class ClientSearchWidget extends StatefulWidget {

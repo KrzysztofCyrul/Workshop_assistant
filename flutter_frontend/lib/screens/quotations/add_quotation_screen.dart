@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter_frontend/screens/vehicles/add_vehicle_screen.dart';
 import 'package:provider/provider.dart';
-import '../../models/client.dart';
-import '../../models/vehicle.dart';
+import '../../data/models/client.dart';
+import '../../data/models/vehicle_model.dart';
 import '../../providers/client_provider.dart';
 import '../../providers/vehicle_provider.dart';
 import '../../services/quotation_service.dart';
@@ -26,7 +26,7 @@ class _AddQuotationScreenState extends State<AddQuotationScreen> {
 
   // Pola formularza
   Client? _selectedClient;
-  Vehicle? _selectedVehicle;
+  VehicleModel? _selectedVehicle;
   double? _totalCost;
 
   // Listy danych
@@ -233,90 +233,90 @@ class _AddQuotationScreenState extends State<AddQuotationScreen> {
                               validator: (value) => value == null ? 'Wybierz klienta' : null,
                             ),
                             const SizedBox(height: 16.0),
-                            DropdownSearch<Vehicle>(
-  asyncItems: (String filter) async {
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final accessToken = authProvider.accessToken;
-    final workshopId = authProvider.user?.employeeProfiles.first.workshopId;
+                            DropdownSearch<VehicleModel>(
+                              asyncItems: (String filter) async {
+                                final authProvider = Provider.of<AuthProvider>(context, listen: false);
+                                final accessToken = authProvider.accessToken;
+                                final workshopId = authProvider.user?.employeeProfiles.first.workshopId;
 
-    if (accessToken == null || workshopId == null) return [];
+                                if (accessToken == null || workshopId == null) return [];
 
-    final vehicleProvider = Provider.of<VehicleProvider>(context, listen: false);
-    await _fetchVehicles(_selectedClient?.id);
+                                final vehicleProvider = Provider.of<VehicleProvider>(context, listen: false);
+                                await _fetchVehicles(_selectedClient?.id);
 
-    return vehicleProvider.vehicles.where((vehicle) {
-      final query = filter.toLowerCase();
-      return vehicle.make.toLowerCase().contains(query) ||
-          vehicle.model.toLowerCase().contains(query) ||
-          (vehicle.licensePlate.toLowerCase().contains(query));
-    }).toList();
-  },
-  selectedItem: _selectedVehicle,
-  itemAsString: (Vehicle vehicle) => '${vehicle.make} ${vehicle.model} - ${vehicle.licensePlate}',
-  dropdownDecoratorProps: const DropDownDecoratorProps(
-    dropdownSearchDecoration: InputDecoration(
-      labelText: 'Pojazd',
-      border: OutlineInputBorder(),
-    ),
-  ),
-  popupProps: PopupProps.menu(
-    showSearchBox: true,
-    searchFieldProps: TextFieldProps(
-      decoration: InputDecoration(
-        labelText: 'Szukaj pojazdu',
-        prefixIcon: const Icon(Icons.search),
-                                              suffixIcon: IconButton(
-                                        icon: const Icon(Icons.add),
-                                        onPressed: () async {
-                                          final authProvider = Provider.of<AuthProvider>(context, listen: false);
-                                          final accessToken = authProvider.accessToken;
-                                          final workshopId = authProvider.user?.employeeProfiles.first.workshopId;
+                                return vehicleProvider.vehicles.where((vehicle) {
+                                  final query = filter.toLowerCase();
+                                  return vehicle.make.toLowerCase().contains(query) ||
+                                      vehicle.model.toLowerCase().contains(query) ||
+                                      (vehicle.licensePlate.toLowerCase().contains(query));
+                                }).toList();
+                              },
+                              selectedItem: _selectedVehicle,
+                              itemAsString: (VehicleModel vehicle) => '${vehicle.make} ${vehicle.model} - ${vehicle.licensePlate}',
+                              dropdownDecoratorProps: const DropDownDecoratorProps(
+                                dropdownSearchDecoration: InputDecoration(
+                                  labelText: 'Pojazd',
+                                  border: OutlineInputBorder(),
+                                ),
+                              ),
+                              popupProps: PopupProps.menu(
+                                showSearchBox: true,
+                                searchFieldProps: TextFieldProps(
+                                  decoration: InputDecoration(
+                                    labelText: 'Szukaj pojazdu',
+                                    prefixIcon: const Icon(Icons.search),
+                                    suffixIcon: IconButton(
+                                      icon: const Icon(Icons.add),
+                                      onPressed: () async {
+                                        final authProvider = Provider.of<AuthProvider>(context, listen: false);
+                                        final accessToken = authProvider.accessToken;
+                                        final workshopId = authProvider.user?.employeeProfiles.first.workshopId;
 
-                                          if (accessToken == null || workshopId == null) {
-                                            ScaffoldMessenger.of(context).showSnackBar(
-                                              const SnackBar(content: Text('Brak dostępu do danych użytkownika.')),
-                                            );
-                                            return;
-                                          }
-
-                                          final result = await Navigator.of(context).push<bool>(
-                                            MaterialPageRoute(
-                                              builder: (context) => AddVehicleScreen(
-                                                workshopId: workshopId,
-                                                selectedClient: _selectedClient,
-                                              ),
-                                            ),
+                                        if (accessToken == null || workshopId == null) {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            const SnackBar(content: Text('Brak dostępu do danych użytkownika.')),
                                           );
+                                          return;
+                                        }
 
-                                          if (result == true) {
-                                            await Provider.of<VehicleProvider>(context, listen: false).fetchVehiclesForClient(accessToken, workshopId, _selectedClient!.id);
+                                        final result = await Navigator.of(context).push<bool>(
+                                          MaterialPageRoute(
+                                            builder: (context) => AddVehicleScreen(
+                                              workshopId: workshopId,
+                                              selectedClient: _selectedClient,
+                                            ),
+                                          ),
+                                        );
 
-                                            setState(() {
-                                              _selectedVehicle = Provider.of<VehicleProvider>(context, listen: false).vehicles.last;
-                                            });
-                                          }
-                                        },
-                                      ),
-        border: const OutlineInputBorder(),
-      ),
-    ),
-    itemBuilder: (context, vehicle, isSelected) => ListTile(
-      leading: const Icon(Icons.directions_car),
-      title: Text('${vehicle.make} ${vehicle.model}'),
-      subtitle: Text('Rejestracja: ${vehicle.licensePlate}'),
-    ),
-  ),
-  onChanged: (Vehicle? vehicle) {
-    setState(() {
-      _selectedVehicle = vehicle;
-      if (vehicle != null) {
-        // Znajdź klienta, który jest właścicielem tego pojazdu
-        _selectedClient = _clients.firstWhere((client) => client.id == vehicle.clientId);
-      }
-    });
-  },
-  validator: (Vehicle? value) => value == null ? 'Wybierz pojazd' : null,
-),
+                                        if (result == true) {
+                                          await Provider.of<VehicleProvider>(context, listen: false).fetchVehiclesForClient(accessToken, workshopId, _selectedClient!.id);
+
+                                          setState(() {
+                                            _selectedVehicle = Provider.of<VehicleProvider>(context, listen: false).vehicles.last;
+                                          });
+                                        }
+                                      },
+                                    ),
+                                    border: const OutlineInputBorder(),
+                                  ),
+                                ),
+                                itemBuilder: (context, vehicle, isSelected) => ListTile(
+                                  leading: const Icon(Icons.directions_car),
+                                  title: Text('${vehicle.make} ${vehicle.model}'),
+                                  subtitle: Text('Rejestracja: ${vehicle.licensePlate}'),
+                                ),
+                              ),
+                              onChanged: (VehicleModel? vehicle) {
+                                setState(() {
+                                  _selectedVehicle = vehicle;
+                                  if (vehicle != null) {
+                                    // Znajdź klienta, który jest właścicielem tego pojazdu
+                                    _selectedClient = _clients.firstWhere((client) => client.id == vehicle.clientId);
+                                  }
+                                });
+                              },
+                              validator: (VehicleModel? value) => value == null ? 'Wybierz pojazd' : null,
+                            ),
                           ],
                         ),
                       ),

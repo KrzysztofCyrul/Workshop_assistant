@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../models/appointment.dart';
+import '../data/models/appointment.dart';
 import '../../services/appointment_service.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';

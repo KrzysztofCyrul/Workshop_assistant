@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
-import '../models/vehicle.dart';
+import '../data/models/vehicle_model.dart';
 import '../services/vehicle_service.dart';
 
 class VehicleProvider with ChangeNotifier {
-  List<Vehicle> _vehicles = [];
-  Vehicle? _vehicle;
+  List<VehicleModel> _vehicles = [];
+  VehicleModel? _vehicle;
   bool _isLoading = false;
   String? _errorMessage;
 
-  List<Vehicle> get vehicles => _vehicles;
-  Vehicle? get vehicle => _vehicle;
+  List<VehicleModel> get vehicles => _vehicles;
+  VehicleModel? get vehicle => _vehicle;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 

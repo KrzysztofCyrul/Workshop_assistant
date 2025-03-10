@@ -96,6 +96,7 @@ class RepairItem(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     cost = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     order = models.PositiveIntegerField(default=0)
+    
 
     def __str__(self):
         return f"{self.description} ({self.get_status_display()}), assigned to {self.appointment.client}"
@@ -122,6 +123,11 @@ class Part(models.Model):
             raise ValidationError("Koszt nie może być ujemny.")
         if self.quantity < 1:
             raise ValidationError("Ilość musi być większa lub równa 1.")
+        
+    def save(self, *args, **kwargs):
+        # Convert name to title case before saving
+        self.name = self.name.title()
+        super().save(*args, **kwargs)
 
     @property
     def total_cost(self):
