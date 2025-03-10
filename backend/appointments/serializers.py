@@ -21,7 +21,7 @@ class RepairItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = RepairItem
         fields = (
-            'id', 'appointment', 'description', 'is_completed', 'estimated_duration', 'actual_duration', 'cost',
+            'id', 'appointment', 'description', 'is_completed',
             'completed_by', 'completed_by_id', 'status',
             'created_at', 'updated_at', 'order'
         )

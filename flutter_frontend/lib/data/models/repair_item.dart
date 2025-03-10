@@ -2,9 +2,6 @@ class RepairItem {
   final String? appointmentId;
   final String? description;
   bool isCompleted;
-  final Duration? estimatedDuration;
-  final Duration? actualDuration;
-  final double cost;
   final String? completedBy;
   String status;
   final String id;
@@ -16,9 +13,6 @@ class RepairItem {
     this.appointmentId,
     this.description,
     this.isCompleted = false,
-    this.estimatedDuration,
-    this.actualDuration,
-    this.cost = 0.0,
     this.completedBy,
     this.status = 'pending',
     required this.id,
@@ -35,11 +29,8 @@ class RepairItem {
     bool? isCompleted,
     String? completedBy,
     String? status,
-    Duration? estimatedDuration,
-    Duration? actualDuration,
     DateTime? createdAt,
     DateTime? updatedAt,
-    double? cost,
     int? order,
   }) {
     return RepairItem(
@@ -49,11 +40,8 @@ class RepairItem {
       isCompleted: isCompleted ?? this.isCompleted,
       completedBy: completedBy ?? this.completedBy,
       status: status ?? this.status,
-      estimatedDuration: estimatedDuration ?? this.estimatedDuration,
-      actualDuration: actualDuration ?? this.actualDuration,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
-      cost: cost ?? this.cost,
       order: order ?? this.order,
     );
   }
@@ -63,9 +51,6 @@ class RepairItem {
       appointmentId: json['appointment'] as String?,
       description: json['description'] as String?,
       isCompleted: json['is_completed'] as bool? ?? false,
-      estimatedDuration: _parseDuration(json['estimated_duration']),
-      actualDuration: _parseDuration(json['actual_duration']),
-      cost: double.tryParse(json['cost']?.toString() ?? '0.0') ?? 0.0,
       completedBy: json['completed_by'] as String?,
       status: json['status'] as String? ?? 'pending',
       id: json['id'],
@@ -97,11 +82,6 @@ class RepairItem {
       'description': description,
       'status': status,
       'order': order,
-      'cost': cost,
-      'estimated_duration': estimatedDuration?.inMinutes,
-      'actual_duration': actualDuration?.inMinutes,
     };
   }
-
-  String get formattedCost => '${cost.toStringAsFixed(2)} PLN';
 }

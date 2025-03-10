@@ -64,7 +64,6 @@ class _AddMultipleRepairItemsDialogState
           item['description'],
           item['status'],
           item['priority'] ? 1 : 0, // Map priority to order
-          item['cost'],
         );
       }
       if (!mounted) return;

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Quotation, QuotationRepairItem, QuotationPart
+from .models import Quotation, QuotationPart
 from clients.models import Client
 from vehicles.models import Vehicle
 from clients.serializers import ClientSerializer
@@ -26,26 +26,9 @@ class QuotationPartSerializer(serializers.ModelSerializer):
         return super().create(validated_data)
 
 
-class QuotationRepairItemSerializer(serializers.ModelSerializer):
-    quotation = serializers.PrimaryKeyRelatedField(read_only=True)
-
-    class Meta:
-        model = QuotationRepairItem
-        fields = (
-            'id', 'quotation', 'description', 'cost',
-            'created_at', 'updated_at'
-        )
-        read_only_fields = ('id', 'quotation', 'created_at', 'updated_at')
-
-    def create(self, validated_data):
-        validated_data['quotation'] = self.context['quotation']
-        return super().create(validated_data)
-
-
 class QuotationSerializer(serializers.ModelSerializer):
     client = ClientSerializer(read_only=True)
     vehicle = VehicleSerializer(read_only=True)
-    quotation_repair_items = QuotationRepairItemSerializer(many=True, read_only=True)
     quotation_parts = QuotationPartSerializer(many=True, read_only=True) 
 
     client_id = serializers.PrimaryKeyRelatedField(queryset=Client.objects.all(), write_only=True, source='client')

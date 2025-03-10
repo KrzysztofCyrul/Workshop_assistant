@@ -4,6 +4,7 @@ class QuotationPart {
   final String name;
   final String? description;
   final double costPart;
+  final double costService;
   final int quantity;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -14,6 +15,7 @@ class QuotationPart {
     required this.name,
     this.description,
     required this.costPart,
+    required this.costService,
     required this.quantity,
     required this.createdAt,
     required this.updatedAt,
@@ -25,6 +27,7 @@ class QuotationPart {
     String? name,
     String? description,
     double? costPart,
+    double? costService,
     int? quantity,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -35,6 +38,7 @@ class QuotationPart {
       name: name ?? this.name,
       description: description ?? this.description,
       costPart: costPart ?? this.costPart,
+      costService: costService ?? this.costService,
       quantity: quantity ?? this.quantity,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -48,6 +52,7 @@ class QuotationPart {
       name: json['name'] as String? ?? '',
       description: json['description'] as String?,
       costPart: double.tryParse(json['cost_part']?.toString() ?? '0.0') ?? 0.0,
+      costService: double.tryParse(json['cost_service']?.toString() ?? '0.0') ?? 0.0,
       quantity: json['quantity'] as int? ?? 1,
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
@@ -61,6 +66,7 @@ class QuotationPart {
       'name': name,
       'description': description,
       'cost_part': costPart,
+      'cost_service': costService,
       'quantity': quantity,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),

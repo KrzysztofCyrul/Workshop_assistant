@@ -124,7 +124,7 @@ class _ClientsStatisticsScreenState extends State<ClientsStatisticsScreen> {
       final segment = appointment.client.segment ?? 'Brak segmentu';
       final totalCost = appointment.repairItems.fold<double>(
         0.0,
-        (prev, item) => prev + item.cost,
+        (prev, item) => prev,
       );
       segmentValues.putIfAbsent(segment, () => []).add(totalCost);
     }

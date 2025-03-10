@@ -366,24 +366,6 @@ class WorkshopAppointmentDataSource extends CalendarDataSource {
   }
 
   @override
-  DateTime getEndTime(int index) {
-    final apt = appointments![index] as workshop_appointment.Appointment;
-    Duration totalDuration = Duration.zero;
-    if (apt.repairItems.isNotEmpty) {
-      for (var item in apt.repairItems) {
-        totalDuration += (item.estimatedDuration ?? Duration.zero);
-      }
-      if (totalDuration == Duration.zero) {
-        totalDuration = const Duration(hours: 1);
-      }
-    } else {
-      totalDuration = const Duration(hours: 1);
-    }
-
-    return apt.scheduledTime.toLocal().add(totalDuration);
-  }
-
-  @override
   String getSubject(int index) {
     final apt = appointments![index] as workshop_appointment.Appointment;
     return '${apt.vehicle.make} ${apt.vehicle.model} - ${apt.client.firstName} ${apt.client.lastName}';

@@ -25,6 +25,30 @@ class AppointmentService {
     }
   }
 
+  static Future<void> editNotesValue({
+    required String accessToken,
+    required String workshopId,
+    required String appointmentId,
+    required String newNotes,
+  }) async {
+    final url = Uri.parse('$baseUrl/workshops/$workshopId/appointments/$appointmentId/');
+    
+    final response = await http.patch(
+      url,
+      headers: {
+        'Authorization': 'Bearer $accessToken',
+        'Content-Type': 'application/json',
+      },
+      body: json.encode({
+        'notes': newNotes,
+      }),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Błąd podczas aktualizacji notatek: ${response.body}');
+    }
+  }
+
   static Future<String> createAppointment({
     required String accessToken,
     required String workshopId,
@@ -87,8 +111,6 @@ static Future<void> updateAppointmentStatus({
     }
   }
 
-
-
   static Future<void> createRepairItem(
     String accessToken,
     String workshopId,
@@ -96,7 +118,6 @@ static Future<void> updateAppointmentStatus({
     String description,
     String status,
     int order,
-    double cost,
   ) async {
     final url = Uri.parse(
         '$baseUrl/workshops/$workshopId/appointments/$appointmentId/repair-items/');
@@ -104,7 +125,6 @@ static Future<void> updateAppointmentStatus({
       'description': description,
       'status': status,
       'order': order,
-      'cost': cost.toString(),
     };
     final response = await http.post(
       url,
@@ -136,10 +156,7 @@ static Future<void> updateRepairItem(
   String repairItemId, {
   required String description,
   required String status,
-  required double cost,
   required int order,
-  Duration? estimatedDuration,
-  Duration? actualDuration,
   bool? isCompleted,
 }) async {
   final url = Uri.parse(
@@ -147,12 +164,7 @@ static Future<void> updateRepairItem(
   final body = {
     'description': description,
     'status': status,
-    'cost': cost,
     'order': order,
-    if (estimatedDuration != null)
-      'estimated_duration': '${estimatedDuration.inHours}:${estimatedDuration.inMinutes.remainder(60)}:00',
-    if (actualDuration != null)
-      'actual_duration': '${actualDuration.inHours}:${actualDuration.inMinutes.remainder(60)}:00',
     if (isCompleted != null) 'is_completed': isCompleted,
   };
   final response = await http.patch(

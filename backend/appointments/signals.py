@@ -43,13 +43,13 @@ def update_appointment_total_cost(sender, instance, **kwargs):
     appointment = instance.appointment
     appointment.calculate_total_cost()
     
-@receiver(post_save, sender=RepairItem)
-def update_total_time(sender, instance, **kwargs):
-    appointment = instance.appointment
-    repair_items = appointment.repair_items.all()
-    total_time = sum(item.estimated_duration.total_seconds() for item in repair_items)
-    appointment.estimated_duration = timedelta(seconds=total_time)
-    appointment.save()
+# @receiver(post_save, sender=RepairItem)
+# def update_total_time(sender, instance, **kwargs):
+#     appointment = instance.appointment
+#     repair_items = appointment.repair_items.all()
+#     total_time = sum(item.estimated_duration.total_seconds() for item in repair_items)
+#     appointment.estimated_duration = timedelta(seconds=total_time)
+#     appointment.save()
 
 @receiver(post_save, sender=Appointment)
 def update_client_segment(sender, instance, **kwargs):

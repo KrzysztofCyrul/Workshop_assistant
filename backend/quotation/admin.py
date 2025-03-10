@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.utils.html import format_html
-from .models import Quotation, QuotationRepairItem, QuotationPart
+from .models import Quotation, QuotationPart
 
 @admin.register(Quotation)
 class QuotationAdmin(admin.ModelAdmin):
@@ -26,23 +26,6 @@ class QuotationAdmin(admin.ModelAdmin):
         if obj:  # Jeśli obiekt już istnieje (edycja)
             return self.readonly_fields + ('client', 'vehicle', 'workshop')
         return self.readonly_fields
-
-
-@admin.register(QuotationRepairItem)
-class QuotationRepairItemAdmin(admin.ModelAdmin):
-    list_display = ('description', 'quotation', 'cost_display', 'created_at')
-    list_filter = ('quotation__workshop', 'quotation__client')
-    search_fields = ('description', 'quotation__quotation_number')
-    readonly_fields = ('created_at', 'updated_at')
-
-    def cost_display(self, obj):
-        return f"{obj.cost} PLN"
-    cost_display.short_description = 'Koszt'
-
-    def get_queryset(self, request):
-        # Optymalizacja zapytań do bazy danych
-        return super().get_queryset(request).select_related('quotation')
-
 
 @admin.register(QuotationPart)
 class QuotationPartAdmin(admin.ModelAdmin):

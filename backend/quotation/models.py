@@ -59,22 +59,6 @@ class Quotation(models.Model):
     class Meta:
         ordering = ['-created_at']
 
-class QuotationRepairItem(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    quotation = models.ForeignKey(
-        Quotation,
-        on_delete=models.CASCADE,
-        related_name='quotation_repair_items'
-    )
-    description = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    cost = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
-    order = models.PositiveIntegerField(default=0)
-
-    def __str__(self):
-        return f"{self.description} for {self.quotation.client}"
-
 class QuotationPart(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     quotation = models.ForeignKey(
@@ -85,6 +69,7 @@ class QuotationPart(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True, null=True)
     cost_part = models.DecimalField(max_digits=10, decimal_places=2)
+    cost_service = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     quantity = models.PositiveIntegerField(default=1)
     created_at = models.DateTimeField(auto_now_add=True) 
     updated_at = models.DateTimeField(auto_now=True)
@@ -97,7 +82,7 @@ class QuotationPart(models.Model):
 
     @property
     def total_cost(self):
-        return self.cost_part * self.quantity
+        return self.cost_part * self.quantity + self.cost_service
 
     def __str__(self):
         return f"{self.name} x{self.quantity} ({self.cost_part} zł)"

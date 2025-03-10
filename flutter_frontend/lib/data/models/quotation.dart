@@ -1,7 +1,6 @@
 import 'package:flutter_frontend/data/models/vehicle_model.dart';
 
 import 'client.dart';
-import 'quotation_repair_item.dart';
 import 'quotation_part.dart';
 
 class Quotation {
@@ -13,7 +12,6 @@ class Quotation {
   final DateTime updatedAt;
   final double? totalCost;
   final String quotationNumber;
-  final List<QuotationRepairItem> repairItems;
   final List<QuotationPart> parts;
 
   Quotation({
@@ -25,7 +23,6 @@ class Quotation {
     required this.updatedAt,
     this.totalCost,
     required this.quotationNumber,
-    required this.repairItems,
     required this.parts,
   });
 
@@ -39,10 +36,6 @@ class Quotation {
       updatedAt: DateTime.parse(json['updated_at'] as String),
       totalCost: double.tryParse(json['total_cost']?.toString() ?? '0.0'),
       quotationNumber: json['quotation_number'] as String? ?? '',
-      repairItems: (json['quotation_repair_items'] as List<dynamic>?)
-              ?.map((item) => QuotationRepairItem.fromJson(item as Map<String, dynamic>))
-              .toList() ??
-          [],
       parts: (json['quotation_parts'] as List<dynamic>?)
               ?.map((item) => QuotationPart.fromJson(item as Map<String, dynamic>))
               .toList() ??
@@ -60,7 +53,6 @@ class Quotation {
       'updated_at': updatedAt.toIso8601String(),
       'total_cost': totalCost,
       'quotation_number': quotationNumber,
-      'quotation_repair_items': repairItems.map((item) => item.toJson()).toList(),
       'quotation_parts': parts.map((part) => part.toJson()).toList(),
     };
   }

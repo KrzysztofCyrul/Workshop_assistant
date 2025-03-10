@@ -51,16 +51,13 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
   double get totalPartCost => parts.fold(0, (sum, item) => sum + (item.costPart * item.quantity));
   double get totalServiceCost => parts.fold(0, (sum, item) => sum + item.costService);
 
-  double get totalRepairItemsCost => repairItems.fold(0, (sum, item) => sum + item.cost);
-
   @override
   void initState() {
     super.initState();
     _appointmentFuture = _fetchAppointmentDetails();
     quantityController.text = '1';
-    partCostController.text;
-    repairCostController.text;
-    serviceCostController.text;
+    partCostController.text = '0.0';
+    serviceCostController.text = '0.0';
   }
 
   Future<Appointment> _fetchAppointmentDetails() async {
@@ -132,13 +129,6 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
     return hours.toStringAsFixed(2).replaceAll('.', ',');
   }
 
-  double _calculateTotalCost(List<RepairItem> repairItems) {
-    return repairItems.fold(0.0, (sum, item) => sum + item.cost);
-  }
-
-  Duration _calculateTotalEstimatedDuration(List<RepairItem> repairItems) {
-    return repairItems.fold(Duration.zero, (sum, item) => sum + (item.estimatedDuration ?? Duration.zero));
-  }
 
   Widget _buildSectionTitle(String title) {
     return Padding(
@@ -182,7 +172,7 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
 
   void _addPart() async {
     // Sprawdzenie, czy wszystkie wymagane pola zostały wypełnione
-    if (partNameController.text.isEmpty || quantityController.text.isEmpty) {
+    if (partNameController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Wypełnij wszystkie pola')),
       );
@@ -190,6 +180,7 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
     }
 
     // Ustawienie domyślnej wartości 0, jeśli pola kosztu części lub usługi są puste
+    final quantiny = quantityController.text.isEmpty ? 1 : int.parse(quantityController.text);
     final costPart = partCostController.text.isEmpty ? 0.0 : double.parse(partCostController.text);
     final costService = serviceCostController.text.isEmpty ? 0.0 : double.parse(serviceCostController.text);
 
@@ -202,7 +193,7 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
       appointmentId: widget.appointmentId,
       name: partNameController.text.trim(),
       description: '', // Pole 'description', można rozszerzyć formularz
-      quantity: int.parse(quantityController.text),
+      quantity: quantiny,
       costPart: costPart,
       costService: costService,
     );
@@ -248,99 +239,66 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
     }
   }
 
-  void _editPart(int index) async {
-    final part = parts[index];
-    partNameController.text = part.name;
-    quantityController.text = part.quantity.toString();
-    partCostController.text = part.costPart.toString();
-    serviceCostController.text = part.costService.toString();
+  void _editNotes(BuildContext context, Appointment appointment) async {
+  final notesController = TextEditingController(text: appointment.notes);
 
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Edytuj część'),
-          content: Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: partNameController,
-                  decoration: const InputDecoration(labelText: 'Część'),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: TextField(
-                  controller: quantityController,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(labelText: 'Ilość'),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: TextField(
-                  controller: partCostController,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(labelText: 'Cena części'),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: TextField(
-                  controller: serviceCostController,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(labelText: 'Cena usługi'),
-                ),
-              ),
-            ],
+  showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        title: const Text('Edytuj notatki'),
+        content: TextField(
+          controller: notesController,
+          decoration: const InputDecoration(
+            hintText: 'Wprowadź nowe notatki',
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Anuluj'),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                final authProvider = Provider.of<AuthProvider>(context, listen: false);
-                final accessToken = authProvider.accessToken!;
-
+          maxLines: 5,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Anuluj'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final newNotes = notesController.text;
+              if (newNotes.isNotEmpty) {
                 try {
-                  // Aktualizuj część w backendzie
-                  await AppointmentService.updatePart(
-                    accessToken,
-                    widget.workshopId,
-                    widget.appointmentId,
-                    part.id, // Użyj ID części
-                    name: partNameController.text,
-                    description: '',
-                    quantity: int.parse(quantityController.text),
-                    costPart: double.parse(partCostController.text),
-                    costService: double.parse(serviceCostController.text),
+                  final authProvider = Provider.of<AuthProvider>(context, listen: false);
+                  final accessToken = authProvider.accessToken!;
+
+                  await AppointmentService.editNotesValue(
+                    accessToken: accessToken,
+                    workshopId: widget.workshopId,
+                    appointmentId: widget.appointmentId,
+                    newNotes: newNotes,
                   );
 
-                  // Aktualizuj lokalną listę
+                  // Aktualizacja lokalnych danych
                   setState(() {
-                    parts[index] = part.copyWith(
-                      name: partNameController.text,
-                      quantity: int.parse(quantityController.text),
-                      costPart: double.parse(partCostController.text),
-                      costService: double.parse(serviceCostController.text),
-                    );
+                    _currentAppointment = _currentAppointment!.copyWith(notes: newNotes);
                   });
-                  Navigator.pop(context);
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Notatki zostały zaktualizowane')),
+                  );
+
+                  Navigator.of(context).pop();
                 } catch (e) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Błąd podczas aktualizacji części')),
+                    SnackBar(content: Text('Błąd podczas aktualizacji notatek: $e')),
                   );
                 }
-              },
-              child: const Text('Zapisz'),
-            ),
-          ],
-        );
-      },
-    );
-  }
+              }
+            },
+            child: const Text('Zapisz'),
+          ),
+        ],
+      );
+    },
+  );
+}
+
 
   void _editPartValue(int index, String field, dynamic newValue) async {
     final part = parts[index];
@@ -504,7 +462,7 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
                     contentPadding: EdgeInsets.zero, // Usunięcie domyślnego paddingu
                   ),
                   textAlign: TextAlign.left, // Wyśrodkowanie tekstu
-                  onFieldSubmitted: (newValue) {
+                  onChanged: (newValue) {
                     _editPartValue(index, 'name', newValue);
                   },
                 ),
@@ -520,7 +478,7 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
                     contentPadding: EdgeInsets.zero, // Usunięcie domyślnego paddingu
                   ),
                   textAlign: TextAlign.center, // Wyśrodkowanie tekstu
-                  onFieldSubmitted: (newValue) {
+                  onChanged: (newValue) {
                     _editPartValue(index, 'quantity', int.tryParse(newValue) ?? part.quantity);
                   },
                 ),
@@ -536,7 +494,7 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
                     contentPadding: EdgeInsets.zero, // Usunięcie domyślnego paddingu
                   ),
                   textAlign: TextAlign.left, // Wyśrodkowanie tekstu
-                  onFieldSubmitted: (newValue) {
+                  onChanged: (newValue) {
                     _editPartValue(index, 'costPart', double.tryParse(newValue) ?? part.costPart);
                   },
                 ),
@@ -560,7 +518,7 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
                     contentPadding: EdgeInsets.zero,
                   ),
                   textAlign: TextAlign.left,
-                  onFieldSubmitted: (newValue) {
+                  onChanged: (newValue) {
                     _editPartValue(index, 'costService', double.tryParse(newValue) ?? part.costService);
                   },
                 ),
@@ -614,19 +572,9 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
   }
 
   void _addRepairItem() async {
-    if (repairDescriptionController.text.isEmpty || repairCostController.text.isEmpty) {
+    if (repairDescriptionController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Wypełnij wszystkie pola')),
-      );
-      return;
-    }
-
-    // Sprawdź poprawność danych wejściowych
-    final double? cost = double.tryParse(repairCostController.text);
-
-    if (cost == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Wprowadź poprawne dane')),
       );
       return;
     }
@@ -641,11 +589,8 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
       description: repairDescriptionController.text,
       isCompleted: false,
       status: 'pending',
-      estimatedDuration: null,
-      actualDuration: null,
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
-      cost: cost,
       order: repairItems.length + 1,
     );
 
@@ -657,9 +602,8 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
         widget.appointmentId,
         newRepairItem.description ?? '',
         newRepairItem.status,
-        newRepairItem.order,
-        newRepairItem.cost,
-      );
+        newRepairItem.order
+        );
 
       // Aktualizacja lokalnej listy
       setState(() {
@@ -681,8 +625,6 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
 
     final updatedItem = item.copyWith(
       description: field == 'description' ? value : item.description,
-      cost: field == 'cost' ? value : item.cost,
-      estimatedDuration: field == 'estimatedDuration' ? value : item.estimatedDuration,
     );
 
     setState(() {
@@ -700,9 +642,8 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
         item.id,
         description: updatedItem.description ?? '',
         status: updatedItem.status,
-        cost: updatedItem.cost,
         order: updatedItem.order,
-        estimatedDuration: updatedItem.estimatedDuration,
+
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -745,28 +686,6 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
           label: Expanded(
             child: Center(
               child: Text(
-                'Koszt',
-                style: TextStyle(fontWeight: FontWeight.bold),
-                textAlign: TextAlign.center,
-              ),
-            ),
-          ),
-        ),
-        DataColumn(
-          label: Expanded(
-            child: Center(
-              child: Text(
-                'Czas',
-                style: TextStyle(fontWeight: FontWeight.bold),
-                textAlign: TextAlign.center,
-              ),
-            ),
-          ),
-        ),
-        DataColumn(
-          label: Expanded(
-            child: Center(
-              child: Text(
                 'Akcje',
                 style: TextStyle(fontWeight: FontWeight.bold),
                 textAlign: TextAlign.center,
@@ -785,7 +704,7 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
               TextFormField(
                 initialValue: item.description ?? 'Brak opisu',
                 decoration: const InputDecoration(border: InputBorder.none),
-                onFieldSubmitted: (newValue) {
+                onChanged: (newValue) {
                   _editRepairItemValue(index, 'description', newValue);
                 },
               ),
@@ -805,27 +724,7 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
                 ),
               ),
             ),
-            DataCell(
-              Center(
-                child: TextFormField(
-                  initialValue: item.cost.toStringAsFixed(2),
-                  decoration: const InputDecoration(border: InputBorder.none),
-                  keyboardType: TextInputType.number,
-                  textAlign: TextAlign.center, // Wyśrodkowanie tekstu
-                  onFieldSubmitted: (newValue) {
-                    _editRepairItemValue(index, 'cost', double.parse(newValue));
-                  },
-                ),
-              ),
-            ),
-            DataCell(
-              Center(
-                child: Text(
-                  item.estimatedDuration != null ? _formatDuration(item.estimatedDuration!) : 'Brak',
-                  textAlign: TextAlign.center, // Wyśrodkowanie tekstu
-                ),
-              ),
-            ),
+        
             DataCell(
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -959,19 +858,6 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
             controller: repairDescriptionController,
             decoration: const InputDecoration(
               labelText: 'Opis',
-              border: OutlineInputBorder(),
-              contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 12),
-            ),
-          ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          flex: 2,
-          child: TextField(
-            controller: repairCostController,
-            keyboardType: TextInputType.number,
-            decoration: const InputDecoration(
-              labelText: 'Koszt',
               border: OutlineInputBorder(),
               contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 12),
             ),
@@ -1441,9 +1327,6 @@ Future<void> generatePdf(Appointment appointment, List<Part> parts, List<RepairI
             return const Center(child: Text('Nie znaleziono zlecenia'));
           } else {
             final appointment = snapshot.data!;
-            final totalCost = _calculateTotalCost(appointment.repairItems);
-            final totalEstimatedDuration = _calculateTotalEstimatedDuration(appointment.repairItems);
-            final discountedCost = _calculateDiscountedCost(totalCost, appointment.client.segment);
 
             return SingleChildScrollView(
               padding: const EdgeInsets.all(16.0),
@@ -1452,70 +1335,83 @@ Future<void> generatePdf(Appointment appointment, List<Part> parts, List<RepairI
                 children: [
                   // Szczegóły zlecenia
                   Card(
-                    elevation: 2,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    child: ExpansionTile(
-                      title: const Text('Szczegóły Zlecenia'),
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Column(
-                            children: [
-                              _buildDetailRow(
-                                'Data',
-                                DateFormat('dd-MM-yyyy HH:mm').format(appointment.scheduledTime.toLocal()),
-                                icon: Icons.calendar_today,
-                              ),
-                              _buildDetailRow(
-                                'Status',
-                                _getStatusLabel(appointment.status),
-                                icon: Icons.info,
-                              ),
-                              _buildDetailRow(
-                                'Przebieg',
-                                '${appointment.mileage} km',
-                                icon: Icons.speed,
-                              ),
-                              _buildDetailRow(
-                                'Szacowany czas',
-                                _formatDuration(totalEstimatedDuration),
-                                icon: Icons.timer,
-                              ),
-                              _buildDetailRow(
-                                'Całkowity koszt',
-                                '${totalCost.toStringAsFixed(2)} PLN',
-                                icon: Icons.attach_money,
-                              ),
-                              _buildDetailRow(
-                                'Koszt z rabatem',
-                                '${discountedCost.toStringAsFixed(2)} PLN',
-                                icon: Icons.money_off,
-                              ),
-                              if (appointment.notes != null && appointment.notes!.isNotEmpty)
-                                const Padding(
-                                  padding: EdgeInsets.symmetric(vertical: 8.0),
-                                  child: Align(
-                                    alignment: Alignment.centerLeft,
-                                    child: Text(
-                                      'Notatki:',
-                                      style: TextStyle(fontWeight: FontWeight.bold),
-                                    ),
-                                  ),
-                                ),
-                              if (appointment.notes != null && appointment.notes!.isNotEmpty)
-                                Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: Text(
-                                    appointment.notes!,
-                                    style: const TextStyle(color: Colors.grey),
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
+  elevation: 2,
+  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+  child: ExpansionTile(
+    title: const Text('Szczegóły Zlecenia'),
+    children: [
+      Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            _buildDetailRow(
+              'Data',
+              DateFormat('dd-MM-yyyy HH:mm').format(appointment.scheduledTime.toLocal()),
+              icon: Icons.calendar_today,
+            ),
+            _buildDetailRow(
+              'Status',
+              _getStatusLabel(appointment.status),
+              icon: Icons.info,
+            ),
+            _buildDetailRow(
+              'Przebieg',
+              '${appointment.mileage} km',
+              icon: Icons.speed,
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Notatki:',
+                    style: TextStyle(fontWeight: FontWeight.bold),
                   ),
+                  TextFormField(
+                    initialValue: appointment.notes ?? '',
+                    decoration: const InputDecoration(
+                      hintText: 'Dodaj notatki...',
+                      border: InputBorder.none,
+                    ),
+                    maxLines: 3,
+                    onChanged: (newValue) async {
+                      if (newValue != appointment.notes) {
+                        try {
+                          final authProvider = Provider.of<AuthProvider>(context, listen: false);
+                          final accessToken = authProvider.accessToken!;
+
+                          await AppointmentService.editNotesValue(
+                            accessToken: accessToken,
+                            workshopId: widget.workshopId,
+                            appointmentId: widget.appointmentId,
+                            newNotes: newValue,
+                          );
+
+                          setState(() {
+                            _currentAppointment = _currentAppointment!.copyWith(notes: newValue);
+                          });
+
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Notatki zostały zaktualizowane')),
+                          );
+                        } catch (e) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Błąd podczas aktualizacji notatek: $e')),
+                          );
+                        }
+                      }
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    ],
+  ),
+),
                   const SizedBox(height: 16.0),
                   // Szczegóły pojazdu
                   Card(
@@ -1568,7 +1464,7 @@ Future<void> generatePdf(Appointment appointment, List<Part> parts, List<RepairI
                   const SizedBox(height: 16.0),
 
                   // Formularz dodawania elementu naprawy
-                  _buildSectionTitle('Elementy Naprawy'),
+                  _buildSectionTitle('Do naprawy'),
                   _buildAddRepairItemForm(),
 
                   const SizedBox(height: 16),
@@ -1600,14 +1496,14 @@ Future<void> generatePdf(Appointment appointment, List<Part> parts, List<RepairI
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text('Suma cen części: ${totalPartCost.toStringAsFixed(2)} PLN'),
-                        Text('Suma cen usług: ${(totalServiceCost+totalRepairItemsCost).toStringAsFixed(2)} PLN'),
+                        Text('Suma cen usług: ${(totalServiceCost).toStringAsFixed(2)} PLN'),
                         Text(
-                          'Łączna cena: ${(totalPartCost + totalServiceCost+totalRepairItemsCost).toStringAsFixed(2)} PLN',
+                          'Łączna cena: ${(totalPartCost + totalServiceCost).toStringAsFixed(2)} PLN',
                           style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Cena po rabacie: ${_calculateDiscountedCost(totalPartCost + totalServiceCost+totalRepairItemsCost, _currentAppointment?.client.segment).toStringAsFixed(2)} PLN',
+                          'Cena po rabacie: ${_calculateDiscountedCost(totalPartCost + totalServiceCost, _currentAppointment?.client.segment).toStringAsFixed(2)} PLN',
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             color: Colors.green,

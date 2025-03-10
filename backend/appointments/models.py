@@ -50,10 +50,9 @@ class Appointment(models.Model):
         return f"Appointment for {self.client} on {self.scheduled_time}"
 
     def calculate_total_cost(self):
-        repair_items_cost = sum(item.cost for item in self.repair_items.all())
         parts_cost = sum(part.total_cost for part in self.parts.all())
 
-        total_cost = repair_items_cost + parts_cost
+        total_cost = parts_cost
 
         # Apply client's discount
         discount_rate = Decimal(self.client.discount) / Decimal(100)
@@ -90,11 +89,8 @@ class RepairItem(models.Model):
         related_name='completed_repair_items'
     )
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
-    estimated_duration = models.DurationField(null=True, blank=True)
-    actual_duration = models.DurationField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    cost = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     order = models.PositiveIntegerField(default=0)
     
 

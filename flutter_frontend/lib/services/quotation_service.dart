@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../data/models/quotation.dart';
-import '../data/models/quotation_repair_item.dart';
 import '../data/models/quotation_part.dart';
 import '../core/utils/constants.dart';
 
@@ -123,25 +122,6 @@ class QuotationService {
     }
   }
 
-  // Pobieranie listy elementów naprawy dla wyceny
-  static Future<List<QuotationRepairItem>> getQuotationRepairItems(
-      String accessToken, String workshopId, String quotationId) async {
-    final url = Uri.parse('$baseUrl/workshops/$workshopId/quotations/$quotationId/repair-items/');
-    final response = await http.get(
-      url,
-      headers: {
-        'Authorization': 'Bearer $accessToken',
-        'Content-Type': 'application/json',
-      },
-    );
-
-    if (response.statusCode == 200) {
-      final data = json.decode(utf8.decode(response.bodyBytes)) as List<dynamic>;
-      return data.map((json) => QuotationRepairItem.fromJson(json)).toList();
-    } else {
-      throw Exception('Błąd podczas pobierania elementów naprawy: ${response.statusCode}');
-    }
-  }
 
   // Tworzenie nowego elementu naprawy dla wyceny
   static Future<void> createQuotationRepairItem({
@@ -281,6 +261,7 @@ class QuotationService {
     String? name,
     String? description,
     double? costPart,
+    double? costService,
     int? quantity,
   }) async {
     final url = Uri.parse('$baseUrl/workshops/$workshopId/quotations/$quotationId/parts/$partId/');
@@ -294,6 +275,7 @@ class QuotationService {
         'name': name,
         'description': description,
         'cost_part': costPart,
+        'cost_service': costService,
         'quantity': quantity,
       }),
     );

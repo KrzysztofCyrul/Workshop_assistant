@@ -1,4 +1,3 @@
-import 'package:flutter_frontend/data/models/repair_item.dart';
 
 class CostCalculator {
   static double calculateDiscountedCost(double originalCost, String? segment) {
@@ -10,7 +9,4 @@ class CostCalculator {
     }
   }
 
-  static double calculateTotalCost(List<RepairItem> items) {
-    return items.fold(0.0, (sum, item) => sum + item.cost);
-  }
 }
