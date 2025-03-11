@@ -384,164 +384,169 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
     }
   }
 
-  Widget _buildPartsTable() {
-    return DataTable(
-      columnSpacing: MediaQuery.of(context).size.width * 0.02,
-      headingRowColor: WidgetStateColor.resolveWith((states) => Colors.green.shade100),
-      dataRowColor: WidgetStateColor.resolveWith((states) {
-        return states.contains(WidgetState.selected) ? Colors.green.shade50 : Colors.grey.shade100;
-      }),
-      columns: const [
-        DataColumn(
-          label: Center(
-            child: Text(
-              'Część',
-              style: TextStyle(fontWeight: FontWeight.bold),
-              textAlign: TextAlign.center,
-            ),
+Widget _buildPartsTable() {
+  return DataTable(
+    columnSpacing: MediaQuery.of(context).size.width * 0.02,
+    headingRowColor: WidgetStateColor.resolveWith((states) => Colors.green.shade100),
+    dataRowColor: WidgetStateColor.resolveWith((states) {
+      return states.contains(WidgetState.selected) ? Colors.green.shade50 : Colors.grey.shade100;
+    }),
+    columns: const [
+      DataColumn(
+        label: Center(
+          child: Text(
+            'Część',
+            style: TextStyle(fontWeight: FontWeight.bold),
+            textAlign: TextAlign.center,
           ),
         ),
-        DataColumn(
-          label: Center(
-            child: Text(
-              'Ilość',
-              style: TextStyle(fontWeight: FontWeight.bold),
-              textAlign: TextAlign.center,
-            ),
+      ),
+      DataColumn(
+        label: Center(
+          child: Text(
+            'Ilość',
+            style: TextStyle(fontWeight: FontWeight.bold),
+            textAlign: TextAlign.center,
           ),
         ),
-        DataColumn(
-          label: Center(
-            child: Text(
-              'Części',
-              style: TextStyle(fontWeight: FontWeight.bold),
-              textAlign: TextAlign.center,
-            ),
+      ),
+      DataColumn(
+        label: Center(
+          child: Text(
+            'Części',
+            style: TextStyle(fontWeight: FontWeight.bold),
+            textAlign: TextAlign.center,
           ),
         ),
-        DataColumn(
-          label: Center(
-            child: Text(
-              'Suma',
-              style: TextStyle(fontWeight: FontWeight.bold),
-              textAlign: TextAlign.center,
-            ),
+      ),
+      DataColumn(
+        label: Center(
+          child: Text(
+            'Suma',
+            style: TextStyle(fontWeight: FontWeight.bold),
+            textAlign: TextAlign.center,
           ),
         ),
-        DataColumn(
-          label: Center(
-            child: Text(
-              'Usługa',
-              style: TextStyle(fontWeight: FontWeight.bold),
-              textAlign: TextAlign.center,
-            ),
+      ),
+      DataColumn(
+        label: Center(
+          child: Text(
+            'Usługa',
+            style: TextStyle(fontWeight: FontWeight.bold),
+            textAlign: TextAlign.center,
           ),
         ),
-        DataColumn(
-          label: Center(
-            child: Text(
-              'Akcje',
-              style: TextStyle(fontWeight: FontWeight.bold),
-              textAlign: TextAlign.center,
-            ),
+      ),
+      DataColumn(
+        label: Center(
+          child: Text(
+            'Akcje',
+            style: TextStyle(fontWeight: FontWeight.bold),
+            textAlign: TextAlign.end,
           ),
         ),
-      ],
-      rows: parts.asMap().entries.map((entry) {
-        final index = entry.key;
-        final part = entry.value;
+      ),
+    ],
+    rows: parts.asMap().entries.map((entry) {
+      final index = entry.key;
+      final part = entry.value;
 
-        return DataRow(
-          cells: [
-            DataCell(
-              Center(
-                child: TextFormField(
-                  initialValue: part.name,
-                  decoration: const InputDecoration(
-                    border: InputBorder.none,
-                    contentPadding: EdgeInsets.zero, // Usunięcie domyślnego paddingu
-                  ),
-                  textAlign: TextAlign.left, // Wyśrodkowanie tekstu
-                  onChanged: (newValue) {
-                    _editPartValue(index, 'name', newValue);
-                  },
+      return DataRow(
+        cells: [
+          DataCell(
+            Align(
+              alignment: Alignment.centerLeft, // Wyrównanie zawartości do środka
+              child: TextFormField(
+                initialValue: part.name,
+                decoration: const InputDecoration(
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.zero, // Usunięcie paddingu
+                  isDense: true, // Zmniejszenie domyślnej wysokości
                 ),
+                textAlign: TextAlign.start, // Wyśrodkowanie tekstu
+                onChanged: (newValue) {
+                  _editPartValue(index, 'name', newValue);
+                },
               ),
             ),
-            DataCell(
-              Center(
-                child: TextFormField(
-                  initialValue: part.quantity.toString(),
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    border: InputBorder.none,
-                    contentPadding: EdgeInsets.zero, // Usunięcie domyślnego paddingu
-                  ),
-                  textAlign: TextAlign.center, // Wyśrodkowanie tekstu
-                  onChanged: (newValue) {
-                    _editPartValue(index, 'quantity', int.tryParse(newValue) ?? part.quantity);
-                  },
+          ),
+          DataCell(
+            Align(
+              alignment: Alignment.centerLeft, // Wyrównanie zawartości do środka
+              child: TextFormField(
+                initialValue: part.quantity.toString(),
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.zero, // Usunięcie paddingu
+                  isDense: true, // Zmniejszenie domyślnej wysokości
                 ),
+                textAlign: TextAlign.start, // Wyśrodkowanie tekstu
+                onChanged: (newValue) {
+                  _editPartValue(index, 'quantity', int.tryParse(newValue) ?? part.quantity);
+                },
               ),
             ),
-            DataCell(
-              Center(
-                child: TextFormField(
-                  initialValue: part.costPart.toStringAsFixed(2),
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    border: InputBorder.none,
-                    contentPadding: EdgeInsets.zero, // Usunięcie domyślnego paddingu
-                  ),
-                  textAlign: TextAlign.left, // Wyśrodkowanie tekstu
-                  onChanged: (newValue) {
-                    _editPartValue(index, 'costPart', double.tryParse(newValue) ?? part.costPart);
-                  },
+          ),
+          DataCell(
+            Align(
+              alignment: Alignment.centerLeft, // Wyrównanie zawartości do środka
+              child: TextFormField(
+                initialValue: part.costPart.toStringAsFixed(2),
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.zero, // Usunięcie paddingu
+                  isDense: true, // Zmniejszenie domyślnej wysokości
                 ),
+                textAlign: TextAlign.left, // Wyśrodkowanie tekstu
+                onChanged: (newValue) {
+                  _editPartValue(index, 'costPart', double.tryParse(newValue) ?? part.costPart);
+                },
               ),
             ),
-            DataCell(
-              Center(
-                child: Text(
-                  (part.costPart * part.quantity).toStringAsFixed(2),
-                  textAlign: TextAlign.left,
-                ),
+          ),
+          DataCell(
+            Align(
+              alignment: Alignment.centerLeft, // Wyrównanie zawartości do środka
+              child: Text(
+                (part.costPart * part.quantity).toStringAsFixed(2),
+                textAlign: TextAlign.center,
               ),
             ),
-            DataCell(
-              Center(
-                child: TextFormField(
-                  initialValue: part.costService.toStringAsFixed(2),
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    border: InputBorder.none,
-                    contentPadding: EdgeInsets.zero,
-                  ),
-                  textAlign: TextAlign.left,
-                  onChanged: (newValue) {
-                    _editPartValue(index, 'costService', double.tryParse(newValue) ?? part.costService);
-                  },
+          ),
+          DataCell(
+            Align(
+              alignment: Alignment.centerLeft, // Wyrównanie zawartości do środka
+              child: TextFormField(
+                initialValue: part.costService.toStringAsFixed(2),
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.zero, // Usunięcie paddingu
+                  isDense: true, // Zmniejszenie domyślnej wysokości
                 ),
+                textAlign: TextAlign.left, // Wyśrodkowanie tekstu
+                onChanged: (newValue) {
+                  _editPartValue(index, 'costService', double.tryParse(newValue) ?? part.costService);
+                },
               ),
             ),
-            DataCell(
-              Center(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.delete, color: Colors.red),
-                      onPressed: () => _confirmDeletePartItem(index),
-                    ),
-                  ],
-                ),
+          ),
+          DataCell(
+            Align(
+              alignment: Alignment.centerLeft, // Wyrównanie akcji do prawej strony
+              child: IconButton(
+                icon: const Icon(Icons.delete, color: Colors.red),
+                onPressed: () => _confirmDeletePartItem(index),
               ),
             ),
-          ],
-        );
-      }).toList(),
-    );
-  }
+          ),
+        ],
+      );
+    }).toList(),
+  );
+}
 
   void _confirmDeletePartItem(int index) {
     showDialog(
@@ -1058,7 +1063,7 @@ Future<void> generatePdf(Appointment appointment, List<Part> parts, List<RepairI
       pageFormat: PdfPageFormat.a4,
       build: (pw.Context context) {
         return pw.Column(
-          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          crossAxisAlignment: pw.CrossAxisAlignment.center,
           children: [
             pw.Text(
               'ZLECENIE NAPRAWY DATA ${DateFormat('dd.MM.yyyy').format(appointment.scheduledTime.toLocal())}',
@@ -1071,11 +1076,11 @@ Future<void> generatePdf(Appointment appointment, List<Part> parts, List<RepairI
                 pw.TableRow(
                   children: [
                     pw.Padding(
-                      padding: const pw.EdgeInsets.all(8.0),
+                      padding: const pw.EdgeInsets.all(6.0),
                       child: pw.Text('Marka:', style: pw.TextStyle(font: ttf)),
                     ),
                     pw.Padding(
-                      padding: const pw.EdgeInsets.all(8.0),
+                      padding: const pw.EdgeInsets.all(6.0),
                       child: pw.Text(appointment.vehicle.make, style: pw.TextStyle(font: ttf)),
                     ),
                   ],
@@ -1083,11 +1088,11 @@ Future<void> generatePdf(Appointment appointment, List<Part> parts, List<RepairI
                 pw.TableRow(
                   children: [
                     pw.Padding(
-                      padding: const pw.EdgeInsets.all(8.0),
+                      padding: const pw.EdgeInsets.all(6.0),
                       child: pw.Text('Model:', style: pw.TextStyle(font: ttf)),
                     ),
                     pw.Padding(
-                      padding: const pw.EdgeInsets.all(8.0),
+                      padding: const pw.EdgeInsets.all(6.0),
                       child: pw.Text(appointment.vehicle.model, style: pw.TextStyle(font: ttf)),
                     ),
                   ],
@@ -1095,11 +1100,11 @@ Future<void> generatePdf(Appointment appointment, List<Part> parts, List<RepairI
                 pw.TableRow(
                   children: [
                     pw.Padding(
-                      padding: const pw.EdgeInsets.all(8.0),
+                      padding: const pw.EdgeInsets.all(6.0),
                       child: pw.Text('Rejestracja:', style: pw.TextStyle(font: ttf)),
                     ),
                     pw.Padding(
-                      padding: const pw.EdgeInsets.all(8.0),
+                      padding: const pw.EdgeInsets.all(6.0),
                       child: pw.Text(appointment.vehicle.licensePlate, style: pw.TextStyle(font: ttf)),
                     ),
                   ],
@@ -1120,23 +1125,23 @@ Future<void> generatePdf(Appointment appointment, List<Part> parts, List<RepairI
                 pw.TableRow(
                   children: [
                     pw.Padding(
-                      padding: const pw.EdgeInsets.all(8.0),
+                      padding: const pw.EdgeInsets.all(6.0),
                       child: pw.Text('DO ZROBIENIA', style: pw.TextStyle(font: boldTtf)),
                     ),
                     pw.Padding(
-                      padding: const pw.EdgeInsets.all(8.0),
+                      padding: const pw.EdgeInsets.all(6.0),
                       child: pw.Text('ILOŚĆ', style: pw.TextStyle(font: boldTtf)),
                     ),
                     pw.Padding(
-                      padding: const pw.EdgeInsets.all(8.0),
-                      child: pw.Text('CENA CZĘŚCI', style: pw.TextStyle(font: boldTtf)),
+                      padding: const pw.EdgeInsets.all(6.0),
+                      child: pw.Text('CZĘŚCI (PLN)', style: pw.TextStyle(font: boldTtf)),
                     ),
                     pw.Padding(
-                      padding: const pw.EdgeInsets.all(8.0),
+                      padding: const pw.EdgeInsets.all(6.0),
                       child: pw.Text('RAZEM (PLN)', style: pw.TextStyle(font: boldTtf)),
                     ),
                     pw.Padding(
-                      padding: const pw.EdgeInsets.all(8.0),
+                      padding: const pw.EdgeInsets.all(6.0),
                       child: pw.Text('USŁUGA (PLN)', style: pw.TextStyle(font: boldTtf)),
                     ),
                   ],
@@ -1180,11 +1185,11 @@ Future<void> generatePdf(Appointment appointment, List<Part> parts, List<RepairI
                 pw.TableRow(
                   children: [
                     pw.Padding(
-                      padding: const pw.EdgeInsets.all(8.0),
+                      padding: const pw.EdgeInsets.all(6.0),
                       child: pw.Text('SUMA CZĘŚCI (PLN):', style: pw.TextStyle(font: boldTtf)),
                     ),
                     pw.Padding(
-                      padding: const pw.EdgeInsets.all(8.0),
+                      padding: const pw.EdgeInsets.all(6.0),
                       child: pw.Text(totalPartsCost.toStringAsFixed(2), style: pw.TextStyle(font: ttf)),
                     ),
                   ],
@@ -1192,11 +1197,11 @@ Future<void> generatePdf(Appointment appointment, List<Part> parts, List<RepairI
                 pw.TableRow(
                   children: [
                     pw.Padding(
-                      padding: const pw.EdgeInsets.all(8.0),
+                      padding: const pw.EdgeInsets.all(6.0),
                       child: pw.Text('SUMA USŁUG (PLN):', style: pw.TextStyle(font: boldTtf)),
                     ),
                     pw.Padding(
-                      padding: const pw.EdgeInsets.all(8.0),
+                      padding: const pw.EdgeInsets.all(6.0),
                       child: pw.Text(totalServiceCost.toStringAsFixed(2), style: pw.TextStyle(font: ttf)),
                     ),
                   ],
@@ -1204,11 +1209,11 @@ Future<void> generatePdf(Appointment appointment, List<Part> parts, List<RepairI
                 pw.TableRow(
                   children: [
                     pw.Padding(
-                      padding: const pw.EdgeInsets.all(8.0),
+                      padding: const pw.EdgeInsets.all(6.0),
                       child: pw.Text('CAŁKOWITA SUMA (PLN):', style: pw.TextStyle(font: boldTtf)),
                     ),
                     pw.Padding(
-                      padding: const pw.EdgeInsets.all(8.0),
+                      padding: const pw.EdgeInsets.all(6.0),
                       child: pw.Text(totalCost.toStringAsFixed(2), style: pw.TextStyle(font: ttf)),
                     ),
                   ],
@@ -1256,17 +1261,6 @@ Future<void> generatePdf(Appointment appointment, List<Part> parts, List<RepairI
                 ),
               ),
             );
-          },
-        ),
-      );
-
-      // Dodaj przycisk do wyświetlania rekomendacji
-      appBarActions.add(
-        IconButton(
-          icon: const Icon(Icons.recommend),
-          tooltip: 'Pokaż rekomendacje',
-          onPressed: () {
-            _showRecommendations(context, _currentAppointment!.recommendations);
           },
         ),
       );
