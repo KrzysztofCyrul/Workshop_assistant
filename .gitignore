@@ -442,3 +442,5 @@ app.*.symbols
 !/dev/ci/**/Gemfile.lock
 !.vscode/settings.json
 backend/ai_module/client_segment_classifier.joblib
+backend/workshops/migrations/0004_alter_workshop_post_code.py
+backend/requirements.txt

@@ -11,7 +11,7 @@ class Workshop(models.Model):
         related_name='workshops'
     )
     address = models.CharField(max_length=255, blank=True, null=True)
-    post_code = models.CharField(max_length=10, blank=True, null=True)
+    post_code = models.CharField(max_length=20, blank=True, null=True)
     nip_number = models.CharField(max_length=13, blank=True, null=True)
     email = models.EmailField(blank=True, null=True)
     phone = models.CharField(max_length=20, blank=True, null=True)
