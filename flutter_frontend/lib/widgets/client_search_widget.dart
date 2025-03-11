@@ -88,7 +88,7 @@ class _ClientSearchWidgetState extends State<ClientSearchWidget> {
               onPressed: () async {
                 final newClient = await Navigator.of(context).push<Client>(
                   MaterialPageRoute(
-                    builder: (_) => AddClientScreen(),
+                    builder: (_) => const AddClientScreen(),
                   ),
                 );
 

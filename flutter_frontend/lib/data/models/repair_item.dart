@@ -60,21 +60,6 @@ class RepairItem {
     );
   }
 
-  // Funkcja pomocnicza do parsowania ciągu znaków na Duration
-  static Duration? _parseDuration(dynamic value) {
-    if (value == null) return null;
-    try {
-      // Przyjmuje format "HH:MM:SS"
-      final parts = value.split(':');
-      final hours = int.parse(parts[0]);
-      final minutes = int.parse(parts[1]);
-      final seconds = int.parse(parts[2]);
-      return Duration(hours: hours, minutes: minutes, seconds: seconds);
-    } catch (_) {
-      return null;
-    }
-  }
-
   // Funkcja do formatowania Duration na string w formacie dziesiętnym "HH.HHHHHH"
 
   Map<String, dynamic> toJson() {

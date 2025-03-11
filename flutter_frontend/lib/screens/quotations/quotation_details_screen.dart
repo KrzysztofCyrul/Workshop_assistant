@@ -11,7 +11,6 @@ import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:pdf/widgets.dart' as pw;
 
-
 class QuotationDetailsScreen extends StatefulWidget {
   static const routeName = '/quotation-details';
 
@@ -46,7 +45,7 @@ class _QuotationDetailsScreenState extends State<QuotationDetailsScreen> {
   bool isSuggestionsLoaded = false;
 
   double get totalPartCost => parts.fold(0, (sum, item) => sum + (item.costPart * item.quantity));
-    double get totalServiceCost => parts.fold(0, (sum, item) => sum + (item.costService));
+  double get totalServiceCost => parts.fold(0, (sum, item) => sum + (item.costService));
 
   @override
   void initState() {
@@ -136,7 +135,7 @@ class _QuotationDetailsScreenState extends State<QuotationDetailsScreen> {
     );
   }
 
-Widget _buildAddPartForm() {
+  Widget _buildAddPartForm() {
     if (!isSuggestionsLoaded) {
       _loadPartsSuggestions();
     }
@@ -287,7 +286,7 @@ Widget _buildAddPartForm() {
     }
   }
 
-Widget _buildPartsTable() {
+  Widget _buildPartsTable() {
     return DataTable(
       columnSpacing: MediaQuery.of(context).size.width * 0.02,
       headingRowColor: WidgetStateColor.resolveWith((states) => Colors.green.shade100),
@@ -446,7 +445,6 @@ Widget _buildPartsTable() {
     );
   }
 
-
   void _editPartValue(int index, String field, dynamic newValue) async {
     final part = parts[index];
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
@@ -556,209 +554,197 @@ Widget _buildPartsTable() {
   }
 
   Future<void> generatePdf(Quotation quotation, List<QuotationPart> parts) async {
-  final pdf = pw.Document();
+    final pdf = pw.Document();
 
-  // Załaduj czcionkę z assets
-  final font = await rootBundle.load("assets/fonts/Roboto-Regular.ttf");
-  final ttf = pw.Font.ttf(font);
+    final font = await rootBundle.load("assets/fonts/Roboto-Regular.ttf");
+    final ttf = pw.Font.ttf(font);
 
-  final boldFont = await rootBundle.load("assets/fonts/Roboto-Bold.ttf");
-  final boldTtf = pw.Font.ttf(boldFont);
+    final boldFont = await rootBundle.load("assets/fonts/Roboto-Bold.ttf");
+    final boldTtf = pw.Font.ttf(boldFont);
 
-  // Oblicz sumy
-  double totalPartsCost = parts.fold(0, (sum, part) => sum + (part.costPart * part.quantity));
-  double totalServiceCost = parts.fold(0, (sum, part) => sum + part.costService);
-  double totalCost = totalPartsCost + totalServiceCost;
+    double totalPartsCost = parts.fold(0, (sum, part) => sum + (part.costPart * part.quantity));
+    double totalServiceCost = parts.fold(0, (sum, part) => sum + part.costService);
+    double totalCost = totalPartsCost + totalServiceCost;
 
-  pdf.addPage(
-    pw.Page(
-      pageFormat: PdfPageFormat.a4,
-      build: (pw.Context context) {
-        return pw.Column(
-          crossAxisAlignment: pw.CrossAxisAlignment.center,
-          children: [
-            pw.Text(
-              'WYCENA NR ${quotation.quotationNumber}',
-              style: pw.TextStyle(font: boldTtf, fontSize: 20),
-            ),
-            pw.SizedBox(height: 20),
-            pw.Table(
-              border: pw.TableBorder.all(),
-              children: [
-                pw.TableRow(
-                  children: [
-                    pw.Padding(
-                      padding: const pw.EdgeInsets.all(6.0),
-                      child: pw.Text('Klient:', style: pw.TextStyle(font: ttf)),
-                    ),
-                    pw.Padding(
-                      padding: const pw.EdgeInsets.all(6.0),
-                      child: pw.Text('${quotation.client.firstName} ${quotation.client.lastName}', style: pw.TextStyle(font: ttf)),
-                    ),
-                  ],
-                ),
-                pw.TableRow(
-                  children: [
-                    pw.Padding(
-                      padding: const pw.EdgeInsets.all(6.0),
-                      child: pw.Text('Pojazd:', style: pw.TextStyle(font: ttf)),
-                    ),
-                    pw.Padding(
-                      padding: const pw.EdgeInsets.all(6.0),
-                      child: pw.Text('${quotation.vehicle.make} ${quotation.vehicle.model}', style: pw.TextStyle(font: ttf)),
-                    ),
-                  ],
-                ),
-                pw.TableRow(
-                  children: [
-                    pw.Padding(
-                      padding: const pw.EdgeInsets.all(6.0),
-                      child: pw.Text('Data wyceny:', style: pw.TextStyle(font: ttf)),
-                    ),
-                    pw.Padding(
-                      padding: const pw.EdgeInsets.all(6.0),
-                      child: pw.Text(DateFormat('dd.MM.yyyy').format(quotation.createdAt.toLocal()), style: pw.TextStyle(font: ttf)),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            pw.SizedBox(height: 20),
-            pw.Table(
-              border: pw.TableBorder.all(),
-              columnWidths: {
-                0: const pw.FlexColumnWidth(2),
-                1: const pw.FlexColumnWidth(1),
-                2: const pw.FlexColumnWidth(1),
-                3: const pw.FlexColumnWidth(1),
-                4: const pw.FlexColumnWidth(1),
-              },
-              children: [
-                pw.TableRow(
-                  children: [
-                    pw.Padding(
-                      padding: const pw.EdgeInsets.all(6.0),
-                      child: pw.Text('Część', style: pw.TextStyle(font: boldTtf)),
-                    ),
-                    pw.Padding(
-                      padding: const pw.EdgeInsets.all(6.0),
-                      child: pw.Text('Ilość', style: pw.TextStyle(font: boldTtf)),
-                    ),
-                    pw.Padding(
-                      padding: const pw.EdgeInsets.all(6.0),
-                      child: pw.Text('Cena części (PLN)', style: pw.TextStyle(font: boldTtf)),
-                    ),
-                    pw.Padding(
-                      padding: const pw.EdgeInsets.all(6.0),
-                      child: pw.Text('Razem (PLN)', style: pw.TextStyle(font: boldTtf)),
-                    ),
-                    pw.Padding(
-                      padding: const pw.EdgeInsets.all(6.0),
-                      child: pw.Text('Usługa (PLN)', style: pw.TextStyle(font: boldTtf)),
-                    ),
-                  ],
-                ),
-                for (var part in parts)
+    pdf.addPage(
+      pw.Page(
+        pageFormat: PdfPageFormat.a4,
+        build: (pw.Context context) {
+          return pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.center,
+            children: [
+              pw.Text(
+                'WYCENA NR ${quotation.quotationNumber}',
+                style: pw.TextStyle(font: boldTtf, fontSize: 20),
+              ),
+              pw.Text(
+                DateFormat('dd.MM.yyyy').format(quotation.createdAt.toLocal()),
+                style: pw.TextStyle(font: ttf, fontSize: 10),
+              ),
+              pw.SizedBox(height: 20),
+              pw.Table(
+                border: pw.TableBorder.all(),
+                children: [
                   pw.TableRow(
                     children: [
                       pw.Padding(
-                        padding: const pw.EdgeInsets.all(8.0),
-                        child: pw.Text(part.name, style: pw.TextStyle(font: ttf)),
+                        padding: const pw.EdgeInsets.all(6.0),
+                        child: pw.Text('Pojazd:', style: pw.TextStyle(font: ttf)),
                       ),
                       pw.Padding(
-                        padding: const pw.EdgeInsets.all(8.0),
-                        child: pw.Text(part.quantity.toString(), style: pw.TextStyle(font: ttf)),
-                      ),
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(8.0),
-                        child: pw.Text(part.costPart.toStringAsFixed(2), style: pw.TextStyle(font: ttf)),
-                      ),
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(8.0),
-                        child: pw.Text((part.costPart * part.quantity).toStringAsFixed(2), style: pw.TextStyle(font: ttf)),
-                      ),
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(8.0),
-                        child: pw.Text(part.costService.toStringAsFixed(2), style: pw.TextStyle(font: ttf)),
+                        padding: const pw.EdgeInsets.all(6.0),
+                        child: pw.Text('${quotation.vehicle.licensePlate} ${quotation.vehicle.make} ${quotation.vehicle.model} ', style: pw.TextStyle(font: ttf)),
                       ),
                     ],
                   ),
-              ],
-            ),
-            pw.SizedBox(height: 20),
-            // Podsumowanie
-            pw.Table(
-              border: pw.TableBorder.all(),
-              columnWidths: {
-                0: const pw.FlexColumnWidth(3),
-                1: const pw.FlexColumnWidth(2),
-              },
-              children: [
-                pw.TableRow(
-                  children: [
-                    pw.Padding(
-                      padding: const pw.EdgeInsets.all(6.0),
-                      child: pw.Text('SUMA CZĘŚCI (PLN):', style: pw.TextStyle(font: boldTtf)),
+                  pw.TableRow(
+                    children: [
+                      pw.Padding(
+                        padding: const pw.EdgeInsets.all(6.0),
+                        child: pw.Text('Numer telefonu:', style: pw.TextStyle(font: ttf)),
+                      ),
+                      pw.Padding(
+                        padding: const pw.EdgeInsets.all(6.0),
+                        child: pw.Text('${quotation.client.phone}', style: pw.TextStyle(font: ttf)),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              pw.SizedBox(height: 20),
+              pw.Table(
+                border: pw.TableBorder.all(),
+                columnWidths: {
+                  0: const pw.FlexColumnWidth(2),
+                  1: const pw.FlexColumnWidth(1),
+                  2: const pw.FlexColumnWidth(1),
+                  3: const pw.FlexColumnWidth(1),
+                  4: const pw.FlexColumnWidth(1),
+                },
+                children: [
+                  pw.TableRow(
+                    children: [
+                      pw.Padding(
+                        padding: const pw.EdgeInsets.all(6.0),
+                        child: pw.Text('Część', style: pw.TextStyle(font: boldTtf)),
+                      ),
+                      pw.Padding(
+                        padding: const pw.EdgeInsets.all(6.0),
+                        child: pw.Text('Ilość', style: pw.TextStyle(font: boldTtf)),
+                      ),
+                      pw.Padding(
+                        padding: const pw.EdgeInsets.all(6.0),
+                        child: pw.Text('Cena części (PLN)', style: pw.TextStyle(font: boldTtf)),
+                      ),
+                      pw.Padding(
+                        padding: const pw.EdgeInsets.all(6.0),
+                        child: pw.Text('Razem (PLN)', style: pw.TextStyle(font: boldTtf)),
+                      ),
+                      pw.Padding(
+                        padding: const pw.EdgeInsets.all(6.0),
+                        child: pw.Text('Usługa (PLN)', style: pw.TextStyle(font: boldTtf)),
+                      ),
+                    ],
+                  ),
+                  for (var part in parts)
+                    pw.TableRow(
+                      children: [
+                        pw.Padding(
+                          padding: const pw.EdgeInsets.all(8.0),
+                          child: pw.Text(part.name, style: pw.TextStyle(font: ttf)),
+                        ),
+                        pw.Padding(
+                          padding: const pw.EdgeInsets.all(8.0),
+                          child: pw.Text(part.quantity.toString(), style: pw.TextStyle(font: ttf)),
+                        ),
+                        pw.Padding(
+                          padding: const pw.EdgeInsets.all(8.0),
+                          child: pw.Text(part.costPart.toStringAsFixed(2), style: pw.TextStyle(font: ttf)),
+                        ),
+                        pw.Padding(
+                          padding: const pw.EdgeInsets.all(8.0),
+                          child: pw.Text((part.costPart * part.quantity).toStringAsFixed(2), style: pw.TextStyle(font: ttf)),
+                        ),
+                        pw.Padding(
+                          padding: const pw.EdgeInsets.all(8.0),
+                          child: pw.Text(part.costService.toStringAsFixed(2), style: pw.TextStyle(font: ttf)),
+                        ),
+                      ],
                     ),
-                    pw.Padding(
-                      padding: const pw.EdgeInsets.all(6.0),
-                      child: pw.Text(totalPartsCost.toStringAsFixed(2), style: pw.TextStyle(font: ttf)),
-                    ),
-                  ],
-                ),
-                pw.TableRow(
-                  children: [
-                    pw.Padding(
-                      padding: const pw.EdgeInsets.all(6.0),
-                      child: pw.Text('SUMA USŁUG (PLN):', style: pw.TextStyle(font: boldTtf)),
-                    ),
-                    pw.Padding(
-                      padding: const pw.EdgeInsets.all(6.0),
-                      child: pw.Text(totalServiceCost.toStringAsFixed(2), style: pw.TextStyle(font: ttf)),
-                    ),
-                  ],
-                ),
-                pw.TableRow(
-                  children: [
-                    pw.Padding(
-                      padding: const pw.EdgeInsets.all(6.0),
-                      child: pw.Text('CAŁKOWITA SUMA (PLN):', style: pw.TextStyle(font: boldTtf)),
-                    ),
-                    pw.Padding(
-                      padding: const pw.EdgeInsets.all(6.0),
-                      child: pw.Text(totalCost.toStringAsFixed(2), style: pw.TextStyle(font: ttf)),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            pw.SizedBox(height: 20),
-            pw.Text('IN-CARS Beata Inglot', style: pw.TextStyle(font: ttf, fontSize: 14)),
-            pw.Text('Malawa 827', style: pw.TextStyle(font: ttf, fontSize: 14)),
-            pw.Text('36–007 Krasne', style: pw.TextStyle(font: ttf, fontSize: 14)),
-            pw.Text('NIP 8131190318', style: pw.TextStyle(font: ttf, fontSize: 14)),
-            pw.Text('serwisincars@gmail.com', style: pw.TextStyle(font: ttf, fontSize: 14)),
-          ],
-        );
-      },
-    ),
-  );
+                ],
+              ),
+              pw.SizedBox(height: 20),
+              // Podsumowanie
+              pw.Table(
+                border: pw.TableBorder.all(),
+                columnWidths: {
+                  0: const pw.FlexColumnWidth(3),
+                  1: const pw.FlexColumnWidth(2),
+                },
+                children: [
+                  pw.TableRow(
+                    children: [
+                      pw.Padding(
+                        padding: const pw.EdgeInsets.all(6.0),
+                        child: pw.Text('SUMA CZĘŚCI (PLN):', style: pw.TextStyle(font: boldTtf)),
+                      ),
+                      pw.Padding(
+                        padding: const pw.EdgeInsets.all(6.0),
+                        child: pw.Text(totalPartsCost.toStringAsFixed(2), style: pw.TextStyle(font: ttf)),
+                      ),
+                    ],
+                  ),
+                  pw.TableRow(
+                    children: [
+                      pw.Padding(
+                        padding: const pw.EdgeInsets.all(6.0),
+                        child: pw.Text('SUMA USŁUG (PLN):', style: pw.TextStyle(font: boldTtf)),
+                      ),
+                      pw.Padding(
+                        padding: const pw.EdgeInsets.all(6.0),
+                        child: pw.Text(totalServiceCost.toStringAsFixed(2), style: pw.TextStyle(font: ttf)),
+                      ),
+                    ],
+                  ),
+                  pw.TableRow(
+                    children: [
+                      pw.Padding(
+                        padding: const pw.EdgeInsets.all(6.0),
+                        child: pw.Text('CAŁKOWITA SUMA (PLN):', style: pw.TextStyle(font: boldTtf)),
+                      ),
+                      pw.Padding(
+                        padding: const pw.EdgeInsets.all(6.0),
+                        child: pw.Text(totalCost.toStringAsFixed(2), style: pw.TextStyle(font: ttf)),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              pw.SizedBox(height: 20),
+              pw.Text('IN-CARS Beata Inglot', style: pw.TextStyle(font: ttf, fontSize: 10)),
+              pw.Text('Malawa 827', style: pw.TextStyle(font: ttf, fontSize: 10)),
+              pw.Text('36–007 Krasne', style: pw.TextStyle(font: ttf, fontSize: 10)),
+              pw.Text('NIP 8131190318', style: pw.TextStyle(font: ttf, fontSize: 10)),
+              pw.Text('serwisincars@gmail.com', style: pw.TextStyle(font: ttf, fontSize: 10)),
+            ],
+          );
+        },
+      ),
+    );
 
-  // Zapisz PDF do pliku z automatycznie wygenerowaną nazwą
-  final fileName = 'Wycena_${quotation.quotationNumber}_${DateFormat('ddMMyyyy').format(quotation.createdAt.toLocal())}.pdf';
-  await Printing.layoutPdf(
-    onLayout: (PdfPageFormat format) async => pdf.save(),
-    name: fileName,
-  );
-}
+    // Zapisz PDF do pliku z automatycznie wygenerowaną nazwą
+    final fileName = 'Wycena_${quotation.quotationNumber}_${DateFormat('ddMMyyyy').format(quotation.createdAt.toLocal())}.pdf';
+    await Printing.layoutPdf(
+      onLayout: (PdfPageFormat format) async => pdf.save(),
+      name: fileName,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: _currentQuotation == null
-            ? const Text('Ładowanie...')
-            : Text('Wycena ${_currentQuotation!.quotationNumber}'),
+        title: _currentQuotation == null ? const Text('Ładowanie...') : Text('Wycena ${_currentQuotation!.quotationNumber}'),
         actions: [
           IconButton(
             icon: const Icon(Icons.print),

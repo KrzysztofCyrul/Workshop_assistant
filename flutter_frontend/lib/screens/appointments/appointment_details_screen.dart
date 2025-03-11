@@ -235,69 +235,9 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Błąd podczas dodawania części')),
       );
-      print('Error adding part: $e');
     }
   }
 
-  void _editNotes(BuildContext context, Appointment appointment) async {
-  final notesController = TextEditingController(text: appointment.notes);
-
-  showDialog(
-    context: context,
-    builder: (context) {
-      return AlertDialog(
-        title: const Text('Edytuj notatki'),
-        content: TextField(
-          controller: notesController,
-          decoration: const InputDecoration(
-            hintText: 'Wprowadź nowe notatki',
-          ),
-          maxLines: 5,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Anuluj'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              final newNotes = notesController.text;
-              if (newNotes.isNotEmpty) {
-                try {
-                  final authProvider = Provider.of<AuthProvider>(context, listen: false);
-                  final accessToken = authProvider.accessToken!;
-
-                  await AppointmentService.editNotesValue(
-                    accessToken: accessToken,
-                    workshopId: widget.workshopId,
-                    appointmentId: widget.appointmentId,
-                    newNotes: newNotes,
-                  );
-
-                  // Aktualizacja lokalnych danych
-                  setState(() {
-                    _currentAppointment = _currentAppointment!.copyWith(notes: newNotes);
-                  });
-
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Notatki zostały zaktualizowane')),
-                  );
-
-                  Navigator.of(context).pop();
-                } catch (e) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Błąd podczas aktualizacji notatek: $e')),
-                  );
-                }
-              }
-            },
-            child: const Text('Zapisz'),
-          ),
-        ],
-      );
-    },
-  );
-}
 
 
   void _editPartValue(int index, String field, dynamic newValue) async {
@@ -756,7 +696,6 @@ Widget _buildPartsTable() {
         partsSuggestions = List<String>.from(data);
         isSuggestionsLoaded = true; // Ustawienie flagi na true
       } catch (e) {
-        print('Błąd podczas ładowania danych: $e');
       }
     }
   }
@@ -1046,14 +985,12 @@ Widget _buildPartsTable() {
 Future<void> generatePdf(Appointment appointment, List<Part> parts, List<RepairItem> repairItems) async {
   final pdf = pw.Document();
 
-  // Załaduj czcionkę z assets
   final font = await rootBundle.load("assets/fonts/Roboto-Regular.ttf");
   final ttf = pw.Font.ttf(font);
 
   final boldFont = await rootBundle.load("assets/fonts/Roboto-Bold.ttf");
   final boldTtf = pw.Font.ttf(boldFont);
 
-  // Oblicz sumy
   double totalPartsCost = parts.fold(0, (sum, part) => sum + (part.costPart * part.quantity));
   double totalServiceCost = parts.fold(0, (sum, part) => sum + part.costService);
   double totalCost = totalPartsCost + totalServiceCost;
@@ -1066,51 +1003,39 @@ Future<void> generatePdf(Appointment appointment, List<Part> parts, List<RepairI
           crossAxisAlignment: pw.CrossAxisAlignment.center,
           children: [
             pw.Text(
-              'ZLECENIE NAPRAWY DATA ${DateFormat('dd.MM.yyyy').format(appointment.scheduledTime.toLocal())}',
+              'ZLECENIE NAPRAWY - ${DateFormat('dd.MM.yyyy').format(appointment.scheduledTime.toLocal())}',
               style: pw.TextStyle(font: boldTtf, fontSize: 20),
             ),
             pw.SizedBox(height: 20),
             pw.Table(
               border: pw.TableBorder.all(),
               children: [
-                pw.TableRow(
-                  children: [
-                    pw.Padding(
-                      padding: const pw.EdgeInsets.all(6.0),
-                      child: pw.Text('Marka:', style: pw.TextStyle(font: ttf)),
-                    ),
-                    pw.Padding(
-                      padding: const pw.EdgeInsets.all(6.0),
-                      child: pw.Text(appointment.vehicle.make, style: pw.TextStyle(font: ttf)),
-                    ),
-                  ],
-                ),
-                pw.TableRow(
-                  children: [
-                    pw.Padding(
-                      padding: const pw.EdgeInsets.all(6.0),
-                      child: pw.Text('Model:', style: pw.TextStyle(font: ttf)),
-                    ),
-                    pw.Padding(
-                      padding: const pw.EdgeInsets.all(6.0),
-                      child: pw.Text(appointment.vehicle.model, style: pw.TextStyle(font: ttf)),
-                    ),
-                  ],
-                ),
-                pw.TableRow(
-                  children: [
-                    pw.Padding(
-                      padding: const pw.EdgeInsets.all(6.0),
-                      child: pw.Text('Rejestracja:', style: pw.TextStyle(font: ttf)),
-                    ),
-                    pw.Padding(
-                      padding: const pw.EdgeInsets.all(6.0),
-                      child: pw.Text(appointment.vehicle.licensePlate, style: pw.TextStyle(font: ttf)),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+                  pw.TableRow(
+                    children: [
+                      pw.Padding(
+                        padding: const pw.EdgeInsets.all(6.0),
+                        child: pw.Text('Pojazd:', style: pw.TextStyle(font: ttf)),
+                      ),
+                      pw.Padding(
+                        padding: const pw.EdgeInsets.all(6.0),
+                        child: pw.Text('${appointment.vehicle.licensePlate} ${appointment.vehicle.make} ${appointment.vehicle.model} ', style: pw.TextStyle(font: ttf)),
+                      ),
+                    ],
+                  ),
+                   pw.TableRow(
+                    children: [
+                      pw.Padding(
+                        padding: const pw.EdgeInsets.all(6.0),
+                        child: pw.Text('Numer telefonu:', style: pw.TextStyle(font: ttf)),
+                      ),
+                      pw.Padding(
+                        padding: const pw.EdgeInsets.all(6.0),
+                        child: pw.Text('${appointment.client.phone}', style: pw.TextStyle(font: ttf)),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             pw.SizedBox(height: 20),
             pw.Table(
               border: pw.TableBorder.all(),

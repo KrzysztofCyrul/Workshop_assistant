@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter_frontend/services/auth_service.dart';
 import 'package:http/http.dart' as http;
 import '../data/models/appointment.dart';
 import '../data/models/part.dart';
@@ -17,9 +18,18 @@ class AppointmentService {
       },
     );
 
-    if (response.statusCode == 200) {
+if (response.statusCode == 200) {
       final data = json.decode(utf8.decode(response.bodyBytes)) as List<dynamic>;
       return data.map((json) => Appointment.fromJson(json)).toList();
+    } else if (response.statusCode == 401) {
+      // Token wygasł, odśwież token
+      await AuthService.refreshToken();
+      final newAccessToken = await AuthService.getAccessToken();
+      if (newAccessToken != null) {
+        return getAppointments(newAccessToken, workshopId);
+      } else {
+        throw Exception('Błąd odświeżania tokena');
+      }
     } else {
       throw Exception('Błąd podczas pobierania listy zleceń: ${response.statusCode}');
     }
@@ -45,6 +55,20 @@ class AppointmentService {
     );
 
     if (response.statusCode != 200) {
+      if(response.statusCode ==401){
+        await AuthService.refreshToken();
+        final newAccessToken = await AuthService.getAccessToken();
+        if (newAccessToken != null) {
+          return editNotesValue(
+            accessToken: newAccessToken,
+            workshopId: workshopId,
+            appointmentId: appointmentId,
+            newNotes: newNotes,
+          );
+        } else {
+          throw Exception('Błąd odświeżania tokena');
+        }
+      }
       throw Exception('Błąd podczas aktualizacji notatek: ${response.body}');
     }
   }
@@ -82,13 +106,33 @@ class AppointmentService {
       }),
     );
 
-    if (response.statusCode == 201) {
-      final data = json.decode(utf8.decode(response.bodyBytes));
-      return data['id'];
+if (response.statusCode == 201) {
+    final data = json.decode(utf8.decode(response.bodyBytes));
+    return data['id'];
+  } else if (response.statusCode == 401) {
+    await AuthService.refreshToken();
+    final newAccessToken = await AuthService.getAccessToken();
+    if (newAccessToken != null) {
+      return createAppointment(
+        accessToken: newAccessToken,
+        workshopId: workshopId,
+        clientId: clientId,
+        vehicleId: vehicleId,
+        scheduledTime: scheduledTime,
+        notes: notes,
+        mileage: mileage,
+        recommendations: recommendations,
+        estimatedDuration: estimatedDuration,
+        totalCost: totalCost,
+        status: status,
+      );
     } else {
-      throw Exception('Błąd podczas tworzenia zlecenia: ${response.statusCode}');
+      throw Exception('Błąd odświeżania tokena');
     }
+  } else {
+    throw Exception('Błąd podczas tworzenia zlecenia: ${response.statusCode}');
   }
+}
 
 static Future<void> updateAppointmentStatus({
     required String accessToken,
@@ -106,10 +150,25 @@ static Future<void> updateAppointmentStatus({
       body: json.encode({'status': status}),
     );
 
-    if (response.statusCode != 200) {
+ if (response.statusCode != 200) {
+    if (response.statusCode == 401) {
+      await AuthService.refreshToken();
+      final newAccessToken = await AuthService.getAccessToken();
+      if (newAccessToken != null) {
+        return updateAppointmentStatus(
+          accessToken: newAccessToken,
+          workshopId: workshopId,
+          appointmentId: appointmentId,
+          status: status,
+        );
+      } else {
+        throw Exception('Błąd odświeżania tokena');
+      }
+    } else {
       throw Exception('Błąd podczas aktualizacji statusu: ${response.body}');
     }
   }
+}
 
   static Future<void> createRepairItem(
     String accessToken,
@@ -135,18 +194,26 @@ static Future<void> updateAppointmentStatus({
       body: json.encode(body),
     );
 
-    if (response.statusCode != 201) {
+if (response.statusCode != 201) {
+    if (response.statusCode == 401) {
+      await AuthService.refreshToken();
+      final newAccessToken = await AuthService.getAccessToken();
+      if (newAccessToken != null) {
+        return createRepairItem(
+          newAccessToken,
+          workshopId,
+          appointmentId,
+          description,
+          status,
+          order,
+        );
+      } else {
+        throw Exception('Błąd odświeżania tokena');
+      }
+    } else {
       throw Exception('Błąd podczas tworzenia elementu naprawy: ${response.body}');
     }
   }
-
-// Funkcja pomocnicza do konwersji Duration na String w formacie HH:MM:SS
-static String _durationToString(Duration duration) {
-  String twoDigits(int n) => n.toString().padLeft(2, '0');
-  String hours = twoDigits(duration.inHours);
-  String minutes = twoDigits(duration.inMinutes.remainder(60));
-  String seconds = twoDigits(duration.inSeconds.remainder(60));
-  return '$hours:$minutes:$seconds';
 }
 
 static Future<void> updateRepairItem(
@@ -177,101 +244,148 @@ static Future<void> updateRepairItem(
   );
 
   if (response.statusCode != 200) {
+    if (response.statusCode == 401) {
+      await AuthService.refreshToken();
+      final newAccessToken = await AuthService.getAccessToken();
+      if (newAccessToken != null) {
+        return updateRepairItem(
+          newAccessToken,
+          workshopId,
+          appointmentId,
+          repairItemId,
+          description: description,
+          status: status,
+          order: order,
+          isCompleted: isCompleted,
+        );
+      } else {
+        throw Exception('Błąd odświeżania tokena');
+      }
+    }
     throw Exception('Błąd podczas aktualizacji elementu naprawy: ${response.body}');
   }
 }
 
-  // Metoda pobierająca szczegóły zlecenia
-  Future<Appointment> getAppointmentDetails(
-      String accessToken, String workshopId, String appointmentId) async {
-    final url =
-        Uri.parse('$baseUrl/workshops/$workshopId/appointments/$appointmentId/');
-    final response = await http.get(
-      url,
-      headers: {
-        'Authorization': 'Bearer $accessToken',
-        'Content-Type': 'application/json',
-      },
-    );
+Future<Appointment> getAppointmentDetails(
+    String accessToken, String workshopId, String appointmentId) async {
+  final url =
+      Uri.parse('$baseUrl/workshops/$workshopId/appointments/$appointmentId/');
+  final response = await http.get(
+    url,
+    headers: {
+      'Authorization': 'Bearer $accessToken',
+      'Content-Type': 'application/json',
+    },
+  );
 
-    if (response.statusCode == 200) {
-      final data = json.decode(utf8.decode(response.bodyBytes));
-      return Appointment.fromJson(data);
+  if (response.statusCode == 200) {
+    final data = json.decode(utf8.decode(response.bodyBytes));
+    return Appointment.fromJson(data);
+  } else if (response.statusCode == 401) {
+    await AuthService.refreshToken();
+    final newAccessToken = await AuthService.getAccessToken();
+    if (newAccessToken != null) {
+      return getAppointmentDetails(newAccessToken, workshopId, appointmentId);
     } else {
-      throw Exception(
-          'Błąd podczas pobierania szczegółów zlecenia: ${response.statusCode}');
+      throw Exception('Błąd odświeżania tokena');
     }
+  } else {
+    throw Exception(
+        'Błąd podczas pobierania szczegółów zlecenia: ${response.statusCode}');
   }
+}
 
+static Future<void> updateRepairItemStatus(
+  String accessToken,
+  String workshopId,
+  String appointmentId,
+  String repairItemId,
+  bool isCompleted,
+) async {
+  final url = Uri.parse(
+      '$baseUrl/workshops/$workshopId/appointments/$appointmentId/repair-items/$repairItemId/');
 
-  // Metoda aktualizująca status elementu naprawy
-  static Future<void> updateRepairItemStatus(
-    String accessToken,
-    String workshopId,
-    String appointmentId,
-    String repairItemId,
-    bool isCompleted,
-  ) async {
-    final url = Uri.parse(
-        '$baseUrl/workshops/$workshopId/appointments/$appointmentId/repair-items/$repairItemId/');
+  final existingRepairItem = await getRepairItemDetails(
+    accessToken,
+    workshopId,
+    appointmentId,
+    repairItemId,
+  );
 
+  final updatedRepairItemData = {
+    'description': existingRepairItem.description,
+    'is_completed': isCompleted,
+    'status': existingRepairItem.status,
+    'order': existingRepairItem.order,
+  };
 
-    final existingRepairItem = await getRepairItemDetails(
-      accessToken,
-      workshopId,
-      appointmentId,
-      repairItemId,
-    );
+  final response = await http.put(
+    url,
+    headers: {
+      'Authorization': 'Bearer $accessToken',
+      'Content-Type': 'application/json',
+    },
+    body: json.encode(updatedRepairItemData),
+  );
 
-    // Aktualizujemy pole is_completed
-    final updatedRepairItemData = {
-      'description': existingRepairItem.description,
-      'is_completed': isCompleted,
-      'status': existingRepairItem.status,
-      'order': existingRepairItem.order,
-      // Dodaj inne wymagane pola, jeśli są
-    };
-
-    final response = await http.put(
-      url,
-      headers: {
-        'Authorization': 'Bearer $accessToken',
-        'Content-Type': 'application/json',
-      },
-      body: json.encode(updatedRepairItemData),
-    );
-
-    if (response.statusCode != 200 && response.statusCode != 204) {
+  if (response.statusCode != 200 && response.statusCode != 204) {
+    if (response.statusCode == 401) {
+      await AuthService.refreshToken();
+      final newAccessToken = await AuthService.getAccessToken();
+      if (newAccessToken != null) {
+        return updateRepairItemStatus(
+          newAccessToken,
+          workshopId,
+          appointmentId,
+          repairItemId,
+          isCompleted,
+        );
+      } else {
+        throw Exception('Błąd odświeżania tokena');
+      }
+    } else {
       throw Exception(
           'Błąd podczas aktualizacji statusu elementu naprawy: ${response.body}');
     }
   }
+}
+static Future<RepairItem> getRepairItemDetails(
+  String accessToken,
+  String workshopId,
+  String appointmentId,
+  String repairItemId,
+) async {
+  final url = Uri.parse(
+      '$baseUrl/workshops/$workshopId/appointments/$appointmentId/repair-items/$repairItemId/');
+  final response = await http.get(
+    url,
+    headers: {
+      'Authorization': 'Bearer $accessToken',
+      'Content-Type': 'application/json',
+    },
+  );
 
-  // Metoda pobierająca szczegóły elementu naprawy
-  static Future<RepairItem> getRepairItemDetails(
-    String accessToken,
-    String workshopId,
-    String appointmentId,
-    String repairItemId,
-  ) async {
-    final url = Uri.parse(
-        '$baseUrl/workshops/$workshopId/appointments/$appointmentId/repair-items/$repairItemId/');
-    final response = await http.get(
-      url,
-      headers: {
-        'Authorization': 'Bearer $accessToken',
-        'Content-Type': 'application/json',
-      },
-    );
-
-    if (response.statusCode == 200) {
-      final data = json.decode(utf8.decode(response.bodyBytes));
-      return RepairItem.fromJson(data);
+  if (response.statusCode == 200) {
+    final data = json.decode(utf8.decode(response.bodyBytes));
+    return RepairItem.fromJson(data);
+  } else if (response.statusCode == 401) {
+    await AuthService.refreshToken();
+    final newAccessToken = await AuthService.getAccessToken();
+    if (newAccessToken != null) {
+      return getRepairItemDetails(
+        newAccessToken,
+        workshopId,
+        appointmentId,
+        repairItemId,
+      );
     } else {
-      throw Exception(
-          'Błąd podczas pobierania szczegółów elementu naprawy: ${response.statusCode}');
+      throw Exception('Błąd odświeżania tokena');
     }
+  } else {
+    throw Exception(
+        'Błąd podczas pobierania szczegółów elementu naprawy: ${response.statusCode}');
   }
+}
 
 static Future<void> deleteRepairItem(
   String accessToken,
@@ -290,12 +404,24 @@ static Future<void> deleteRepairItem(
   );
 
   if (response.statusCode != 204) {
-    throw Exception('Błąd podczas usuwania elementu naprawy: ${response.body}');
+    if (response.statusCode == 401) {
+      await AuthService.refreshToken();
+      final newAccessToken = await AuthService.getAccessToken();
+      if (newAccessToken != null) {
+        return deleteRepairItem(
+          newAccessToken,
+          workshopId,
+          appointmentId,
+          repairItemId,
+        );
+      } else {
+        throw Exception('Błąd odświeżania tokena');
+      }
+    } else {
+      throw Exception('Błąd podczas usuwania elementu naprawy: ${response.body}');
+    }
   }
 }
-
-  // Method to create a part
-
 static Future<void> createPart(
   String accessToken,
   String workshopId,
@@ -317,8 +443,6 @@ static Future<void> createPart(
     'appointment': appointmentId,
   };
 
-  print('Wysyłane dane: $body'); // Logowanie wysyłanych danych
-
   final response = await http.post(
     url,
     headers: {
@@ -329,38 +453,60 @@ static Future<void> createPart(
   );
 
   if (response.statusCode != 201) {
-    print('Błąd odpowiedzi backendu: ${response.body}');
-    throw Exception('Błąd podczas dodawania części: ${response.body}');
+    if (response.statusCode == 401) {
+      await AuthService.refreshToken();
+      final newAccessToken = await AuthService.getAccessToken();
+      if (newAccessToken != null) {
+        return createPart(
+          newAccessToken,
+          workshopId,
+          appointmentId,
+          name,
+          description,
+          quantity,
+          costPart,
+          costService,
+        );
+      } else {
+        throw Exception('Błąd odświeżania tokena');
+      }
+    } else {
+      throw Exception('Błąd podczas dodawania części: ${response.body}');
+    }
+  }
+}
+static Future<List<Part>> getParts(
+  String accessToken,
+  String workshopId,
+  String appointmentId,
+) async {
+  final url = Uri.parse(
+      '$baseUrl/workshops/$workshopId/appointments/$appointmentId/parts/');
+  final response = await http.get(
+    url,
+    headers: {
+      'Authorization': 'Bearer $accessToken',
+      'Content-Type': 'application/json',
+    },
+  );
+
+  if (response.statusCode == 200) {
+    final data = json.decode(utf8.decode(response.bodyBytes)) as List;
+    return data.map((json) => Part.fromJson(json)).toList();
+  } else if (response.statusCode == 401) {
+    await AuthService.refreshToken();
+    final newAccessToken = await AuthService.getAccessToken();
+    if (newAccessToken != null) {
+      return getParts(newAccessToken, workshopId, appointmentId);
+    } else {
+      throw Exception('Błąd odświeżania tokena');
+    }
+  } else {
+    throw Exception('Błąd podczas pobierania części: ${response.body}');
   }
 }
 
-
-  // Method to fetch parts for an appointment
-  static Future<List<Part>> getParts(
-    String accessToken,
-    String workshopId,
-    String appointmentId,
-  ) async {
-    final url = Uri.parse(
-        '$baseUrl/workshops/$workshopId/appointments/$appointmentId/parts/');
-    final response = await http.get(
-      url,
-      headers: {
-        'Authorization': 'Bearer $accessToken',
-        'Content-Type': 'application/json',
-      },
-    );
-
-    if (response.statusCode == 200) {
-      final data = json.decode(utf8.decode(response.bodyBytes)) as List;
-
-      return data.map((json) => Part.fromJson(json)).toList();
-    } else {
-      throw Exception('Error fetching parts: ${response.body}');
-    }
-  }
-
-  static Future<void> updatePart(
+ static Future<void> updatePart(
   String accessToken,
   String workshopId,
   String appointmentId,
@@ -390,12 +536,30 @@ static Future<void> createPart(
   );
 
   if (response.statusCode != 200) {
-    throw Exception('Błąd podczas aktualizacji części: ${response.body}');
+    if (response.statusCode == 401) {
+      await AuthService.refreshToken();
+      final newAccessToken = await AuthService.getAccessToken();
+      if (newAccessToken != null) {
+        return updatePart(
+          newAccessToken,
+          workshopId,
+          appointmentId,
+          partId,
+          name: name,
+          description: description,
+          quantity: quantity,
+          costPart: costPart,
+          costService: costService,
+        );
+      } else {
+        throw Exception('Błąd odświeżania tokena');
+      }
+    } else {
+      throw Exception('Błąd podczas aktualizacji części: ${response.body}');
+    }
   }
 }
 
-
-  // Method to delete a part
   static Future<void> deletePart(
     String accessToken,
     String workshopId,
@@ -412,8 +576,23 @@ static Future<void> createPart(
       },
     );
 
-    if (response.statusCode != 204) {
-      throw Exception('Error deleting part: ${response.body}');
+    if(response.statusCode != 204){
+      if(response.statusCode == 401){
+        await AuthService.refreshToken();
+        final newAccessToken = await AuthService.getAccessToken();
+        if (newAccessToken != null) {
+          return deletePart(
+            newAccessToken,
+            workshopId,
+            appointmentId,
+            partId,
+          );
+        } else {
+          throw Exception('Błąd odświeżania tokena');
+        }
+      } else {
+        throw Exception('Błąd podczas usuwania części: ${response.body}');
+      }
     }
   }
 }

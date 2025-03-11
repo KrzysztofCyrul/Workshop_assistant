@@ -4,7 +4,6 @@ import '../../providers/auth_provider.dart';
 import '../../data/models/appointment.dart';
 import '../../services/appointment_service.dart';
 import 'package:intl/intl.dart';
-import '../../widgets/change_status_widget.dart';
 import 'appointment_details_screen.dart';
 
 class CompletedAppointmentsScreen extends StatefulWidget {
@@ -181,35 +180,8 @@ class _CompletedAppointmentsScreenState extends State<CompletedAppointmentsScree
     );
   }
 
-    void _showChangeStatusPopup(Appointment appointment) {
-  showDialog(
-    context: context,
-    builder: (context) {
-      return ChangeStatusWidget(
-        appointment: appointment,
-        workshopId: _workshopId!,
-        onStatusChanged: _refreshCompletedAppointments, // Odświeżenie wizyt po zmianie
-      );
-    },
-  );
-}
 
 
- void _updateAppointmentStatus(Appointment appointment, String newStatus) async {
-  try {
-    await AppointmentService.updateAppointmentStatus(
-      appointmentId: appointment.id,
-      status: newStatus,
-      accessToken: Provider.of<AuthProvider>(context, listen: false).accessToken!,
-      workshopId: _workshopId!,
-    );
-    _refreshCompletedAppointments();
-  } catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Nie udało się zmienić statusu: $e')),
-    );
-  }
-}
 
   Color _getStatusColor(String status) {
     switch (status.toLowerCase()) {

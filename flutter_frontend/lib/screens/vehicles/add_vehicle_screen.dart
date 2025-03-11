@@ -5,7 +5,6 @@ import '../../providers/vehicle_provider.dart';
 import '../../providers/client_provider.dart';
 import '../../data/models/client.dart';
 import '../../widgets/client_search_widget.dart';
-import '../../core/utils/colors.dart';
 
 class AddVehicleScreen extends StatefulWidget {
   static const routeName = '/add-vehicle';
@@ -46,20 +45,6 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
     });
   }
 
-  Color _getSegmentColor(String? segment) {
-    switch (segment) {
-      case 'A':
-        return SegmentColors.segmentA;
-      case 'B':
-        return SegmentColors.segmentB;
-      case 'C':
-        return SegmentColors.segmentC;
-      case 'D':
-        return SegmentColors.segmentD;
-      default:
-        return SegmentColors.defaultColor;
-    }
-  }
 
   Future<void> _loadClients() async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
@@ -70,16 +55,6 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
     if (accessToken != null && workshopId != null) {
       await clientProvider.fetchClients(accessToken, workshopId);
     }
-  }
-
-  Future<List<Client>> _fetchClients(String filter) async {
-    final clientProvider = Provider.of<ClientProvider>(context, listen: false);
-    return clientProvider.clients.where((client) {
-      final searchQuery = filter.toLowerCase();
-      return client.firstName.toLowerCase().contains(searchQuery) ||
-          client.lastName.toLowerCase().contains(searchQuery) ||
-          (client.phone?.contains(searchQuery) ?? false);
-    }).toList();
   }
 
   Future<void> _submitForm() async {

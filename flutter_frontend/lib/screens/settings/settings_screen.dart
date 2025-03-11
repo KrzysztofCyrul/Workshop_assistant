@@ -45,7 +45,7 @@ class SettingsScreen extends StatelessWidget {
           children: [
             const GeneralSettingsScreen(),
             const SegmentColorsScreen(),
-            EmailSettingsScreen(),
+            const EmailSettingsScreen(),
             GenerateCodeScreen(workshopId: workshopId), // Przekazujemy workshopId
           ],
         ),

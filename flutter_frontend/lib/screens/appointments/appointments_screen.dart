@@ -239,23 +239,6 @@ onTap: () {
   );
 }
 
-
- void _updateAppointmentStatus(Appointment appointment, String newStatus) async {
-  try {
-    await AppointmentService.updateAppointmentStatus(
-      appointmentId: appointment.id,
-      status: newStatus,
-      accessToken: Provider.of<AuthProvider>(context, listen: false).accessToken!,
-      workshopId: _workshopId!,
-    );
-    _refreshScheduledAppointments();
-  } catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Nie udało się zmienić statusu: $e')),
-    );
-  }
-}
-
   Color _getStatusColor(String status) {
     switch (status.toLowerCase()) {
       case 'completed':

@@ -5,3 +5,4 @@ const String baseUrl = 'http://192.109.240.232:8000/api';
 const String loginEndpoint = '/login/';
 const String registerEndpoint = '/register/';
 const String logoutEndpoint = '/logout/';
+const String refreshEndpoint = '/token/refresh/';
