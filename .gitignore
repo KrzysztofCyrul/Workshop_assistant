@@ -446,3 +446,4 @@ backend/workshops/migrations/0004_alter_workshop_post_code.py
 backend/requirements.txt
 backup.sql
 backend/backup1.dump
+flutter_frontend/android/app/debug/app-debug.apk

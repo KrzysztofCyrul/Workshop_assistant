@@ -229,6 +229,7 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
       quantityController.clear();
       partCostController.clear();
       serviceCostController.clear();
+      buyCostPartController.clear();
       FocusScope.of(context).unfocus(); // Ukryj klawiaturę
       setState(() {}); // Wymuś odświeżenie widgetu
 
