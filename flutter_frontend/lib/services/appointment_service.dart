@@ -431,6 +431,7 @@ static Future<void> createPart(
   int quantity,
   double costPart,
   double costService,
+  double buyCostPart,
 ) async {
   final url = Uri.parse(
       '$baseUrl/workshops/$workshopId/appointments/$appointmentId/parts/');
@@ -440,6 +441,7 @@ static Future<void> createPart(
     'quantity': quantity,
     'cost_part': costPart.toString(),
     'cost_service': costService.toString(),
+    'buy_cost_part': buyCostPart.toString(),
     'appointment': appointmentId,
   };
 
@@ -466,6 +468,7 @@ static Future<void> createPart(
           quantity,
           costPart,
           costService,
+          buyCostPart,
         );
       } else {
         throw Exception('Błąd odświeżania tokena');
@@ -516,6 +519,7 @@ static Future<List<Part>> getParts(
   required int quantity,
   required double costPart,
   required double costService,
+  required double buyCostPart,
 }) async {
   final url = Uri.parse(
       '$baseUrl/workshops/$workshopId/appointments/$appointmentId/parts/$partId/');
@@ -525,6 +529,7 @@ static Future<List<Part>> getParts(
     'quantity': quantity,
     'cost_part': costPart.toString(),
     'cost_service': costService.toString(),
+    'buy_cost_part': buyCostPart.toString(),
   };
   final response = await http.patch(
     url,
@@ -550,6 +555,7 @@ static Future<List<Part>> getParts(
           quantity: quantity,
           costPart: costPart,
           costService: costService,
+          buyCostPart: buyCostPart,
         );
       } else {
         throw Exception('Błąd odświeżania tokena');

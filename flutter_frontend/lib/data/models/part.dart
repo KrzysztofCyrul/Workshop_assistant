@@ -6,6 +6,7 @@ class Part {
   final int quantity;
   final double costPart;
   final double costService;
+  final double buyCostPart;
 
   Part({
     required this.id,
@@ -15,6 +16,7 @@ class Part {
     required this.quantity,
     required this.costPart,
     required this.costService,
+    required this.buyCostPart,
   });
 
   Part copyWith({
@@ -25,6 +27,8 @@ class Part {
     int? quantity,
     double? costPart,
     double? costService,
+    double? buyCostPart,
+
   }) {
     return Part(
       id: id ?? this.id,
@@ -34,10 +38,10 @@ class Part {
       quantity: quantity ?? this.quantity,
       costPart: costPart ?? this.costPart,
       costService: costService ?? this.costService,
+      buyCostPart: buyCostPart ?? this.buyCostPart,
     );
   }
 
-  // Metoda do deserializacji z JSON z zabezpieczeniem przed null
   factory Part.fromJson(Map<String, dynamic> json) {
     return Part(
       id: json['id'] as String? ?? '',
@@ -47,6 +51,7 @@ class Part {
       quantity: json['quantity'] as int? ?? 0,
       costPart: double.tryParse(json['cost_part']?.toString() ?? '0.0') ?? 0.0,
       costService: double.tryParse(json['cost_service']?.toString() ?? '0.0') ?? 0.0,
+      buyCostPart: double.tryParse(json['buy_cost_part']?.toString() ?? '0.0') ?? 0.0,
     );
   }
 
@@ -60,6 +65,7 @@ class Part {
       'quantity': quantity,
       'cost_part': costPart,
       'cost_service': costService,
+      'buy_cost_part': buyCostPart,
     };
   }
 }

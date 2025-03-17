@@ -43,13 +43,16 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
   final TextEditingController quantityController = TextEditingController();
   final TextEditingController partCostController = TextEditingController();
   final TextEditingController serviceCostController = TextEditingController();
+  final TextEditingController buyCostPartController = TextEditingController();
 
   final TextEditingController repairDescriptionController = TextEditingController();
   final TextEditingController repairCostController = TextEditingController();
   final TextEditingController estimatedDurationController = TextEditingController();
 
+  double get totalBuyCostPart => parts.fold(0, (sum, item) => sum + (item.buyCostPart * item.quantity));
   double get totalPartCost => parts.fold(0, (sum, item) => sum + (item.costPart * item.quantity));
   double get totalServiceCost => parts.fold(0, (sum, item) => sum + item.costService);
+  double get totalMargin => totalPartCost - totalBuyCostPart;
 
   @override
   void initState() {
@@ -58,6 +61,7 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
     quantityController.text = '1';
     partCostController.text = '0.0';
     serviceCostController.text = '0.0';
+    buyCostPartController.text = '0.0';
   }
 
   Future<Appointment> _fetchAppointmentDetails() async {
@@ -183,6 +187,8 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
     final quantiny = quantityController.text.isEmpty ? 1 : int.parse(quantityController.text);
     final costPart = partCostController.text.isEmpty ? 0.0 : double.parse(partCostController.text);
     final costService = serviceCostController.text.isEmpty ? 0.0 : double.parse(serviceCostController.text);
+    final buyCostPart = buyCostPartController.text.isEmpty ? 0.0 : double.parse(buyCostPartController.text);
+    
 
     // Pobranie dostępu do tokenu i przygotowanie danych nowej części
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
@@ -196,6 +202,7 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
       quantity: quantiny,
       costPart: costPart,
       costService: costService,
+      buyCostPart: buyCostPart,
     );
 
     try {
@@ -209,14 +216,12 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
         newPart.quantity,
         newPart.costPart,
         newPart.costService,
+        newPart.buyCostPart,
       );
 
       // Aktualizacja lokalnej listy części i podpowiedzi
       setState(() {
-        parts.add(newPart); // Dodanie nowej części do listy wyświetlanej na ekranie
-        if (!partsSuggestions.contains(newPart.name)) {
-          partsSuggestions.add(newPart.name); // Dodanie nowej części do podpowiedzi
-        }
+      _appointmentFuture = _fetchAppointmentDetails();
       });
 
       // Czyszczenie pól formularza po dodaniu
@@ -260,6 +265,9 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
       case 'costService':
         updatedPart = part.copyWith(costService: newValue);
         break;
+      case 'buyCostPart':
+        updatedPart = part.copyWith(buyCostPart: newValue);
+        break;
       default:
         return;
     }
@@ -280,6 +288,7 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
         quantity: updatedPart.quantity,
         costPart: updatedPart.costPart,
         costService: updatedPart.costService,
+        buyCostPart: updatedPart.buyCostPart,
       );
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -346,6 +355,14 @@ Widget _buildPartsTable() {
         label: Center(
           child: Text(
             'Ilość',
+            style: TextStyle(fontWeight: FontWeight.bold),
+            textAlign: TextAlign.center,
+          ),
+        ),
+      ),
+      DataColumn(label: Center(
+          child: Text(
+            'Hurtowa',
             style: TextStyle(fontWeight: FontWeight.bold),
             textAlign: TextAlign.center,
           ),
@@ -425,6 +442,24 @@ Widget _buildPartsTable() {
                 textAlign: TextAlign.start, // Wyśrodkowanie tekstu
                 onChanged: (newValue) {
                   _editPartValue(index, 'quantity', int.tryParse(newValue) ?? part.quantity);
+                },
+              ),
+            ),
+          ),
+                    DataCell(
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextFormField(
+                initialValue: part.costPart.toStringAsFixed(2),
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.zero,
+                  isDense: true,
+                ),
+                textAlign: TextAlign.left, // Wyśrodkowanie tekstu
+                onChanged: (newValue) {
+                  _editPartValue(index, 'buyCostPart', double.tryParse(newValue) ?? part.buyCostPart);
                 },
               ),
             ),
@@ -750,6 +785,19 @@ Widget _buildPartsTable() {
             keyboardType: TextInputType.number,
             decoration: const InputDecoration(
               labelText: 'Ilość',
+              border: OutlineInputBorder(),
+              contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          flex: 2,
+          child: TextField(
+            controller: buyCostPartController,
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(
+              labelText: 'Cena Hurtowa',
               border: OutlineInputBorder(),
               contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 12),
             ),
@@ -1396,6 +1444,7 @@ Future<void> generatePdf(Appointment appointment, List<Part> parts, List<RepairI
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text('Suma cen części: ${totalPartCost.toStringAsFixed(2)} PLN'),
+                        Text('Marża: ${totalMargin.toStringAsFixed(2)} PLN'),
                         Text('Suma cen usług: ${(totalServiceCost).toStringAsFixed(2)} PLN'),
                         Text(
                           'Łączna cena: ${(totalPartCost + totalServiceCost).toStringAsFixed(2)} PLN',

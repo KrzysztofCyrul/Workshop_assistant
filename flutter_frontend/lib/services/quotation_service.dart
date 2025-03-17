@@ -201,6 +201,7 @@ class QuotationService {
     String? description,
     required double costPart,
     required int quantity,
+    required double buyCostPart,
   }) async {
     final url = Uri.parse('$baseUrl/workshops/$workshopId/quotations/$quotationId/parts/');
     final response = await http.post(
@@ -215,6 +216,7 @@ class QuotationService {
         'cost_part': costPart,
         'quantity': quantity,
         'quotation': quotationId,
+        'buy_cost_part': buyCostPart,
       }),
     );
 
@@ -231,6 +233,7 @@ class QuotationService {
             description: description,
             costPart: costPart,
             quantity: quantity,
+            buyCostPart: buyCostPart,
           );
         } else {
           throw Exception('Błąd odświeżania tokena');
@@ -251,6 +254,7 @@ class QuotationService {
     double? costPart,
     double? costService,
     int? quantity,
+    double? buyCostPart,
   }) async {
     final url = Uri.parse('$baseUrl/workshops/$workshopId/quotations/$quotationId/parts/$partId/');
     final response = await http.patch(
@@ -265,6 +269,7 @@ class QuotationService {
         'cost_part': costPart,
         'cost_service': costService,
         'quantity': quantity,
+        'buy_cost_part': buyCostPart,
       }),
     );
 
@@ -284,6 +289,7 @@ class QuotationService {
             costPart: costPart,
             costService: costService,
             quantity: quantity,
+            buyCostPart: buyCostPart,
           );
         } else {
           throw Exception('Błąd odświeżania tokena');
