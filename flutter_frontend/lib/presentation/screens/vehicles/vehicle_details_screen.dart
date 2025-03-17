@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_frontend/presentation/providers/vehicle_provider1.dart';
+import 'package:flutter_frontend/presentation/screens/vehicles/vehicle_edit_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../../providers/auth_provider.dart';
@@ -31,7 +32,7 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen> {
   Future<void> _fetchVehicleDetails() async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final vehicleProvider = Provider.of<VehicleProvider1>(context, listen: false);
-    
+
     if (authProvider.accessToken == null) {
       throw Exception('User not authenticated');
     }
@@ -45,18 +46,15 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen> {
 
   String _formatDate(DateTime date) => DateFormat('yyyy-MM-dd HH:mm').format(date);
 
-  TableRow _buildTableRow(String label, String value) => TableRow(
-    children: [
-      Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8.0),
-        child: Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
+  Widget _buildInfoCard(String label, String value) {
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: ListTile(
+        title: Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
+        subtitle: Text(value),
       ),
-      Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8.0),
-        child: Text(value),
-      ),
-    ],
-  );
+    );
+  }
 
   Widget _buildBody(VehicleProvider1 provider) {
     if (provider.isLoading) return const Center(child: CircularProgressIndicator());
@@ -64,21 +62,21 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen> {
     if (provider.selectedVehicle == null) return const Center(child: Text('Vehicle not found'));
 
     final vehicle = provider.selectedVehicle!;
-    
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
-      child: Table(
-        columnWidths: const {0: IntrinsicColumnWidth(), 1: FlexColumnWidth()},
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildTableRow('ID:', vehicle.id),
-          _buildTableRow('Make:', vehicle.make),
-          _buildTableRow('Model:', vehicle.model),
-          _buildTableRow('Year:', vehicle.year.toString()),
-          _buildTableRow('VIN:', vehicle.vin),
-          _buildTableRow('License Plate:', vehicle.licensePlate),
-          _buildTableRow('Mileage:', '${vehicle.mileage} km'),
-          _buildTableRow('Created:', _formatDate(vehicle.createdAt)),
-          _buildTableRow('Updated:', _formatDate(vehicle.updatedAt)),
+          _buildInfoCard('ID:', vehicle.id),
+          _buildInfoCard('Make:', vehicle.make),
+          _buildInfoCard('Model:', vehicle.model),
+          _buildInfoCard('Year:', vehicle.year.toString()),
+          _buildInfoCard('VIN:', vehicle.vin),
+          _buildInfoCard('License Plate:', vehicle.licensePlate),
+          _buildInfoCard('Mileage:', '${vehicle.mileage} km'),
+          _buildInfoCard('Created:', _formatDate(vehicle.createdAt)),
+          _buildInfoCard('Updated:', _formatDate(vehicle.updatedAt)),
         ],
       ),
     );
@@ -87,7 +85,23 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Vehicle Details')),
+      appBar: AppBar(
+        title: const Text('Vehicle Details'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.edit),
+            onPressed: () {
+              Navigator.of(context).pushNamed(
+                VehicleEditScreen.routeName,
+                arguments: {
+                  'workshopId': widget.workshopId,
+                  'vehicleId': widget.vehicleId,
+                },
+              );
+            },
+          ),
+        ],
+      ),
       body: FutureBuilder(
         future: _vehicleFuture,
         builder: (context, snapshot) {

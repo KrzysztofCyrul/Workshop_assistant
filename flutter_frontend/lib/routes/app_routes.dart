@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_frontend/presentation/screens/vehicles/vehicle_details_screen.dart';
+import 'package:flutter_frontend/presentation/screens/vehicles/vehicle_edit_screen.dart';
 import 'package:flutter_frontend/screens/clients/edit_client_screen.dart';
 import '../data/models/client.dart';
 import '../screens/auth/login_screen.dart';
@@ -55,7 +56,6 @@ AppointmentDetailsScreen.routeName: (context) {
   final appointmentId = args['appointmentId'];
 
   if (workshopId == null || appointmentId == null) {
-    // Obsłuż przypadek, gdy brakuje wymaganych argumentów
     return const Scaffold(
       body: Center(
         child: Text('Błąd: Brak wymaganych argumentów.'),
@@ -136,6 +136,12 @@ VehicleDetailsScreen.routeName: (context) {
       return QuotationDetailsScreen(workshopId: workshopId, quotationId: quotationId);
     },
     QuotationsScreen.routeName: (context) => const QuotationsScreen(),
+    VehicleEditScreen.routeName: (context) {
+      final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+      final workshopId = args['workshopId']!;
+      final vehicleId = args['vehicleId']!;
+      return VehicleEditScreen(workshopId: workshopId, vehicleId: vehicleId);
+    },
   };
 }
 

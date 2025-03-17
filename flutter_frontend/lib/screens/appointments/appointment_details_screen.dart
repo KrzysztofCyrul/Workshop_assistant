@@ -297,32 +297,33 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
     }
   }
 
-  Future<void> _removePart(int index) async {
-    final part = parts[index];
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final accessToken = authProvider.accessToken!;
+Future<void> _removePart(int index) async {
+  final part = parts[index];
+  final authProvider = Provider.of<AuthProvider>(context, listen: false);
+  final accessToken = authProvider.accessToken!;
 
-    try {
-      await AppointmentService.deletePart(
-        accessToken,
-        widget.workshopId,
-        widget.appointmentId,
-        part.id,
-      );
+  try {
+    await AppointmentService.deletePart(
+      accessToken,
+      widget.workshopId,
+      widget.appointmentId,
+      part.id,
+    );
 
-      setState(() {
-        parts.removeAt(index);
-      });
+    setState(() {
+      parts.removeAt(index);
+      _appointmentFuture = _fetchAppointmentDetails(); // Odśwież szczegóły wizyty
+    });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Część została usunięta')),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Błąd podczas usuwania części')),
-      );
-    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Część została usunięta')),
+    );
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Błąd podczas usuwania części')),
+    );
   }
+}
 
 Widget _buildPartsTable() {
   return DataTable(
@@ -489,32 +490,29 @@ Widget _buildPartsTable() {
 }
 
   void _confirmDeletePartItem(int index) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Potwierdzenie usunięcia'),
-          content: Text('Czy na pewno chcesz usunąć część "${parts[index].name}"?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Anuluj'),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                await _removePart(index);
-                Navigator.of(context).pop();
-                setState(() {
-                  _appointmentFuture = _fetchAppointmentDetails();
-                });
-              },
-              child: const Text('Usuń'),
-            ),
-          ],
-        );
-      },
-    );
-  }
+  showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        title: const Text('Potwierdzenie usunięcia'),
+        content: Text('Czy na pewno chcesz usunąć część "${parts[index].name}"?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Anuluj'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              await _removePart(index);
+              Navigator.of(context).pop();
+            },
+            child: const Text('Usuń'),
+          ),
+        ],
+      );
+    },
+  );
+}
 
   void _addRepairItem() async {
     if (repairDescriptionController.text.isEmpty) {
@@ -911,75 +909,58 @@ Widget _buildPartsTable() {
     }
   }
 
-// Funkcja do potwierdzenia usunięcia
-  void _confirmDeleteRepairItem(int index) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Potwierdzenie usunięcia'),
-          content: const Text('Czy na pewno chcesz usunąć ten element naprawy?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(), // Zamknij dialog
-              child: const Text('Anuluj'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                _removeRepairItem(index); // Usuń element
-                Navigator.of(context).pop(); // Zamknij dialog
-              },
-              child: const Text('Usuń'),
-            ),
-          ],
-        );
-      },
-    );
-  }
+void _confirmDeleteRepairItem(int index) {
+  showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        title: const Text('Potwierdzenie usunięcia'),
+        content: const Text('Czy na pewno chcesz usunąć ten element naprawy?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(), // Zamknij dialog
+            child: const Text('Anuluj'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              _removeRepairItem(index); // Usuń element
+              Navigator.of(context).pop(); // Zamknij dialog
+            },
+            child: const Text('Usuń'),
+          ),
+        ],
+      );
+    },
+  );
+}
 
   void _removeRepairItem(int index) async {
-    final item = repairItems[index];
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final accessToken = authProvider.accessToken!;
+  final item = repairItems[index];
+  final authProvider = Provider.of<AuthProvider>(context, listen: false);
+  final accessToken = authProvider.accessToken!;
 
-    try {
-      await AppointmentService.deleteRepairItem(
-        accessToken,
-        widget.workshopId,
-        widget.appointmentId,
-        item.id,
-      );
-      setState(() {
-        repairItems.removeAt(index);
-      });
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Błąd podczas usuwania elementu naprawy')),
-      );
-    }
-  }
+  try {
+    await AppointmentService.deleteRepairItem(
+      accessToken,
+      widget.workshopId,
+      widget.appointmentId,
+      item.id,
+    );
 
-  void _showRecommendations(BuildContext context, String recommendations) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Rekomendacje'),
-          content: SingleChildScrollView(
-            child: Text(recommendations),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('Zamknij'),
-            ),
-          ],
-        );
-      },
+    setState(() {
+      repairItems.removeAt(index);
+      _appointmentFuture = _fetchAppointmentDetails(); // Odśwież szczegóły wizyty
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Element naprawy został usunięty')),
+    );
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Błąd podczas usuwania elementu naprawy')),
     );
   }
+}
 
 
 Future<void> generatePdf(Appointment appointment, List<Part> parts, List<RepairItem> repairItems) async {

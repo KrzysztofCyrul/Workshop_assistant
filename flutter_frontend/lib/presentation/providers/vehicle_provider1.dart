@@ -57,4 +57,46 @@ class VehicleProvider1 with ChangeNotifier {
       notifyListeners();
     }
   }
+  Future<void> updateVehicle({
+    required String accessToken,
+    required String workshopId,
+    required String vehicleId,
+    required String make,
+    required String model,
+    required int year,
+    required String vin,
+    required String licensePlate,
+    required int mileage,
+  }) async {
+    if (_isLoading) return;
+
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      await repository.updateVehicle(
+        accessToken: accessToken,
+        workshopId: workshopId,
+        vehicleId: vehicleId,
+        make: make,
+        model: model,
+        year: year,
+        vin: vin,
+        licensePlate: licensePlate,
+        mileage: mileage,
+      );
+
+      await fetchVehicleDetails(accessToken, workshopId, vehicleId);
+    } on ServerException catch (e) {
+      _error = e.message;
+      throw Exception(e.message);
+    } catch (e) {
+      _error = 'Failed to update vehicle: ${e.toString()}';
+      throw Exception(_error);
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
 }
