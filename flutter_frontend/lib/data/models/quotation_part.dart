@@ -8,6 +8,8 @@ class QuotationPart {
   final int quantity;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final double buyCostPart;
+
 
   QuotationPart({
     required this.id,
@@ -19,6 +21,7 @@ class QuotationPart {
     required this.quantity,
     required this.createdAt,
     required this.updatedAt,
+    required this.buyCostPart,
   });
 
   QuotationPart copyWith({
@@ -31,6 +34,8 @@ class QuotationPart {
     int? quantity,
     DateTime? createdAt,
     DateTime? updatedAt,
+    double? buyCostPart,
+
   }) {
     return QuotationPart(
       id: id ?? this.id,
@@ -42,6 +47,7 @@ class QuotationPart {
       quantity: quantity ?? this.quantity,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      buyCostPart: buyCostPart ?? this.buyCostPart,
     );
   }
 
@@ -56,6 +62,7 @@ class QuotationPart {
       quantity: json['quantity'] as int? ?? 1,
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
+      buyCostPart: double.tryParse(json['buy_cost_part']?.toString() ?? '0.0') ?? 0.0,
     );
   }
 
@@ -70,6 +77,7 @@ class QuotationPart {
       'quantity': quantity,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
+      'buy_cost_part': buyCostPart,
     };
   }
 

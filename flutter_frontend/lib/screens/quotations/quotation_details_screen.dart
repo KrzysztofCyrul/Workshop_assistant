@@ -37,6 +37,8 @@ class _QuotationDetailsScreenState extends State<QuotationDetailsScreen> {
   final TextEditingController quantityController = TextEditingController();
   final TextEditingController partCostController = TextEditingController();
   final TextEditingController serviceCostController = TextEditingController();
+  final TextEditingController buyCostPartController = TextEditingController();
+
 
   final TextEditingController repairDescriptionController = TextEditingController();
   final TextEditingController repairCostController = TextEditingController();
@@ -46,6 +48,9 @@ class _QuotationDetailsScreenState extends State<QuotationDetailsScreen> {
 
   double get totalPartCost => parts.fold(0, (sum, item) => sum + (item.costPart * item.quantity));
   double get totalServiceCost => parts.fold(0, (sum, item) => sum + (item.costService));
+  double get totalBuyCostPart => parts.fold(0, (sum, item) => sum + (item.buyCostPart * item.quantity));
+  double get totalMargin => totalPartCost - totalBuyCostPart;
+
 
   @override
   void initState() {
@@ -90,7 +95,6 @@ class _QuotationDetailsScreenState extends State<QuotationDetailsScreen> {
         partsSuggestions = List<String>.from(data);
         isSuggestionsLoaded = true;
       } catch (e) {
-        print('Błąd podczas ładowania danych: $e');
       }
     }
   }
@@ -196,6 +200,19 @@ class _QuotationDetailsScreenState extends State<QuotationDetailsScreen> {
         Expanded(
           flex: 2,
           child: TextField(
+            controller: buyCostPartController,
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(
+              labelText: 'Cena Hurtowa',
+              border: OutlineInputBorder(),
+              contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          flex: 2,
+          child: TextField(
             controller: partCostController,
             keyboardType: TextInputType.number,
             decoration: const InputDecoration(
@@ -240,6 +257,7 @@ class _QuotationDetailsScreenState extends State<QuotationDetailsScreen> {
     final quantiny = quantityController.text.isEmpty ? 1 : int.parse(quantityController.text);
     final costPart = partCostController.text.isEmpty ? 0.0 : double.parse(partCostController.text);
     final costService = serviceCostController.text.isEmpty ? 0.0 : double.parse(serviceCostController.text);
+    final buyCostPart = buyCostPartController.text.isEmpty ? 0.0 : double.parse(buyCostPartController.text);
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final accessToken = authProvider.accessToken!;
@@ -254,6 +272,8 @@ class _QuotationDetailsScreenState extends State<QuotationDetailsScreen> {
       costService: costService,
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
+      buyCostPart: buyCostPart,
+      
     );
 
     try {
@@ -265,15 +285,17 @@ class _QuotationDetailsScreenState extends State<QuotationDetailsScreen> {
         description: newPart.description,
         costPart: newPart.costPart,
         quantity: newPart.quantity,
+        buyCostPart: newPart.buyCostPart,
       );
 
       setState(() {
-        parts.add(newPart);
+       _quotationFuture = _fetchQuotationDetails();
       });
 
       partNameController.clear();
       quantityController.clear();
       partCostController.clear();
+      setState(() {}); // Wymuś odświeżenie widgetu
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Część została dodana')),
@@ -282,7 +304,6 @@ class _QuotationDetailsScreenState extends State<QuotationDetailsScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Błąd podczas dodawania części')),
       );
-      print('Error adding part: $e');
     }
   }
 
@@ -312,6 +333,14 @@ class _QuotationDetailsScreenState extends State<QuotationDetailsScreen> {
             ),
           ),
         ),
+        DataColumn(label: Center(
+          child: Text(
+            'Hurtowa',
+            style: TextStyle(fontWeight: FontWeight.bold),
+            textAlign: TextAlign.center,
+          ),
+        ),
+      ),
         DataColumn(
           label: Center(
             child: Text(
@@ -386,6 +415,24 @@ class _QuotationDetailsScreenState extends State<QuotationDetailsScreen> {
                 ),
               ),
             ),
+            DataCell(
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextFormField(
+                initialValue: part.costPart.toStringAsFixed(2),
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.zero,
+                  isDense: true,
+                ),
+                textAlign: TextAlign.left, // Wyśrodkowanie tekstu
+                onChanged: (newValue) {
+                  _editPartValue(index, 'buyCostPart', double.tryParse(newValue) ?? part.buyCostPart);
+                },
+              ),
+            ),
+          ),
             DataCell(
               Center(
                 child: TextFormField(
@@ -464,6 +511,9 @@ class _QuotationDetailsScreenState extends State<QuotationDetailsScreen> {
       case 'costService':
         updatedPart = part.copyWith(costService: newValue);
         break;
+      case 'buyCostPart':
+        updatedPart = part.copyWith(buyCostPart: newValue);
+        break;
       default:
         return;
     }
@@ -483,6 +533,7 @@ class _QuotationDetailsScreenState extends State<QuotationDetailsScreen> {
         quantity: updatedPart.quantity,
         costPart: updatedPart.costPart,
         costService: updatedPart.costService,
+        buyCostPart: updatedPart.buyCostPart,
       );
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -857,6 +908,7 @@ class _QuotationDetailsScreenState extends State<QuotationDetailsScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text('Suma cen części: ${totalPartCost.toStringAsFixed(2)} PLN'),
+                        Text('Marża: ${totalMargin.toStringAsFixed(2)} PLN'),
                         Text('Suma cen usług: ${totalServiceCost.toStringAsFixed(2)} PLN'),
                         Text(
                           'Łączna cena: ${(totalPartCost + totalServiceCost).toStringAsFixed(2)} PLN',
