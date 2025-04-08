@@ -5,9 +5,9 @@
     <application
         android:label="IN-CARS"
         android:name="${applicationName}"
-        android:icon="@drawable/ic_launcher_background"
-        android:usesCleartextTraffic="true">
-    android:enableOnBackInvokedCallback="true">
+        android:icon="@mipmap/ic_launcher"
+        android:usesCleartextTraffic="true"
+        android:enableOnBackInvokedCallback="true">
         <activity
             android:name=".MainActivity"
             android:exported="true"

@@ -37,7 +37,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
   String? _recommendations;
   Duration? _estimatedDuration;
   double? _totalCost;
-  String _status = 'pending';
+  String _status = 'in_progress';
 
   // Listy danych
   List<Client> _clients = [];

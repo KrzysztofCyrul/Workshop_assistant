@@ -451,7 +451,7 @@ Widget _buildPartsTable() {
             Align(
               alignment: Alignment.centerLeft,
               child: TextFormField(
-                initialValue: part.costPart.toStringAsFixed(2),
+                initialValue: part.buyCostPart.toStringAsFixed(2),
                 keyboardType: TextInputType.number,
                 decoration: const InputDecoration(
                   border: InputBorder.none,
