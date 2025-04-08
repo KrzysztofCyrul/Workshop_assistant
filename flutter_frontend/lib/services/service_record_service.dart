@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../data/models/service_record.dart';
+import '../models/service_record.dart';
 import '../core/utils/constants.dart';
 
 class ServiceRecordService {

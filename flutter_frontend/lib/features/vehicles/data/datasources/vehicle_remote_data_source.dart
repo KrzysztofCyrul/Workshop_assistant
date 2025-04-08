@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'package:flutter_frontend/core/errors/exceptions.dart';
-import 'package:flutter_frontend/data/models/vehicle_model.dart';
+import 'package:flutter_frontend/features/vehicles/data/models/vehicle_model.dart';
 import 'package:http/http.dart' as http;
-import '../../../../core/constants/api_constants.dart';
+import '../../../../../core/constants/api_constants.dart';
 
 class VehicleRemoteDataSource {
   final http.Client client;
@@ -21,11 +21,6 @@ class VehicleRemoteDataSource {
     }
     throw ServerException(message: 'Failed to load vehicles');
   }
-
-  Map<String, String> _buildHeaders(String accessToken) => {
-    'Authorization': 'Bearer $accessToken',
-    'Content-Type': 'application/json',
-  };
 
    Future<VehicleModel> getVehicleDetails(String accessToken, String workshopId, String vehicleId) async {
     final response = await client.get(
@@ -122,3 +117,8 @@ Future<void> deleteVehicle(String accessToken, String workshopId, String vehicle
   }
 
 }
+
+  Map<String, String> _buildHeaders(String accessToken) => {
+    'Authorization': 'Bearer $accessToken',
+    'Content-Type': 'application/json',
+  };

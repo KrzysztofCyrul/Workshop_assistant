@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'package:flutter_frontend/services/auth_service.dart';
 import 'package:http/http.dart' as http;
-import '../data/models/appointment.dart';
-import '../data/models/part.dart';
-import '../data/models/repair_item.dart';
+import '../models/appointment.dart';
+import '../models/part.dart';
+import '../models/repair_item.dart';
 import '../core/utils/constants.dart';
 
 class AppointmentService {

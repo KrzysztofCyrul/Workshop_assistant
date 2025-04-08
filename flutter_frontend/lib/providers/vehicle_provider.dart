@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../data/models/vehicle_model.dart';
+import '../features/vehicles/data/models/vehicle_model.dart';
 import '../services/vehicle_service.dart';
 
 class VehicleProvider with ChangeNotifier {

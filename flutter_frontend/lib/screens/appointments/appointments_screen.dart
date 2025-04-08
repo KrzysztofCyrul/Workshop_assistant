@@ -3,7 +3,7 @@ import 'package:flutter_frontend/screens/appointments/canceled_appointments_scre
 import 'package:flutter_frontend/screens/appointments/pending_appointments_screen.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
-import '../../data/models/appointment.dart';
+import '../../models/appointment.dart';
 import '../../services/appointment_service.dart';
 import 'package:intl/intl.dart';
 import '../../widgets/change_status_widget.dart';

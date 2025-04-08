@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/workshop_service.dart';
-import '../data/models/workshop.dart';
+import '../models/workshop.dart';
 
 class WorkshopProvider with ChangeNotifier {
   List<Workshop> _workshops = [];

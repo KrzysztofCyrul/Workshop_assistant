@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 import '../../providers/auth_provider.dart';
-import '../../data/models/appointment.dart' as workshop_appointment;
+import '../../models/appointment.dart' as workshop_appointment;
 import '../../services/appointment_service.dart';
 import 'appointment_details_screen.dart';
 import 'add_appointment_screen.dart';

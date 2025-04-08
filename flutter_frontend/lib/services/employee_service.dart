@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../data/models/employee.dart';
+import '../models/employee.dart';
 import '../core/utils/constants.dart';
 
 class EmployeeService {

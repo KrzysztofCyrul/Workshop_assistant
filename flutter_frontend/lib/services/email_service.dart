@@ -6,7 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:mailer/mailer.dart';
 import 'package:mailer/smtp_server.dart';
 
-import '../data/models/email_settings.dart';
+import '../models/email_settings.dart';
 import '../core/utils/constants.dart'; // <-- tu pewnie masz 'baseUrl' zdefiniowane
 
 class EmailService {

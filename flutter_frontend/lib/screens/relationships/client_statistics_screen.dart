@@ -5,8 +5,8 @@ import 'package:fl_chart/fl_chart.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/client_service.dart';
 import '../../services/appointment_service.dart';
-import '../../data/models/client.dart';
-import '../../data/models/appointment.dart';
+import '../../models/client.dart';
+import '../../models/appointment.dart';
 
 // Plik z klasą SegmentColors
 import '../../core/utils/colors.dart';

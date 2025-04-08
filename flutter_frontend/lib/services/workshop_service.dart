@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../core/utils/constants.dart';
-import '../data/models/workshop.dart';
+import '../models/workshop.dart';
 
 class WorkshopService {
   static Future<List<Workshop>> getWorkshops(String accessToken) async {

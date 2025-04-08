@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
-import '../../data/models/appointment.dart';
+import '../../models/appointment.dart';
 import '../../services/appointment_service.dart';
 import 'package:intl/intl.dart';
 import 'appointment_details_screen.dart';

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_frontend/domain/repositories/vehicle_repository.dart';
+import 'package:flutter_frontend/features/vehicles/domain/repositories/vehicle_repository.dart';
 import '../../domain/entities/vehicle.dart';
-import '../../core/errors/exceptions.dart';
+import '../../../../core/errors/exceptions.dart';
 
 class VehicleProvider1 with ChangeNotifier {
   final VehicleRepository repository;

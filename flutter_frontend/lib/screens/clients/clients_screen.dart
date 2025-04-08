@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/client_provider.dart';
-import '../../data/models/client.dart';
+import '../../models/client.dart';
 import '../../screens/clients/client_details_screen.dart';
 import '../../core/utils/colors.dart';
 import 'add_client_screen.dart';

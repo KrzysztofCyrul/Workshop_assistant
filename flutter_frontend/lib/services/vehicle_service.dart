@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../data/models/vehicle_model.dart';
+import '../features/vehicles/data/models/vehicle_model.dart';
 import '../core/utils/constants.dart';
 
 class VehicleService {

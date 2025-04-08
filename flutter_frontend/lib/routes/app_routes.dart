@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_frontend/presentation/screens/vehicles/vehicle_details_screen.dart';
-import 'package:flutter_frontend/presentation/screens/vehicles/vehicle_edit_screen.dart';
+import 'package:flutter_frontend/features/vehicles/presentation/screens/vehicles/vehicle_details_screen.dart';
+import 'package:flutter_frontend/features/vehicles/presentation/screens/vehicles/vehicle_edit_screen.dart';
 import 'package:flutter_frontend/screens/clients/edit_client_screen.dart';
-import '../data/models/client.dart';
+import '../models/client.dart';
 import '../screens/auth/login_screen.dart';
 import '../screens/auth/register_screen.dart';
 import '../screens/home/home_screen.dart';

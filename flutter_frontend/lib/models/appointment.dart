@@ -1,4 +1,4 @@
-import 'vehicle_model.dart';
+import '../features/vehicles/data/models/vehicle_model.dart';
 import 'client.dart';
 import 'repair_item.dart';
 import 'part.dart';

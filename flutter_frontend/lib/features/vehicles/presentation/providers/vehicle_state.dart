@@ -1,4 +1,4 @@
-import 'package:flutter_frontend/domain/entities/vehicle.dart';
+import 'package:flutter_frontend/features/vehicles/domain/entities/vehicle.dart';
 
 class VehicleState {
   final List<Vehicle> vehicles;

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../data/models/appointment.dart';
-import '../../data/models/repair_item.dart';
-import '../../data/models/part.dart';
+import '../../models/appointment.dart';
+import '../../models/repair_item.dart';
+import '../../models/part.dart';
 import '../../services/appointment_service.dart';
 import '../../providers/auth_provider.dart';
 import '../service_records/service_history_screen.dart';

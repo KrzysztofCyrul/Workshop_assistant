@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_frontend/core/di/injector.dart';
-import 'package:flutter_frontend/domain/repositories/vehicle_repository.dart';
-import 'package:flutter_frontend/presentation/providers/vehicle_provider1.dart';
+import 'package:flutter_frontend/core/di/injector_container.dart';
+import 'package:flutter_frontend/features/vehicles/domain/repositories/vehicle_repository.dart';
+import 'package:flutter_frontend/features/vehicles/presentation/providers/vehicle_provider1.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'providers/vehicle_provider.dart';
 import 'package:provider/provider.dart';
@@ -22,7 +22,7 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
   // Inicjalizacja zależności i kolorów
-  setupDependencies();
+  initDependencies(); // Inicjalizacja DI
   await SegmentColors.loadColors();
   
   // Inicjalizacja formatowania daty dla polskiej lokalizacji

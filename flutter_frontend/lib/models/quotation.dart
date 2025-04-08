@@ -1,4 +1,4 @@
-import 'package:flutter_frontend/data/models/vehicle_model.dart';
+import 'package:flutter_frontend/features/vehicles/data/models/vehicle_model.dart';
 
 import 'client.dart';
 import 'quotation_part.dart';

@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../data/models/client.dart';
+import '../models/client.dart';
 import '../core/utils/constants.dart';
 
 class ClientService {

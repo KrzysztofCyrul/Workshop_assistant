@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/vehicle_provider.dart';
 import '../../providers/client_provider.dart';
-import '../../data/models/client.dart';
+import '../../models/client.dart';
 import '../../widgets/client_search_widget.dart';
 
 class AddVehicleScreen extends StatefulWidget {
