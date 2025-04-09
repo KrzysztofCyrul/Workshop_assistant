@@ -98,12 +98,12 @@ class SearchVehiclesEvent extends VehicleEvent {
   });
 }
 
-class GetVehiclesForClientEvent extends VehicleEvent {
+class LoadVehiclesForClientEvent extends VehicleEvent {
   final String accessToken;
   final String workshopId;
   final String clientId;
   
-  const GetVehiclesForClientEvent({
+  const LoadVehiclesForClientEvent({
     required this.accessToken,
     required this.workshopId,
     required this.clientId,

@@ -43,7 +43,7 @@ class VehicleBloc extends Bloc<VehicleEvent, VehicleState> {
     on<UpdateVehicleEvent>(_onUpdateVehicle);
     on<DeleteVehicleEvent>(_onDeleteVehicle);
     on<SearchVehiclesEvent>(_onSearchVehicles);
-    on<GetVehiclesForClientEvent>(_onGetVehiclesForClient);
+    on<LoadVehiclesForClientEvent>(_onLoadVehiclesForClient);
     on<ResetVehicleStateEvent>(_onResetState); // Dodaj nową linię
   }
 
@@ -191,8 +191,8 @@ class VehicleBloc extends Bloc<VehicleEvent, VehicleState> {
     }
   }
 
-  Future<void> _onGetVehiclesForClient(
-    GetVehiclesForClientEvent event,
+  Future<void> _onLoadVehiclesForClient(
+    LoadVehiclesForClientEvent event,
     Emitter<VehicleState> emit,
   ) async {
     emit(VehicleLoading());
