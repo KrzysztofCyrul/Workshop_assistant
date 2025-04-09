@@ -5,7 +5,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 
 class AuthService {
-  static final _storage = FlutterSecureStorage();
+  static const _storage = FlutterSecureStorage();
 
   static Future<Map<String, dynamic>?> login(String email, String password) async {
     final url = Uri.parse('$baseUrl$loginEndpoint');

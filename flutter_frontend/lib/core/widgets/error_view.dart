@@ -2,12 +2,18 @@ import 'package:flutter/material.dart';
 
 class ErrorView extends StatelessWidget {
   final String message;
-  final VoidCallback? onRetry;
+  final VoidCallback onRetry;
+  final Color? iconColor;
+  final double iconSize;
+  final double spacing;
 
   const ErrorView({
     super.key,
     required this.message,
-    this.onRetry,
+    required this.onRetry,
+    this.iconColor,
+    this.iconSize = 60.0,
+    this.spacing = 20.0,
   });
 
   @override
@@ -18,18 +24,29 @@ class ErrorView extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            Icon(
+              Icons.error_outline,
+              size: iconSize,
+              color: iconColor ?? Theme.of(context).colorScheme.error,
+            ),
+            SizedBox(height: spacing),
             Text(
               message,
               textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 16, color: Colors.red),
-            ),
-            if (onRetry != null) ...[
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: onRetry,
-                child: const Text('Spróbuj ponownie'),
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                color: Theme.of(context).colorScheme.error,
               ),
-            ],
+            ),
+            SizedBox(height: spacing),
+            ElevatedButton.icon(
+              onPressed: onRetry,
+              icon: const Icon(Icons.refresh),
+              label: const Text('Spróbuj ponownie'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.primary,
+                foregroundColor: Theme.of(context).colorScheme.onPrimary,
+              ),
+            ),
           ],
         ),
       ),

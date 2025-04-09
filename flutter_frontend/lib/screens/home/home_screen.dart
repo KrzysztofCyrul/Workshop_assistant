@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../providers/auth_provider.dart';
 import '../workshop/add_workshop_screen.dart';
 import '../vehicles/add_vehicle_screen.dart';
 import '../appointments/add_appointment_screen.dart';
@@ -14,7 +13,8 @@ import '../employee/use_code_screen.dart';
 import '../quotations/quotations_screen.dart';
 import '../quotations/add_quotation_screen.dart';
 import 'package:flutter_frontend/features/vehicles/presentation/screens/vehicle_list_screen.dart';
-
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../features/auth/presentation/bloc/auth_bloc.dart';
 
 class HomeScreen extends StatelessWidget {
   static const routeName = '/home';
@@ -23,62 +23,62 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final authProvider = Provider.of<AuthProvider>(context);
-    final user = authProvider.user;
+    return BlocBuilder<AuthBloc, AuthState>(
+      builder: (context, state) {
+        if (state is Authenticated) {
+          final user = state.user;
+          final employeeProfiles = user.employeeProfiles;
+          final isWorkshopOwner = user.roles.contains('workshop_owner');
 
-    if (user == null) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
-    }
+          // Redirect logic
+          if (employeeProfiles.isEmpty) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (isWorkshopOwner) {
+                Navigator.of(context).pushReplacementNamed(CreateWorkshopScreen.routeName);
+              } else {
+                Navigator.of(context).pushReplacementNamed(UseCodeScreen.routeName);
+              }
+            });
+            return const Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            );
+          }
 
-    final employeeProfiles = user.employeeProfiles;
-    final isWorkshopOwner = user.roles.contains('workshop_owner');
+          final workshopId = employeeProfiles.first.workshopId;
+          final employeeId = employeeProfiles.first.id;
 
-    // Redirect logic
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (isWorkshopOwner && employeeProfiles.isEmpty) {
-        Navigator.of(context).pushReplacementNamed(CreateWorkshopScreen.routeName);
-      } else if (employeeProfiles.isEmpty) {
-        Navigator.of(context).pushReplacementNamed(UseCodeScreen.routeName);
-      }
-    });
+          return Scaffold(
+            appBar: AppBar(
+              leading: IconButton(
+                icon: const Icon(Icons.settings),
+                onPressed: () => _navigateToSettings(context),
+              ),
+              title: const Text('Panel Główny'),
+              centerTitle: true,
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.logout),
+                  onPressed: () => _logout(context),
+                ),
+              ],
+            ),
+            body: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: _buildWorkshopActions(context, workshopId, employeeId),
+            ),
+          );
+        }
 
-    // Handle mechanics or employees with profiles
-    if (employeeProfiles.isEmpty) {
-      return const Scaffold(); // Prevents errors during redirection
-    }
-
-    final workshopId = employeeProfiles.first.workshopId;
-    final employeeId = employeeProfiles.first.id;
-
-    return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.settings),
-          onPressed: () => _navigateToSettings(context),
-        ),
-        title: const Text('Panel Główny'),
-        centerTitle: true,
-        actions: [
-          // IconButton(
-          //   icon: const Icon(Icons.calendar_month),
-          //   onPressed: () => _navigateToCalendar(context),
-          // ),
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () => _logout(context),
-          ),
-        ],
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        // ignore: unnecessary_null_comparison
-        child: _buildWorkshopActions(context, workshopId, employeeId),
-      ),
+        // If not authenticated, redirect to login
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          Navigator.of(context).pushReplacementNamed('/login');
+        });
+        return const Scaffold(
+          body: Center(child: CircularProgressIndicator()),
+        );
+      },
     );
   }
-
 
   Widget _buildWorkshopActions(BuildContext context, String workshopId, String? employeeId) {
     final actions = [
@@ -228,20 +228,8 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  // void _navigateToCalendar(BuildContext context) {
-  //   Navigator.of(context).pushNamed(AppointmentCalendarScreen.routeName);
-  // }
-
-  void _logout(BuildContext context) async {
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    try {
-      await authProvider.logout();
-      Navigator.of(context).pushReplacementNamed('/login'); // Navigate to login screen
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Błąd wylogowania: $e')),
-      );
-    }
+  void _logout(BuildContext context) {
+    context.read<AuthBloc>().add(LogoutRequested());
   }
 
   void _navigateToClientStatistics(BuildContext context) {

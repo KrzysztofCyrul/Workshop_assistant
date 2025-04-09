@@ -3,10 +3,12 @@ import 'package:flutter_frontend/features/vehicles/presentation/screens/vehicle_
 import 'package:flutter_frontend/features/vehicles/presentation/screens/vehicle_edit_screen.dart';
 import 'package:flutter_frontend/features/vehicles/presentation/screens/vehicle_list_screen.dart';
 import 'package:flutter_frontend/features/vehicles/presentation/screens/client_vehicles_screen.dart';
+import 'package:flutter_frontend/features/auth/presentation/screens/login_screen.dart';
+import 'package:flutter_frontend/features/auth/presentation/screens/register_screen.dart';
 import 'package:flutter_frontend/screens/clients/edit_client_screen.dart';
 import '../models/client.dart';
-import '../screens/auth/login_screen.dart';
-import '../screens/auth/register_screen.dart';
+// import '../screens/auth/login_screen.dart';
+// import '../screens/auth/register_screen.dart';
 import '../screens/home/home_screen.dart';
 import '../screens/appointments/appointments_screen.dart';
 import '../screens/appointments/completed_appointments_screen.dart';
@@ -34,7 +36,7 @@ import '../screens/quotations/quotations_screen.dart';
 
 class AppRoutes {
   static final routes = <String, WidgetBuilder>{
-    LoginScreen.routeName: (context) => const LoginScreen(),
+    LoginScreen.routeName: (context) => LoginScreen(),
     RegisterScreen.routeName: (context) => const RegisterScreen(),
     HomeScreen.routeName: (context) => const HomeScreen(),
     AppointmentsScreen.routeName: (context) => const AppointmentsScreen(),

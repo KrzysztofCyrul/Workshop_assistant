@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_frontend/core/di/injector_container.dart';
+import 'package:flutter_frontend/features/auth/data/datasources/auth_local_data_source.dart';
 import 'package:flutter_frontend/features/vehicles/domain/entities/vehicle.dart';
 import 'package:flutter_frontend/features/vehicles/presentation/bloc/vehicle_bloc.dart';
 import 'package:flutter_frontend/features/vehicles/presentation/screens/vehicle_details_screen.dart';
-import 'package:flutter_frontend/providers/auth_provider.dart';
+import 'package:flutter_frontend/features/auth/presentation/bloc/auth_bloc.dart';
 
 class ClientVehicleListScreen extends StatefulWidget {
   static const routeName = '/client-vehicle-list';
@@ -20,23 +22,27 @@ class ClientVehicleListScreen extends StatefulWidget {
 class _ClientVehicleListScreenState extends State<ClientVehicleListScreen> {
   String _searchQuery = '';
 
-@override
-void initState() {
-  super.initState();
-  WidgetsBinding.instance.addPostFrameCallback((_) {
-    _loadVehicles();
-  });
-}
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadVehicles();
+    });
+  }
 
 void _loadVehicles() {
   if (mounted) {
-    final authProvider = context.read<AuthProvider>();
-    if (authProvider.accessToken != null) {
-      context.read<VehicleBloc>().add(LoadVehiclesForClientEvent(
-        accessToken: authProvider.accessToken!,
-        workshopId: widget.workshopId,
-        clientId: widget.clientId,
-      ));
+    final authState = context.read<AuthBloc>().state;
+    if (authState is Authenticated) {
+      getIt<AuthLocalDataSource>().getAccessToken().then((accessToken) {
+        if (accessToken != null) {
+          context.read<VehicleBloc>().add(LoadVehiclesForClientEvent(
+            accessToken: accessToken,
+            workshopId: widget.workshopId,
+            clientId: widget.clientId,
+          ));
+        }
+      });
     }
   }
 }
@@ -54,64 +60,66 @@ void _loadVehicles() {
 
   @override
   Widget build(BuildContext context) {
-    final authProvider = context.read<AuthProvider>();
-
-    if (authProvider.accessToken == null) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('Lista Pojazdów Klienta')),
-        body: const Center(
-          child: Text(
-            'Brak dostępu do danych użytkownika.\nZaloguj się, aby zobaczyć listę pojazdów.',
-            textAlign: TextAlign.center,
-          ),
-        ),
-      );
-    }
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Lista Pojazdów Klienta'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _loadVehicles,
-          ),
-        ],
-      ),
-      body: BlocConsumer<VehicleBloc, VehicleState>(
-        listener: (context, state) {
-          if (state is VehicleError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message)),
-            );
-          }
-        },
-        builder: (context, state) {
-          return RefreshIndicator(
-            onRefresh: () async => _loadVehicles(),
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: TextField(
-                    decoration: InputDecoration(
-                      labelText: 'Wyszukaj pojazd',
-                      prefixIcon: const Icon(Icons.search),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                    onChanged: (value) => setState(() => _searchQuery = value),
-                  ),
-                ),
-                Expanded(
-                  child: _buildContent(state),
-                ),
-              ],
+    return BlocBuilder<AuthBloc, AuthState>(
+      builder: (context, authState) {
+        if (authState is! Authenticated) {
+          return Scaffold(
+            appBar: AppBar(title: const Text('Lista Pojazdów Klienta')),
+            body: const Center(
+              child: Text(
+                'Brak dostępu do danych użytkownika.\nZaloguj się, aby zobaczyć listę pojazdów.',
+                textAlign: TextAlign.center,
+              ),
             ),
           );
-        },
-      ),
+        }
+
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text('Lista Pojazdów Klienta'),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.refresh),
+                onPressed: _loadVehicles,
+              ),
+            ],
+          ),
+          body: BlocConsumer<VehicleBloc, VehicleState>(
+            listener: (context, state) {
+              if (state is VehicleError) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(state.message)),
+                );
+              }
+            },
+            builder: (context, state) {
+              return RefreshIndicator(
+                onRefresh: () async => _loadVehicles(),
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: TextField(
+                        decoration: InputDecoration(
+                          labelText: 'Wyszukaj pojazd',
+                          prefixIcon: const Icon(Icons.search),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        onChanged: (value) => setState(() => _searchQuery = value),
+                      ),
+                    ),
+                    Expanded(
+                      child: _buildContent(state),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        );
+      },
     );
   }
 

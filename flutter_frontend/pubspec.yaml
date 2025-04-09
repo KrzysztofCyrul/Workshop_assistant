@@ -51,6 +51,8 @@ dependencies:
   printing: ^5.9.1
   path_provider: ^2.1.5
   flutter_bloc: ^9.1.0
+  dartz: ^0.10.1
+  connectivity_plus: ^5.0.0
 
 dev_dependencies:
   flutter_test:

@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_frontend/core/di/injector_container.dart';
+import 'package:flutter_frontend/features/auth/data/datasources/auth_local_data_source.dart';
 import 'package:flutter_frontend/features/vehicles/presentation/bloc/vehicle_bloc.dart';
 import 'package:flutter_frontend/features/vehicles/presentation/screens/vehicle_edit_screen.dart';
+import 'package:flutter_frontend/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
-import '../../../../providers/auth_provider.dart';
 
 class VehicleDetailsScreen extends StatefulWidget {
   static const routeName = '/vehicle-details';
@@ -28,17 +29,22 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen> {
     _loadVehicleDetails();
   }
 
-  void _loadVehicleDetails() {
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    if (authProvider.accessToken == null) {
-      throw Exception('User not authenticated');
+void _loadVehicleDetails() {
+  if (mounted) {
+    final authState = context.read<AuthBloc>().state;
+    if (authState is Authenticated) {
+      getIt<AuthLocalDataSource>().getAccessToken().then((accessToken) {
+        if (accessToken != null) {
+          context.read<VehicleBloc>().add(LoadVehicleDetailsEvent(
+            accessToken: accessToken,
+            workshopId: widget.workshopId,
+            vehicleId: widget.vehicleId,
+          ));
+        }
+      });
     }
-    context.read<VehicleBloc>().add(LoadVehicleDetailsEvent(
-          accessToken: authProvider.accessToken!,
-          workshopId: widget.workshopId,
-          vehicleId: widget.vehicleId,
-        ));
   }
+}
 
   String _formatDate(DateTime date) => DateFormat('yyyy-MM-dd HH:mm').format(date);
 
@@ -96,41 +102,60 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return PopScope(
-      canPop: true,
-      onPopInvoked: (didPop) {
-        if (didPop) {
-          final authProvider = Provider.of<AuthProvider>(context, listen: false);
-          context.read<VehicleBloc>()
-            ..add(ResetVehicleStateEvent())
-            ..add(LoadVehiclesEvent(
-              accessToken: authProvider.accessToken!,
-              workshopId: widget.workshopId,
-            ));
-        }
-      },
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Vehicle Details'),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.edit),
-              onPressed: () {
-                Navigator.of(context).pushNamed(
-                  VehicleEditScreen.routeName,
-                  arguments: {
-                    'workshopId': widget.workshopId,
-                    'vehicleId': widget.vehicleId,
-                  },
-                ).then((_) => _loadVehicleDetails());
-              },
+    return BlocBuilder<AuthBloc, AuthState>(
+      builder: (context, authState) {
+        if (authState is! Authenticated) {
+          return Scaffold(
+            appBar: AppBar(title: const Text('Szczegóły Pojazdu')),
+            body: const Center(
+              child: Text(
+                'Brak dostępu do danych użytkownika.\nZaloguj się, aby zobaczyć szczegóły pojazdu.',
+                textAlign: TextAlign.center,
+              ),
             ),
-          ],
-        ),
-        body: BlocBuilder<VehicleBloc, VehicleState>(
-          builder: (context, state) => _buildBody(state),
-        ),
-      ),
+          );
+        }
+
+        return PopScope(
+          canPop: true,
+          onPopInvoked: (didPop) {
+            if (didPop) {
+              getIt<AuthLocalDataSource>().getAccessToken().then((accessToken) {
+                if (accessToken != null) {
+                  context.read<VehicleBloc>()
+                    ..add(ResetVehicleStateEvent())
+                    ..add(LoadVehiclesEvent(
+                      accessToken: accessToken,
+                      workshopId: widget.workshopId,
+                    ));
+                }
+              });
+            }
+          },
+          child: Scaffold(
+            appBar: AppBar(
+              title: const Text('Szczegóły Pojazdu'),
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.edit),
+                  onPressed: () {
+                    Navigator.of(context).pushNamed(
+                      VehicleEditScreen.routeName,
+                      arguments: {
+                        'workshopId': widget.workshopId,
+                        'vehicleId': widget.vehicleId,
+                      },
+                    ).then((_) => _loadVehicleDetails());
+                  },
+                ),
+              ],
+            ),
+            body: BlocBuilder<VehicleBloc, VehicleState>(
+              builder: (context, state) => _buildBody(state),
+            ),
+          ),
+        );
+      },
     );
   }
 }

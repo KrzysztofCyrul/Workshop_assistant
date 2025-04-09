@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_frontend/core/di/injector_container.dart';
+import 'package:flutter_frontend/features/auth/presentation/screens/login_screen.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'providers/vehicle_provider.dart';
 import 'package:provider/provider.dart';
@@ -9,7 +10,6 @@ import 'providers/workshop_provider.dart';
 import 'providers/client_provider.dart';
 import 'providers/email_provider.dart';
 import 'routes/app_routes.dart';
-import 'screens/auth/login_screen.dart';
 import 'providers/employee_provider.dart';
 import 'screens/appointments/appointments_screen.dart';
 import 'core/utils/colors.dart';
@@ -24,6 +24,10 @@ import 'features/vehicles/domain/usecases/update_vehicle.dart';
 import 'features/vehicles/domain/usecases/delete_vehicle.dart';
 import 'features/vehicles/domain/usecases/search_vehicles.dart';
 import 'features/vehicles/domain/usecases/get_vehicles_for_client.dart';
+import 'features/auth/presentation/bloc/auth_bloc.dart';
+import 'features/auth/domain/usecases/login.dart';
+import 'features/auth/domain/usecases/register.dart';
+import 'features/auth/domain/usecases/logout.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -39,6 +43,13 @@ Future<void> main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
+        BlocProvider(
+          create: (_) => AuthBloc(
+            loginUseCase: getIt<LoginUseCase>(),
+            registerUseCase: getIt<RegisterUseCase>(),
+            logoutUseCase: getIt<LogoutUseCase>(),
+          ),
+        ),
         ChangeNotifierProvider(create: (_) => WorkshopProvider()),
         ChangeNotifierProvider(create: (_) => ClientProvider()),
         ChangeNotifierProvider(create: (_) => EmployeeProvider()),

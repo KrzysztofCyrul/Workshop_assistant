@@ -63,7 +63,6 @@ class VehicleBloc extends Bloc<VehicleEvent, VehicleState> {
     }
   }
 
-  // Dodaj nową metodę
   Future<void> _onResetState(
     ResetVehicleStateEvent event,
     Emitter<VehicleState> emit,

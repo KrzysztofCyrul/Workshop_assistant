@@ -57,7 +57,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
   Future<void> _navigateToAddClient() async {
     final result = await Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => AddClientScreen(),
+        builder: (context) => const AddClientScreen(),
       ),
     );
 

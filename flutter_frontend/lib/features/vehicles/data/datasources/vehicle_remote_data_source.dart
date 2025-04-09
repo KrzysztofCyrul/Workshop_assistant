@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'package:flutter_frontend/core/errors/exceptions.dart';
+import 'package:flutter_frontend/core/utils/constants.dart' as api_constants;
 import 'package:flutter_frontend/features/vehicles/data/models/vehicle_model.dart';
 import 'package:http/http.dart' as http;
-import '../../../../../core/constants/api_constants.dart';
 
 class VehicleRemoteDataSource {
   final http.Client client;
@@ -11,7 +11,7 @@ class VehicleRemoteDataSource {
 
   Future<List<VehicleModel>> getVehicles(String accessToken, String workshopId) async {
     final response = await client.get(
-      Uri.parse('${ApiConstants.baseUrl}/workshops/$workshopId/vehicles/'),
+      Uri.parse('${api_constants.baseUrl}/workshops/$workshopId/vehicles/'),
       headers: _buildHeaders(accessToken),
     );
 
@@ -24,7 +24,7 @@ class VehicleRemoteDataSource {
 
    Future<VehicleModel> getVehicleDetails(String accessToken, String workshopId, String vehicleId) async {
     final response = await client.get(
-      Uri.parse('${ApiConstants.baseUrl}/workshops/$workshopId/vehicles/$vehicleId/'),
+      Uri.parse('${api_constants.baseUrl}/workshops/$workshopId/vehicles/$vehicleId/'),
       headers: _buildHeaders(accessToken),
     );
 
@@ -36,7 +36,7 @@ class VehicleRemoteDataSource {
 
   Future<List<VehicleModel>> getVehiclesForClient(String accessToken, String workshopId, String clientId) async {
     final response = await client.get(
-      Uri.parse('${ApiConstants.baseUrl}/workshops/$workshopId/clients/$clientId/vehicles/'),
+      Uri.parse('${api_constants.baseUrl}/workshops/$workshopId/clients/$clientId/vehicles/'),
       headers: _buildHeaders(accessToken),
     );
 
@@ -59,7 +59,7 @@ class VehicleRemoteDataSource {
     required int mileage,
   }) async {
     final response = await client.post(
-      Uri.parse('${ApiConstants.baseUrl}/workshops/$workshopId/clients/$clientId/vehicles/'),
+      Uri.parse('${api_constants.baseUrl}/workshops/$workshopId/clients/$clientId/vehicles/'),
       headers: _buildHeaders(accessToken),
       body: json.encode({
         'make': make,
@@ -88,7 +88,7 @@ class VehicleRemoteDataSource {
     required int mileage,
   }) async {
     final response = await client.put(
-      Uri.parse('${ApiConstants.baseUrl}/workshops/$workshopId/vehicles/$vehicleId/'),
+      Uri.parse('${api_constants.baseUrl}/workshops/$workshopId/vehicles/$vehicleId/'),
       headers: _buildHeaders(accessToken),
       body: json.encode({
         'make': make,
@@ -107,7 +107,7 @@ class VehicleRemoteDataSource {
 
 Future<void> deleteVehicle(String accessToken, String workshopId, String vehicleId) async {
     final response = await client.delete(
-      Uri.parse('${ApiConstants.baseUrl}/workshops/$workshopId/vehicles/$vehicleId/'),
+      Uri.parse('${api_constants.baseUrl}/workshops/$workshopId/vehicles/$vehicleId/'),
       headers: _buildHeaders(accessToken),
     );
 
