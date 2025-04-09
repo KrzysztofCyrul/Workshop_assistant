@@ -128,10 +128,6 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> {
     }
   }
 
-  String _formatDuration(Duration duration) {
-    double hours = duration.inMinutes / 60;
-    return hours.toStringAsFixed(2).replaceAll('.', ',');
-  }
 
 
   Widget _buildSectionTitle(String title) {

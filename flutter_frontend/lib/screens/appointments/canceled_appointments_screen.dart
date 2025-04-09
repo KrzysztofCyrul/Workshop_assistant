@@ -198,7 +198,7 @@ class _CanceledAppointmentsScreenState extends State<CanceledAppointmentsScreen>
 
   Color _getStatusColor(String status) {
     switch (status.toLowerCase()) {
-      case 'canceled':
+      case 'pending':
         return Colors.green;
       case 'schedudled':
         return Colors.orange;

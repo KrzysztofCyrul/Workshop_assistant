@@ -6,17 +6,15 @@ import '../vehicles/add_vehicle_screen.dart';
 import '../appointments/add_appointment_screen.dart';
 import '../clients/clients_screen.dart';
 import '../appointments/appointments_screen.dart';
-import '../employee/employee_details_screen.dart';
-import '../vehicles/vehicle_list_screen.dart';
 import '../settings/settings_screen.dart';
 import '../clients/add_client_screen.dart';
-import '../clients/edit_client_screen.dart';
-import '../appointments/appointment_calendar_screen.dart';
 import '../relationships/client_statistics_screen.dart';
 import '../relationships/send_email_screen.dart';
 import '../employee/use_code_screen.dart';
 import '../quotations/quotations_screen.dart';
 import '../quotations/add_quotation_screen.dart';
+import 'package:flutter_frontend/features/vehicles/presentation/screens/vehicle_list_screen.dart';
+
 
 class HomeScreen extends StatelessWidget {
   static const routeName = '/home';
@@ -63,10 +61,10 @@ class HomeScreen extends StatelessWidget {
         title: const Text('Panel Główny'),
         centerTitle: true,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.calendar_month),
-            onPressed: () => _navigateToCalendar(context),
-          ),
+          // IconButton(
+          //   icon: const Icon(Icons.calendar_month),
+          //   onPressed: () => _navigateToCalendar(context),
+          // ),
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () => _logout(context),
@@ -202,15 +200,6 @@ class HomeScreen extends StatelessWidget {
     Navigator.of(context).pushNamed(AppointmentsScreen.routeName);
   }
 
-  void _navigateToEmployeeDetails(BuildContext context, String workshopId, String employeeId) {
-    Navigator.of(context).pushNamed(
-      EmployeeDetailsScreen.routeName,
-      arguments: {
-        'workshopId': workshopId,
-        'employeeId': employeeId,
-      },
-    );
-  }
 
   void _navigateToVehicleList(BuildContext context, String workshopId) {
     Navigator.of(context).pushNamed(
@@ -239,9 +228,9 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  void _navigateToCalendar(BuildContext context) {
-    Navigator.of(context).pushNamed(AppointmentCalendarScreen.routeName);
-  }
+  // void _navigateToCalendar(BuildContext context) {
+  //   Navigator.of(context).pushNamed(AppointmentCalendarScreen.routeName);
+  // }
 
   void _logout(BuildContext context) async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
@@ -268,15 +257,6 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  void _navigateToEditClient(BuildContext context, String workshopId, String clientId) {
-    Navigator.of(context).pushNamed(
-      EditClientScreen.routeName,
-      arguments: {
-        'workshopId': workshopId,
-        'clientId': clientId,
-      },
-    );
-  }
 
   void _navigateToQuotations(BuildContext context, String workshopId) {
     Navigator.of(context).pushNamed(

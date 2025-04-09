@@ -6,6 +6,8 @@ import 'package:flutter_frontend/features/vehicles/domain/usecases/add_vehicle.d
 import 'package:flutter_frontend/features/vehicles/domain/usecases/update_vehicle.dart';
 import 'package:flutter_frontend/features/vehicles/domain/usecases/delete_vehicle.dart';
 import 'package:flutter_frontend/features/vehicles/domain/usecases/search_vehicles.dart';
+import 'package:flutter_frontend/features/vehicles/domain/usecases/get_vehicles_for_client.dart';
+
 
 part 'vehicle_event.dart';
 part 'vehicle_state.dart';
@@ -17,6 +19,7 @@ class VehicleBloc extends Bloc<VehicleEvent, VehicleState> {
   final UpdateVehicle _updateVehicle;
   final DeleteVehicle _deleteVehicle;
   final SearchVehicles _searchVehicles;
+  final GetVehiclesForClient _getVehiclesForClient;
 
   VehicleBloc({
     required GetVehicles getVehicles,
@@ -25,12 +28,14 @@ class VehicleBloc extends Bloc<VehicleEvent, VehicleState> {
     required UpdateVehicle updateVehicle,
     required DeleteVehicle deleteVehicle,
     required SearchVehicles searchVehicles,
+    required GetVehiclesForClient getVehiclesForClient,
   })  : _getVehicles = getVehicles,
         _getVehicleDetails = getVehicleDetails,
         _addVehicle = addVehicle,
         _updateVehicle = updateVehicle,
         _deleteVehicle = deleteVehicle,
         _searchVehicles = searchVehicles,
+        _getVehiclesForClient = getVehiclesForClient,
         super(VehicleInitial()) {
     on<LoadVehiclesEvent>(_onLoadVehicles);
     on<LoadVehicleDetailsEvent>(_onLoadVehicleDetails);
@@ -38,13 +43,15 @@ class VehicleBloc extends Bloc<VehicleEvent, VehicleState> {
     on<UpdateVehicleEvent>(_onUpdateVehicle);
     on<DeleteVehicleEvent>(_onDeleteVehicle);
     on<SearchVehiclesEvent>(_onSearchVehicles);
+    on<GetVehiclesForClientEvent>(_onGetVehiclesForClient);
+    on<ResetVehicleStateEvent>(_onResetState); // Dodaj nową linię
   }
 
-  Future<void> _onLoadVehicles(
+  void _onLoadVehicles(
     LoadVehiclesEvent event,
     Emitter<VehicleState> emit,
   ) async {
-    emit(VehicleLoading());
+    emit(VehicleListLoading()); // Zmiana tutaj
     try {
       final vehicles = await _getVehicles.execute(
         event.accessToken,
@@ -55,6 +62,15 @@ class VehicleBloc extends Bloc<VehicleEvent, VehicleState> {
       emit(VehicleError(message: 'Failed to load vehicles: $e'));
     }
   }
+
+  // Dodaj nową metodę
+  Future<void> _onResetState(
+    ResetVehicleStateEvent event,
+    Emitter<VehicleState> emit,
+  ) async {
+    emit(VehicleInitial());
+  }
+
 
   Future<void> _onLoadVehicleDetails(
     LoadVehicleDetailsEvent event,
@@ -172,6 +188,23 @@ class VehicleBloc extends Bloc<VehicleEvent, VehicleState> {
       emit(VehiclesLoaded(vehicles: vehicles));
     } catch (e) {
       emit(VehicleError(message: 'Failed to search vehicles: $e'));
+    }
+  }
+
+  Future<void> _onGetVehiclesForClient(
+    GetVehiclesForClientEvent event,
+    Emitter<VehicleState> emit,
+  ) async {
+    emit(VehicleLoading());
+    try {
+      final vehicles = await _getVehiclesForClient.execute(
+        event.accessToken,
+        event.workshopId,
+        event.clientId,
+      );
+      emit(VehiclesLoaded(vehicles: vehicles));
+    } catch (e) {
+      emit(VehicleError(message: 'Failed to load vehicles for client: $e'));
     }
   }
 }

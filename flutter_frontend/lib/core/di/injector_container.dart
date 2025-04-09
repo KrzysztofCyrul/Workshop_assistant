@@ -7,8 +7,10 @@ import 'package:flutter_frontend/features/vehicles/domain/usecases/add_vehicle.d
 import 'package:flutter_frontend/features/vehicles/domain/usecases/update_vehicle.dart';
 import 'package:flutter_frontend/features/vehicles/domain/usecases/delete_vehicle.dart';
 import 'package:flutter_frontend/features/vehicles/domain/usecases/search_vehicles.dart';
+import 'package:flutter_frontend/features/vehicles/domain/usecases/get_vehicles_for_client.dart';
 import 'package:flutter_frontend/features/vehicles/presentation/bloc/vehicle_bloc.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter_frontend/features/vehicles/data/datasources/vehicle_remote_data_source.dart';
 
 final getIt = GetIt.instance;
 
@@ -21,6 +23,10 @@ Future<void> initDependencies() async {
 }
 
 void _initVehicleDependencies() {
+  // Remote Data Source
+  getIt.registerLazySingleton<VehicleRemoteDataSource>(
+    () => VehicleRemoteDataSource(client: getIt()),
+  );
 
   // Repository
   getIt.registerLazySingleton<VehicleRepository>(
@@ -34,6 +40,7 @@ void _initVehicleDependencies() {
   getIt.registerLazySingleton(() => UpdateVehicle(getIt()));
   getIt.registerLazySingleton(() => DeleteVehicle(getIt()));
   getIt.registerLazySingleton(() => SearchVehicles(getIt()));
+  getIt.registerLazySingleton(() => GetVehiclesForClient(getIt()));
 
   // BLoC
   getIt.registerFactory(() => VehicleBloc(
@@ -43,5 +50,6 @@ void _initVehicleDependencies() {
     updateVehicle: getIt(),
     deleteVehicle: getIt(),
     searchVehicles: getIt(),
-  ));
+    getVehiclesForClient: getIt()
+   ));
 }

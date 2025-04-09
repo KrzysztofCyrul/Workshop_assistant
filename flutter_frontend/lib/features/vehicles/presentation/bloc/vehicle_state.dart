@@ -31,3 +31,5 @@ class VehicleError extends VehicleState {
   
   const VehicleError({required this.message});
 }
+
+class VehicleListLoading extends VehicleState {}

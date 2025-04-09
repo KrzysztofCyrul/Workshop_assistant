@@ -97,3 +97,17 @@ class SearchVehiclesEvent extends VehicleEvent {
     required this.query,
   });
 }
+
+class GetVehiclesForClientEvent extends VehicleEvent {
+  final String accessToken;
+  final String workshopId;
+  final String clientId;
+  
+  const GetVehiclesForClientEvent({
+    required this.accessToken,
+    required this.workshopId,
+    required this.clientId,
+  });
+}
+
+class ResetVehicleStateEvent extends VehicleEvent {}

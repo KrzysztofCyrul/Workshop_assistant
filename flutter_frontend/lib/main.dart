@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_frontend/core/di/injector_container.dart';
-import 'package:flutter_frontend/features/vehicles/domain/repositories/vehicle_repository.dart';
-import 'package:flutter_frontend/features/vehicles/presentation/providers/vehicle_provider1.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'providers/vehicle_provider.dart';
 import 'package:provider/provider.dart';
@@ -17,6 +15,15 @@ import 'screens/appointments/appointments_screen.dart';
 import 'core/utils/colors.dart';
 import 'providers/temporary_code_provider.dart';
 import 'providers/generate_code_provider.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'features/vehicles/presentation/bloc/vehicle_bloc.dart';
+import 'features/vehicles/domain/usecases/get_vehicles.dart';
+import 'features/vehicles/domain/usecases/get_vehicle_details.dart';
+import 'features/vehicles/domain/usecases/add_vehicle.dart';
+import 'features/vehicles/domain/usecases/update_vehicle.dart';
+import 'features/vehicles/domain/usecases/delete_vehicle.dart';
+import 'features/vehicles/domain/usecases/search_vehicles.dart';
+import 'features/vehicles/domain/usecases/get_vehicles_for_client.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -36,17 +43,21 @@ Future<void> main() async {
         ChangeNotifierProvider(create: (_) => ClientProvider()),
         ChangeNotifierProvider(create: (_) => EmployeeProvider()),
         ChangeNotifierProvider(create: (_) => VehicleProvider()),
-        ChangeNotifierProvider(create: (_) => VehicleProvider1(
-          repository: getIt<VehicleRepository>(),
-        ),),
-        ChangeNotifierProvider(
-          create: (context) => VehicleProvider1(
-            repository: getIt<VehicleRepository>(),
-          ),
-        ),        ChangeNotifierProvider(create: (_) => ServiceRecordProvider()),    
+        ChangeNotifierProvider(create: (_) => ServiceRecordProvider()),    
         ChangeNotifierProvider(create: (_) => EmailProvider()),    
         ChangeNotifierProvider(create: (_) => TemporaryCodeProvider()),
         ChangeNotifierProvider(create: (_) => GenerateCodeProvider()),
+        BlocProvider(
+          create: (_) => VehicleBloc(
+            getVehicles: getIt<GetVehicles>(),
+            getVehicleDetails: getIt<GetVehicleDetails>(),
+            addVehicle: getIt<AddVehicle>(),
+            updateVehicle: getIt<UpdateVehicle>(),
+            deleteVehicle: getIt<DeleteVehicle>(),
+            searchVehicles: getIt<SearchVehicles>(),
+            getVehiclesForClient: getIt<GetVehiclesForClient>(),
+          ),
+        ),
       ],
       child: const MyApp(),
     ),
