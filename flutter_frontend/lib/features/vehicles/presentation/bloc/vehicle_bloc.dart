@@ -1,4 +1,7 @@
+import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_frontend/core/errors/exceptions.dart';
+import 'package:flutter_frontend/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:flutter_frontend/features/vehicles/domain/entities/vehicle.dart';
 import 'package:flutter_frontend/features/vehicles/domain/usecases/get_vehicles.dart';
 import 'package:flutter_frontend/features/vehicles/domain/usecases/get_vehicle_details.dart';
@@ -8,35 +11,31 @@ import 'package:flutter_frontend/features/vehicles/domain/usecases/delete_vehicl
 import 'package:flutter_frontend/features/vehicles/domain/usecases/search_vehicles.dart';
 import 'package:flutter_frontend/features/vehicles/domain/usecases/get_vehicles_for_client.dart';
 
-
 part 'vehicle_event.dart';
 part 'vehicle_state.dart';
 
 class VehicleBloc extends Bloc<VehicleEvent, VehicleState> {
-  final GetVehicles _getVehicles;
-  final GetVehicleDetails _getVehicleDetails;
-  final AddVehicle _addVehicle;
-  final UpdateVehicle _updateVehicle;
-  final DeleteVehicle _deleteVehicle;
-  final SearchVehicles _searchVehicles;
-  final GetVehiclesForClient _getVehiclesForClient;
+  final GetVehicles getVehicles;
+  final GetVehicleDetails getVehicleDetails;
+  final AddVehicle addVehicle;
+  final UpdateVehicle updateVehicle;
+  final DeleteVehicle deleteVehicle;
+  final SearchVehicles searchVehicles;
+  final GetVehiclesForClient getVehiclesForClient;
+  final AuthBloc authBloc;
+  late final StreamSubscription<AuthState> _authSubscription;
 
   VehicleBloc({
-    required GetVehicles getVehicles,
-    required GetVehicleDetails getVehicleDetails,
-    required AddVehicle addVehicle,
-    required UpdateVehicle updateVehicle,
-    required DeleteVehicle deleteVehicle,
-    required SearchVehicles searchVehicles,
-    required GetVehiclesForClient getVehiclesForClient,
-  })  : _getVehicles = getVehicles,
-        _getVehicleDetails = getVehicleDetails,
-        _addVehicle = addVehicle,
-        _updateVehicle = updateVehicle,
-        _deleteVehicle = deleteVehicle,
-        _searchVehicles = searchVehicles,
-        _getVehiclesForClient = getVehiclesForClient,
-        super(VehicleInitial()) {
+    required this.getVehicles,
+    required this.getVehicleDetails,
+    required this.addVehicle,
+    required this.updateVehicle,
+    required this.deleteVehicle,
+    required this.searchVehicles,
+    required this.getVehiclesForClient,
+    required this.authBloc,
+  }) : super(VehicleInitial()) {
+    // Event handlers
     on<LoadVehiclesEvent>(_onLoadVehicles);
     on<LoadVehicleDetailsEvent>(_onLoadVehicleDetails);
     on<AddVehicleEvent>(_onAddVehicle);
@@ -44,32 +43,31 @@ class VehicleBloc extends Bloc<VehicleEvent, VehicleState> {
     on<DeleteVehicleEvent>(_onDeleteVehicle);
     on<SearchVehiclesEvent>(_onSearchVehicles);
     on<LoadVehiclesForClientEvent>(_onLoadVehiclesForClient);
-    on<ResetVehicleStateEvent>(_onResetState); // Dodaj nową linię
+    on<ResetVehicleStateEvent>(_onResetState);
+    on<VehicleLogoutEvent>(_onLogout);
+
+    // Auth state listener
+    _authSubscription = authBloc.stream.listen((authState) {
+      if (authState is Unauthenticated) {
+        add(VehicleLogoutEvent());
+      }
+    });
   }
 
-  void _onLoadVehicles(
+  Future<void> _onLoadVehicles(
     LoadVehiclesEvent event,
     Emitter<VehicleState> emit,
   ) async {
-    emit(VehicleListLoading()); // Zmiana tutaj
+    emit(VehicleLoading());
     try {
-      final vehicles = await _getVehicles.execute(
-        event.accessToken,
-        event.workshopId,
-      );
+      final vehicles = await getVehicles.execute(event.workshopId);
       emit(VehiclesLoaded(vehicles: vehicles));
+    } on AuthException {
+      emit(VehicleUnauthenticated());
     } catch (e) {
-      emit(VehicleError(message: 'Failed to load vehicles: $e'));
+      emit(VehicleError(message: e.toString()));
     }
   }
-
-  Future<void> _onResetState(
-    ResetVehicleStateEvent event,
-    Emitter<VehicleState> emit,
-  ) async {
-    emit(VehicleInitial());
-  }
-
 
   Future<void> _onLoadVehicleDetails(
     LoadVehicleDetailsEvent event,
@@ -77,14 +75,15 @@ class VehicleBloc extends Bloc<VehicleEvent, VehicleState> {
   ) async {
     emit(VehicleLoading());
     try {
-      final vehicle = await _getVehicleDetails.execute(
-        event.accessToken,
+      final vehicle = await getVehicleDetails.execute(
         event.workshopId,
         event.vehicleId,
       );
       emit(VehicleDetailsLoaded(vehicle: vehicle));
+    } on AuthException {
+      emit(VehicleUnauthenticated());
     } catch (e) {
-      emit(VehicleError(message: 'Failed to load vehicle details: $e'));
+      emit(VehicleError(message: e.toString()));
     }
   }
 
@@ -94,8 +93,7 @@ class VehicleBloc extends Bloc<VehicleEvent, VehicleState> {
   ) async {
     emit(VehicleLoading());
     try {
-      await _addVehicle.execute(
-        accessToken: event.accessToken,
+      await addVehicle.execute(
         workshopId: event.workshopId,
         clientId: event.clientId,
         make: event.make,
@@ -105,16 +103,12 @@ class VehicleBloc extends Bloc<VehicleEvent, VehicleState> {
         licensePlate: event.licensePlate,
         mileage: event.mileage,
       );
-      emit(const VehicleOperationSuccess(
-        message: 'Vehicle added successfully',
-      ));
-      // Refresh vehicles list after adding
-      add(LoadVehiclesEvent(
-        accessToken: event.accessToken,
-        workshopId: event.workshopId,
-      ));
+      emit(VehicleOperationSuccess(message: 'Vehicle added successfully'));
+      add(LoadVehiclesEvent(workshopId: event.workshopId));
+    } on AuthException {
+      emit(VehicleUnauthenticated());
     } catch (e) {
-      emit(VehicleError(message: 'Failed to add vehicle: $e'));
+      emit(VehicleError(message: 'Failed to add vehicle: ${e.toString()}'));
     }
   }
 
@@ -124,8 +118,7 @@ class VehicleBloc extends Bloc<VehicleEvent, VehicleState> {
   ) async {
     emit(VehicleLoading());
     try {
-      await _updateVehicle.execute(
-        accessToken: event.accessToken,
+      await updateVehicle.execute(
         workshopId: event.workshopId,
         vehicleId: event.vehicleId,
         make: event.make,
@@ -135,17 +128,15 @@ class VehicleBloc extends Bloc<VehicleEvent, VehicleState> {
         licensePlate: event.licensePlate,
         mileage: event.mileage,
       );
-      emit(const VehicleOperationSuccess(
-        message: 'Vehicle updated successfully',
-      ));
-      // Refresh vehicle details after update
+      emit(VehicleOperationSuccess(message: 'Vehicle updated successfully'));
       add(LoadVehicleDetailsEvent(
-        accessToken: event.accessToken,
         workshopId: event.workshopId,
         vehicleId: event.vehicleId,
       ));
+    } on AuthException {
+      emit(VehicleUnauthenticated());
     } catch (e) {
-      emit(VehicleError(message: 'Failed to update vehicle: $e'));
+      emit(VehicleError(message: 'Failed to update vehicle: ${e.toString()}'));
     }
   }
 
@@ -155,21 +146,16 @@ class VehicleBloc extends Bloc<VehicleEvent, VehicleState> {
   ) async {
     emit(VehicleLoading());
     try {
-      await _deleteVehicle.execute(
-        event.accessToken,
+      await deleteVehicle.execute(
         event.workshopId,
         event.vehicleId,
       );
-      emit(const VehicleOperationSuccess(
-        message: 'Vehicle deleted successfully',
-      ));
-      // Refresh vehicles list after deletion
-      add(LoadVehiclesEvent(
-        accessToken: event.accessToken,
-        workshopId: event.workshopId,
-      ));
+      emit(VehicleOperationSuccess(message: 'Vehicle deleted successfully'));
+      add(LoadVehiclesEvent(workshopId: event.workshopId));
+    } on AuthException {
+      emit(VehicleUnauthenticated());
     } catch (e) {
-      emit(VehicleError(message: 'Failed to delete vehicle: $e'));
+      emit(VehicleError(message: 'Failed to delete vehicle: ${e.toString()}'));
     }
   }
 
@@ -179,14 +165,15 @@ class VehicleBloc extends Bloc<VehicleEvent, VehicleState> {
   ) async {
     emit(VehicleLoading());
     try {
-      final vehicles = await _searchVehicles.execute(
-        event.accessToken,
+      final vehicles = await searchVehicles.execute(
         event.workshopId,
         event.query,
       );
       emit(VehiclesLoaded(vehicles: vehicles));
+    } on AuthException {
+      emit(VehicleUnauthenticated());
     } catch (e) {
-      emit(VehicleError(message: 'Failed to search vehicles: $e'));
+      emit(VehicleError(message: 'Failed to search vehicles: ${e.toString()}'));
     }
   }
 
@@ -196,14 +183,35 @@ class VehicleBloc extends Bloc<VehicleEvent, VehicleState> {
   ) async {
     emit(VehicleLoading());
     try {
-      final vehicles = await _getVehiclesForClient.execute(
-        event.accessToken,
+      final vehicles = await getVehiclesForClient.execute(
         event.workshopId,
         event.clientId,
       );
       emit(VehiclesLoaded(vehicles: vehicles));
+    } on AuthException {
+      emit(VehicleUnauthenticated());
     } catch (e) {
-      emit(VehicleError(message: 'Failed to load vehicles for client: $e'));
+      emit(VehicleError(message: 'Failed to load client vehicles: ${e.toString()}'));
     }
+  }
+
+  void _onResetState(
+    ResetVehicleStateEvent event,
+    Emitter<VehicleState> emit,
+  ) {
+    emit(VehicleInitial());
+  }
+
+  void _onLogout(
+    VehicleLogoutEvent event,
+    Emitter<VehicleState> emit,
+  ) {
+    emit(VehicleUnauthenticated(message: 'Session expired. Please log in again.'));
+  }
+
+  @override
+  Future<void> close() {
+    _authSubscription.cancel();
+    return super.close();
   }
 }

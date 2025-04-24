@@ -6,7 +6,6 @@ class UpdateVehicle {
   UpdateVehicle(this.repository);
 
   Future<void> execute({
-    required String accessToken,
     required String workshopId,
     required String vehicleId,
     required String make,
@@ -17,7 +16,6 @@ class UpdateVehicle {
     required int mileage,
   }) async {
     await repository.updateVehicle(
-      accessToken: accessToken,
       workshopId: workshopId,
       vehicleId: vehicleId,
       make: make,

@@ -5,7 +5,7 @@ class DeleteVehicle {
 
   DeleteVehicle(this.repository);
 
-  Future<void> execute(String accessToken, String workshopId, String vehicleId) async {
-    await repository.deleteVehicle(accessToken, workshopId, vehicleId);
+  Future<void> execute(String workshopId, String vehicleId) async {
+    await repository.deleteVehicle(workshopId, vehicleId);
   }
 }

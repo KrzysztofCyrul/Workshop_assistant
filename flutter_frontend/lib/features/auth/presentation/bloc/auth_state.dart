@@ -9,9 +9,14 @@ final class AuthInitial extends AuthState {}
 final class AuthLoading extends AuthState {}
 
 final class Authenticated extends AuthState {
+  final String accessToken;
   final User user;
 
-  Authenticated({required this.user});
+  Authenticated({
+    required this.user, 
+    required this.accessToken,
+  }) : super();
+
 }
 
 final class Unauthenticated extends AuthState {}

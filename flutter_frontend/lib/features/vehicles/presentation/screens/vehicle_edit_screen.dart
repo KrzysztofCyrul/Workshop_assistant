@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_frontend/features/vehicles/presentation/bloc/vehicle_bloc.dart';
-import 'package:provider/provider.dart';
-import 'package:flutter_frontend/providers/auth_provider.dart';
 
 class VehicleEditScreen extends StatefulWidget {
   static const routeName = '/vehicle-edit';
@@ -22,32 +20,31 @@ class VehicleEditScreen extends StatefulWidget {
 class _VehicleEditScreenState extends State<VehicleEditScreen> {
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
+  bool _controllersInitialized = false;
 
-  // Controllers for form fields
   late TextEditingController _makeController;
   late TextEditingController _modelController;
   late TextEditingController _yearController;
   late TextEditingController _vinController;
   late TextEditingController _licensePlateController;
   late TextEditingController _mileageController;
-  bool _controllersInitialized = false;
-
 
   @override
   void initState() {
     super.initState();
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    if (authProvider.accessToken == null) {
-      throw Exception('User not authenticated');
-    }
-    context.read<VehicleBloc>().add(LoadVehicleDetailsEvent(
-          accessToken: authProvider.accessToken!,
-          workshopId: widget.workshopId,
-          vehicleId: widget.vehicleId,
-        ));
+    _loadVehicleDetails();
   }
 
-void _initializeControllers(VehicleDetailsLoaded state) {
+  void _loadVehicleDetails() {
+    if (mounted) {
+      context.read<VehicleBloc>().add(LoadVehicleDetailsEvent(
+        workshopId: widget.workshopId,
+        vehicleId: widget.vehicleId,
+      ));
+    }
+  }
+
+  void _initializeControllers(VehicleDetailsLoaded state) {
     if (_controllersInitialized) return;
     final vehicle = state.vehicle;
     _makeController = TextEditingController(text: vehicle.make);
@@ -57,18 +54,6 @@ void _initializeControllers(VehicleDetailsLoaded state) {
     _licensePlateController = TextEditingController(text: vehicle.licensePlate);
     _mileageController = TextEditingController(text: vehicle.mileage.toString());
     _controllersInitialized = true;
-
-  }
-
-    @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (!_controllersInitialized) {
-      final state = context.read<VehicleBloc>().state;
-      if (state is VehicleDetailsLoaded) {
-        _initializeControllers(state);
-      }
-    }
   }
 
   Future<void> _saveForm() async {
@@ -77,51 +62,19 @@ void _initializeControllers(VehicleDetailsLoaded state) {
     setState(() => _isLoading = true);
 
     try {
-      final authProvider = Provider.of<AuthProvider>(context, listen: false);
       context.read<VehicleBloc>().add(UpdateVehicleEvent(
-            accessToken: authProvider.accessToken!,
-            workshopId: widget.workshopId,
-            vehicleId: widget.vehicleId,
-            make: _makeController.text,
-            model: _modelController.text,
-            year: int.parse(_yearController.text),
-            vin: _vinController.text,
-            licensePlate: _licensePlateController.text,
-            mileage: int.parse(_mileageController.text),
-          ));
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Vehicle updated successfully')),
-      );
-      context.read<VehicleBloc>().add(ResetVehicleStateEvent());
-      Navigator.of(context).pop();
-    } catch (error) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error updating vehicle: $error')),
-      );
+        workshopId: widget.workshopId,
+        vehicleId: widget.vehicleId,
+        make: _makeController.text,
+        model: _modelController.text,
+        year: int.parse(_yearController.text),
+        vin: _vinController.text,
+        licensePlate: _licensePlateController.text,
+        mileage: int.parse(_mileageController.text),
+      ));
     } finally {
       setState(() => _isLoading = false);
     }
-  }
-
-  Widget _buildFormField({
-    required String label,
-    required TextEditingController controller,
-    required String? Function(String?) validator,
-    TextInputType? keyboardType,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: TextFormField(
-        controller: controller,
-        decoration: InputDecoration(
-          labelText: label,
-          border: const OutlineInputBorder(),
-        ),
-        keyboardType: keyboardType,
-        validator: validator,
-      ),
-    );
   }
 
   @override
@@ -136,7 +89,19 @@ void _initializeControllers(VehicleDetailsLoaded state) {
           ),
         ],
       ),
-      body: BlocBuilder<VehicleBloc, VehicleState>(
+      body: BlocConsumer<VehicleBloc, VehicleState>(
+        listener: (context, state) {
+          if (state is VehicleOperationSuccess) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(state.message)),
+            );
+            Navigator.of(context).pop();
+          } else if (state is VehicleError) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(state.message)),
+            );
+          }
+        },
         builder: (context, state) {
           if (state is VehicleLoading) {
             return const Center(child: CircularProgressIndicator());
@@ -204,5 +169,38 @@ void _initializeControllers(VehicleDetailsLoaded state) {
         },
       ),
     );
+  }
+
+  Widget _buildFormField({
+    required String label,
+    required TextEditingController controller,
+    required String? Function(String?) validator,
+    TextInputType? keyboardType,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: TextFormField(
+        controller: controller,
+        decoration: InputDecoration(
+          labelText: label,
+          border: const OutlineInputBorder(),
+        ),
+        keyboardType: keyboardType,
+        validator: validator,
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    if (_controllersInitialized) {
+      _makeController.dispose();
+      _modelController.dispose();
+      _yearController.dispose();
+      _vinController.dispose();
+      _licensePlateController.dispose();
+      _mileageController.dispose();
+    }
+    super.dispose();
   }
 }

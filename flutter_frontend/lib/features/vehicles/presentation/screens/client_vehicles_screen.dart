@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_frontend/core/di/injector_container.dart';
-import 'package:flutter_frontend/features/auth/data/datasources/auth_local_data_source.dart';
 import 'package:flutter_frontend/features/vehicles/domain/entities/vehicle.dart';
 import 'package:flutter_frontend/features/vehicles/presentation/bloc/vehicle_bloc.dart';
 import 'package:flutter_frontend/features/vehicles/presentation/screens/vehicle_details_screen.dart';
@@ -34,15 +32,10 @@ void _loadVehicles() {
   if (mounted) {
     final authState = context.read<AuthBloc>().state;
     if (authState is Authenticated) {
-      getIt<AuthLocalDataSource>().getAccessToken().then((accessToken) {
-        if (accessToken != null) {
-          context.read<VehicleBloc>().add(LoadVehiclesForClientEvent(
-            accessToken: accessToken,
-            workshopId: widget.workshopId,
-            clientId: widget.clientId,
-          ));
-        }
-      });
+      context.read<VehicleBloc>().add(LoadVehiclesForClientEvent(
+        workshopId: widget.workshopId,
+        clientId: widget.clientId,
+      ));
     }
   }
 }

@@ -6,7 +6,7 @@ class GetVehiclesForClient {
 
   GetVehiclesForClient(this.repository);
 
-  Future<List<Vehicle>> execute(String accessToken, String workshopId, String clientId) async {
-    return await repository.getVehiclesForClient(accessToken, workshopId, clientId);
+  Future<List<Vehicle>> execute(String workshopId, String clientId) async {
+    return await repository.getVehiclesForClient(workshopId, clientId);
   }
 }

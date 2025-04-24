@@ -1,5 +1,6 @@
 // lib/features/auth/presentation/bloc/auth_bloc.dart
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_frontend/core/errors/exceptions.dart';
 import '../../domain/usecases/login.dart';
 import '../../domain/usecases/register.dart';
 import '../../domain/usecases/logout.dart';
@@ -24,18 +25,28 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<LogoutRequested>(_onLogoutRequested);
   }
 
-  Future<void> _onLoginRequested(
-    LoginRequested event,
-    Emitter<AuthState> emit,
-  ) async {
-    emit(AuthLoading());
-    try {
-      final user = await loginUseCase.execute(event.email, event.password);
-      emit(Authenticated(user: user));
-    } catch (e) {
-      emit(AuthError(message: e.toString()));
+ // W AuthBloc
+Future<void> _onLoginRequested(
+  LoginRequested event,
+  Emitter<AuthState> emit,
+) async {
+  emit(AuthLoading());
+  try {
+    final authResult = await loginUseCase.execute(event.email, event.password);
+    if (authResult.accessToken.isEmpty) {
+      throw AuthException(message: 'Empty access token received');
     }
+    emit(Authenticated(
+      user: authResult.user,
+      accessToken: authResult.accessToken,
+    ));
+    debugPrint('Login successful, token: ${authResult.accessToken}');
+  } catch (e) {
+    debugPrint('Login error: $e');
+    emit(AuthError(message: e.toString()));
+    emit(Unauthenticated());
   }
+}
 
   Future<void> _onRegisterRequested(
     RegisterRequested event,

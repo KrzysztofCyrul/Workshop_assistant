@@ -6,8 +6,8 @@ class SearchVehicles {
 
   SearchVehicles(this.repository);
 
-  Future<List<Vehicle>> execute(String accessToken, String workshopId, String query) async {
-    final vehicles = await repository.getVehicles(accessToken, workshopId);
+  Future<List<Vehicle>> execute(String workshopId, String query) async {
+    final vehicles = await repository.getVehicles(workshopId);
     return vehicles.where((vehicle) =>
       vehicle.make.toLowerCase().contains(query.toLowerCase()) ||
       vehicle.model.toLowerCase().contains(query.toLowerCase()) ||

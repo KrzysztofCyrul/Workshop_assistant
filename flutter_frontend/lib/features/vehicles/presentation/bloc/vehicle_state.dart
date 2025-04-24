@@ -10,26 +10,32 @@ class VehicleLoading extends VehicleState {}
 
 class VehiclesLoaded extends VehicleState {
   final List<Vehicle> vehicles;
-  
+
   const VehiclesLoaded({required this.vehicles});
 }
 
 class VehicleDetailsLoaded extends VehicleState {
   final Vehicle vehicle;
-  
+
   const VehicleDetailsLoaded({required this.vehicle});
 }
 
 class VehicleOperationSuccess extends VehicleState {
   final String message;
-  
+
   const VehicleOperationSuccess({required this.message});
 }
 
 class VehicleError extends VehicleState {
   final String message;
-  
+
   const VehicleError({required this.message});
 }
 
-class VehicleListLoading extends VehicleState {}
+class VehicleUnauthenticated extends VehicleState {
+  final String message;
+
+  const VehicleUnauthenticated({
+    this.message = 'Session expired. Please log in again.',
+  });
+}

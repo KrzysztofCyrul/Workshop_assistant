@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_frontend/core/di/injector_container.dart';
-import 'package:flutter_frontend/features/auth/data/datasources/auth_local_data_source.dart';
 import 'package:flutter_frontend/features/vehicles/domain/entities/vehicle.dart';
 import 'package:flutter_frontend/features/vehicles/presentation/bloc/vehicle_bloc.dart';
 import 'package:flutter_frontend/features/vehicles/presentation/screens/vehicle_details_screen.dart';
-import 'package:flutter_frontend/features/auth/presentation/bloc/auth_bloc.dart';
 
 class VehicleListScreen extends StatefulWidget {
   static const routeName = '/vehicle-list';
@@ -23,30 +20,40 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
   @override
   void initState() {
     super.initState();
-    _loadVehicles();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      _debugVehicleState();
+      _loadVehicles();
+    });
   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _loadVehicles();
-  }
+  void _debugVehicleState() {
+    final vehicleState = context.read<VehicleBloc>().state;
+    debugPrint('VehicleListScreen - Current state: ${vehicleState.runtimeType}');
 
-void _loadVehicles() {
-  if (mounted) {
-    final authState = context.read<AuthBloc>().state;
-    if (authState is Authenticated) {
-      getIt<AuthLocalDataSource>().getAccessToken().then((accessToken) {
-        if (accessToken != null) {
-          context.read<VehicleBloc>().add(LoadVehiclesEvent(
-            accessToken: accessToken,
-            workshopId: widget.workshopId,
-          ));
-        }
-      });
+    switch (vehicleState.runtimeType) {
+      case VehicleUnauthenticated:
+        debugPrint('VehicleListScreen - User is not authenticated');
+        break;
+      case VehiclesLoaded:
+        final loadedState = vehicleState as VehiclesLoaded;
+        debugPrint('VehicleListScreen - Loaded vehicles count: ${loadedState.vehicles.length}');
+        break;
+      case VehicleError:
+        final errorState = vehicleState as VehicleError;
+        debugPrint('VehicleListScreen - Error: ${errorState.message}');
+        break;
+      default:
+        debugPrint('VehicleListScreen - State: $vehicleState');
     }
   }
-}
+
+  void _loadVehicles() {
+    if (!mounted) return;
+    debugPrint('VehicleListScreen - Loading vehicles for workshop: ${widget.workshopId}');
+    context.read<VehicleBloc>().add(LoadVehiclesEvent(
+      workshopId: widget.workshopId,
+    ));
+  }
 
   List<Vehicle> _filterVehicles(List<Vehicle> vehicles) {
     if (_searchQuery.isEmpty) return vehicles;
@@ -61,70 +68,74 @@ void _loadVehicles() {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<AuthBloc, AuthState>(
-      builder: (context, authState) {
-        if (authState is! Authenticated) {
-          return Scaffold(
-            appBar: AppBar(title: const Text('Lista Pojazdów')),
-            body: const Center(
-              child: Text(
-                'Brak dostępu do danych użytkownika.\nZaloguj się, aby zobaczyć listę pojazdów.',
-                textAlign: TextAlign.center,
-              ),
-            ),
-          );
-        }
-
-        return Scaffold(
-          appBar: AppBar(
-            title: const Text('Lista Pojazdów'),
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.refresh),
-                onPressed: _loadVehicles,
-              ),
-            ],
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Lista Pojazdów'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: _loadVehicles,
           ),
-          body: BlocConsumer<VehicleBloc, VehicleState>(
-            listener: (context, state) {
-              if (state is VehicleError) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(state.message)),
-                );
-              }
-            },
-            builder: (context, state) {
-              return RefreshIndicator(
-                onRefresh: () async => _loadVehicles(),
-                child: Column(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: TextField(
-                        decoration: InputDecoration(
-                          labelText: 'Wyszukaj pojazd',
-                          prefixIcon: const Icon(Icons.search),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                        onChanged: (value) => setState(() => _searchQuery = value),
+        ],
+      ),
+      body: BlocConsumer<VehicleBloc, VehicleState>(
+        listener: (context, state) {
+          if (state is VehicleError) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(state.message)),
+            );
+          }
+        },
+        builder: (context, state) {
+          return RefreshIndicator(
+            onRefresh: () async => _loadVehicles(),
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: TextField(
+                    decoration: InputDecoration(
+                      labelText: 'Wyszukaj pojazd',
+                      prefixIcon: const Icon(Icons.search),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
                       ),
                     ),
-                    Expanded(
-                      child: _buildContent(state),
-                    ),
-                  ],
+                    onChanged: (value) => setState(() => _searchQuery = value),
+                  ),
                 ),
-              );
-            },
-          ),
-        );
-      },
+                Expanded(
+                  child: _buildContent(state),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
     );
   }
 
   Widget _buildContent(VehicleState state) {
+    if (state is VehicleUnauthenticated) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.error_outline, size: 50, color: Colors.red),
+            const SizedBox(height: 20),
+            Text(state.message, textAlign: TextAlign.center),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pushReplacementNamed(context, '/login');
+              },
+              child: const Text('Zaloguj się'),
+            ),
+          ],
+        ),
+      );
+    }
+
     if (state is VehicleInitial || state is VehicleLoading) {
       return const Center(child: CircularProgressIndicator());
     }

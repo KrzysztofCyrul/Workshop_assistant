@@ -1,54 +1,51 @@
-import 'dart:convert';
+import 'package:dio/dio.dart';
 import 'package:flutter_frontend/core/errors/exceptions.dart';
 import 'package:flutter_frontend/core/utils/constants.dart' as api_constants;
 import 'package:flutter_frontend/features/vehicles/data/models/vehicle_model.dart';
-import 'package:http/http.dart' as http;
 
 class VehicleRemoteDataSource {
-  final http.Client client;
+  final Dio dio;
 
-  VehicleRemoteDataSource({required this.client});
+  VehicleRemoteDataSource({required this.dio});
 
-  Future<List<VehicleModel>> getVehicles(String accessToken, String workshopId) async {
-    final response = await client.get(
-      Uri.parse('${api_constants.baseUrl}/workshops/$workshopId/vehicles/'),
-      headers: _buildHeaders(accessToken),
-    );
-
-    if (response.statusCode == 200) {
-      final data = json.decode(utf8.decode(response.bodyBytes)) as List;
-      return data.map((json) => VehicleModel.fromJson(json)).toList();
+  Future<List<VehicleModel>> getVehicles(String workshopId) async {
+    try {
+      final response = await dio.get(
+        '${api_constants.baseUrl}/workshops/$workshopId/vehicles/'
+      );
+      return (response.data as List)
+          .map((json) => VehicleModel.fromJson(json))
+          .toList();
+    } on DioException catch (e) {
+      throw _handleDioError(e);
     }
-    throw ServerException(message: 'Failed to load vehicles');
   }
 
-   Future<VehicleModel> getVehicleDetails(String accessToken, String workshopId, String vehicleId) async {
-    final response = await client.get(
-      Uri.parse('${api_constants.baseUrl}/workshops/$workshopId/vehicles/$vehicleId/'),
-      headers: _buildHeaders(accessToken),
-    );
-
-    if (response.statusCode == 200) {
-      return VehicleModel.fromJson(json.decode(utf8.decode(response.bodyBytes)));
+  Future<VehicleModel> getVehicleDetails(String workshopId, String vehicleId) async {
+    try {
+      final response = await dio.get(
+        '${api_constants.baseUrl}/workshops/$workshopId/vehicles/$vehicleId/'
+      );
+      return VehicleModel.fromJson(response.data);
+    } on DioException catch (e) {
+      throw _handleDioError(e);
     }
-    throw ServerException(message: 'Failed to load vehicle details');
   }
 
-  Future<List<VehicleModel>> getVehiclesForClient(String accessToken, String workshopId, String clientId) async {
-    final response = await client.get(
-      Uri.parse('${api_constants.baseUrl}/workshops/$workshopId/clients/$clientId/vehicles/'),
-      headers: _buildHeaders(accessToken),
-    );
-
-    if (response.statusCode == 200) {
-      final data = json.decode(utf8.decode(response.bodyBytes)) as List;
-      return data.map((json) => VehicleModel.fromJson(json)).toList();
+  Future<List<VehicleModel>> getVehiclesForClient(String workshopId, String clientId) async {
+    try {
+      final response = await dio.get(
+        '${api_constants.baseUrl}/workshops/$workshopId/clients/$clientId/vehicles/'
+      );
+      return (response.data as List)
+          .map((json) => VehicleModel.fromJson(json))
+          .toList();
+    } on DioException catch (e) {
+      throw _handleDioError(e);
     }
-    throw ServerException(message: 'Failed to load client vehicles');
   }
 
   Future<void> addVehicle({
-    required String accessToken,
     required String workshopId,
     required String clientId,
     required String make,
@@ -58,26 +55,24 @@ class VehicleRemoteDataSource {
     required String licensePlate,
     required int mileage,
   }) async {
-    final response = await client.post(
-      Uri.parse('${api_constants.baseUrl}/workshops/$workshopId/clients/$clientId/vehicles/'),
-      headers: _buildHeaders(accessToken),
-      body: json.encode({
-        'make': make,
-        'model': model,
-        'year': year,
-        'vin': vin,
-        'license_plate': licensePlate,
-        'mileage': mileage,
-      }),
-    );
-
-    if (response.statusCode != 201) {
-      throw ServerException(message: 'Failed to add vehicle');
+    try {
+      await dio.post(
+        '${api_constants.baseUrl}/workshops/$workshopId/clients/$clientId/vehicles/',
+        data: {
+          'make': make,
+          'model': model,
+          'year': year,
+          'vin': vin,
+          'license_plate': licensePlate,
+          'mileage': mileage,
+        },
+      );
+    } on DioException catch (e) {
+      throw _handleDioError(e);
     }
   }
-  
+
   Future<void> updateVehicle({
-    required String accessToken,
     required String workshopId,
     required String vehicleId,
     required String make,
@@ -87,38 +82,67 @@ class VehicleRemoteDataSource {
     required String licensePlate,
     required int mileage,
   }) async {
-    final response = await client.put(
-      Uri.parse('${api_constants.baseUrl}/workshops/$workshopId/vehicles/$vehicleId/'),
-      headers: _buildHeaders(accessToken),
-      body: json.encode({
-        'make': make,
-        'model': model,
-        'year': year,
-        'vin': vin,
-        'license_plate': licensePlate,
-        'mileage': mileage,
-      }),
-    );
-
-    if (response.statusCode != 200) {
-      throw ServerException(message: 'Failed to update vehicle');
+    try {
+      await dio.put(
+        '${api_constants.baseUrl}/workshops/$workshopId/vehicles/$vehicleId/',
+        data: {
+          'make': make,
+          'model': model,
+          'year': year,
+          'vin': vin,
+          'license_plate': licensePlate,
+          'mileage': mileage,
+        },
+      );
+    } on DioException catch (e) {
+      throw _handleDioError(e);
     }
   }
 
-Future<void> deleteVehicle(String accessToken, String workshopId, String vehicleId) async {
-    final response = await client.delete(
-      Uri.parse('${api_constants.baseUrl}/workshops/$workshopId/vehicles/$vehicleId/'),
-      headers: _buildHeaders(accessToken),
-    );
-
-    if (response.statusCode != 204) {
-      throw ServerException(message: 'Failed to delete vehicle');
+  Future<void> deleteVehicle(String workshopId, String vehicleId) async {
+    try {
+      await dio.delete(
+        '${api_constants.baseUrl}/workshops/$workshopId/vehicles/$vehicleId/',
+      );
+    } on DioException catch (e) {
+      throw _handleDioError(e);
     }
   }
 
+  Future<List<VehicleModel>> searchVehicles(String workshopId, String query) async {
+    try {
+      final response = await dio.get(
+        '${api_constants.baseUrl}/workshops/$workshopId/vehicles/search/',
+        queryParameters: {'q': query},
+      );
+      return (response.data as List)
+          .map((json) => VehicleModel.fromJson(json))
+          .toList();
+    } on DioException catch (e) {
+      throw _handleDioError(e);
+    }
+  }
+
+  Exception _handleDioError(DioException e) {  // Zmieniony typ zwracany na Exception
+    if (e.response?.statusCode == 401) {
+      return AuthException(message: 'Session expired');
+    } else if (e.response?.statusCode == 404) {
+      return ServerException(message: 'Resource not found');  // Uproszczone do ServerException
+    } else if (e.response?.statusCode == 400) {
+      return ServerException(
+        message: e.response?.data['message'] ?? 'Invalid request'
+      );
+    } else if (e.response?.statusCode == 403) {
+      return ServerException(message: 'Access denied');
+    } else if (e.response?.statusCode == 500) {
+      return ServerException(message: 'Internal server error');
+    } else if (e.type == DioExceptionType.connectionTimeout ||
+               e.type == DioExceptionType.receiveTimeout ||
+               e.type == DioExceptionType.sendTimeout) {
+      return ServerException(message: 'Connection timeout');
+    } else if (e.type == DioExceptionType.connectionError) {
+      return ServerException(message: 'No internet connection');
+    }
+    return ServerException(message: 'Unknown error occurred');
+  }
 }
-
-  Map<String, String> _buildHeaders(String accessToken) => {
-    'Authorization': 'Bearer $accessToken',
-    'Content-Type': 'application/json',
-  };

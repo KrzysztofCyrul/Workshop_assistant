@@ -60,6 +60,7 @@ Future<void> main() async {
         ChangeNotifierProvider(create: (_) => GenerateCodeProvider()),
         BlocProvider(
           create: (_) => VehicleBloc(
+            authBloc: getIt<AuthBloc>(),
             getVehicles: getIt<GetVehicles>(),
             getVehicleDetails: getIt<GetVehicleDetails>(),
             addVehicle: getIt<AddVehicle>(),

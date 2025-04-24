@@ -9,56 +9,77 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
   AuthRemoteDataSourceImpl({required this.client});
 
+  // Metoda pomocnicza do tworzenia nagłówków
+  Map<String, String> _getHeaders({String? accessToken}) {
+    final headers = {
+      'Content-Type': 'application/json',
+    };
+    if (accessToken != null) {
+      headers['Authorization'] = 'Bearer $accessToken';
+    }
+    return headers;
+  }
+
+  // Metoda pomocnicza do obsługi odpowiedzi
+  Map<String, dynamic> _handleResponse(http.Response response, String errorMessage) {
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return json.decode(utf8.decode(response.bodyBytes));
+    } else if (response.statusCode == 401) {
+      throw AuthException(message: 'Unauthorized');
+    } else {
+      throw ServerException(
+        message: '$errorMessage. Status code: ${response.statusCode}',
+        statusCode: response.statusCode,
+      );
+    }
+  }
 
   @override
   Future<Map<String, dynamic>> login(String email, String password) async {
     final response = await client.post(
       Uri.parse('${api_constants.baseUrl}/login/'),
-      body: {'email': email, 'password': password},
+      headers: _getHeaders(),
+      body: jsonEncode({'email': email, 'password': password}),
     );
-
-    if (response.statusCode != 200) {
-      throw ServerException(message: 'Błąd logowania');
-    }
-    return json.decode(utf8.decode(response.bodyBytes));
+    return _handleResponse(response, 'Błąd logowania');
   }
 
   @override
   Future<Map<String, dynamic>> register(Map<String, dynamic> userData) async {
     final response = await client.post(
       Uri.parse('${api_constants.baseUrl}/register/'),
-      body: userData,
+      headers: _getHeaders(),
+      body: jsonEncode(userData),
     );
-
-    if (response.statusCode != 201) {
-      throw ServerException(message: 'Błąd rejestracji');
-    }
-    return json.decode(utf8.decode(response.bodyBytes));
+    return _handleResponse(response, 'Błąd rejestracji');
   }
 
   @override
   Future<void> logout(String refreshToken) async {
     final response = await client.post(
       Uri.parse('${api_constants.baseUrl}/logout/'),
-      headers: {'Content-Type': 'application/json'},
+      headers: _getHeaders(),
       body: jsonEncode({'refresh_token': refreshToken}),
     );
-
-    if (response.statusCode != 200) {
-      throw ServerException(message: 'Błąd wylogowania');
-    }
+    _handleResponse(response, 'Błąd wylogowania');
   }
 
   @override
   Future<Map<String, dynamic>> getUserProfile(String accessToken) async {
     final response = await client.get(
       Uri.parse('${api_constants.baseUrl}/user/profile/'),
-      headers: {'Authorization': 'Bearer $accessToken'},
+      headers: _getHeaders(accessToken: accessToken),
     );
+    return _handleResponse(response, 'Błąd pobierania profilu użytkownika');
+  }
 
-    if (response.statusCode != 200) {
-      throw ServerException(message: 'Błąd pobierania profilu użytkownika');
-    }
-    return json.decode(utf8.decode(response.bodyBytes));
+  @override
+  Future<Map<String, dynamic>> refreshToken(String refreshToken) async {
+    final response = await client.post(
+      Uri.parse('${api_constants.baseUrl}/refresh/'),
+      headers: _getHeaders(),
+      body: jsonEncode({'refresh_token': refreshToken}),
+    );
+    return _handleResponse(response, 'Błąd odświeżania tokena');
   }
 }

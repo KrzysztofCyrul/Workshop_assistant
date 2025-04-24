@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_frontend/core/errors/exceptions.dart';
 import 'package:flutter_frontend/features/vehicles/data/mappers/vehicle_mapper.dart';
 import 'package:flutter_frontend/features/vehicles/domain/repositories/vehicle_repository.dart';
@@ -10,10 +11,12 @@ class VehicleRepositoryImpl implements VehicleRepository {
   VehicleRepositoryImpl({required this.remoteDataSource});
 
   @override
-  Future<List<Vehicle>> getVehicles(String accessToken, String workshopId) async {
+  Future<List<Vehicle>> getVehicles(String workshopId) async {
     try {
-      final models = await remoteDataSource.getVehicles(accessToken, workshopId);
+      final models = await remoteDataSource.getVehicles(workshopId);
       return models.map((model) => VehicleMapper.toEntity(model)).toList();
+    } on AuthException {
+      rethrow; // Przekaż wyjątki autentykacji bez zmian
     } catch (e) {
       throw _handleException(e);
     }
@@ -21,17 +24,17 @@ class VehicleRepositoryImpl implements VehicleRepository {
 
   @override
   Future<Vehicle> getVehicleDetails(
-    String accessToken, 
     String workshopId, 
     String vehicleId
   ) async {
     try {
       final model = await remoteDataSource.getVehicleDetails(
-        accessToken, 
         workshopId, 
         vehicleId
       );
       return VehicleMapper.toEntity(model);
+    } on AuthException {
+      rethrow;
     } catch (e) {
       throw _handleException(e);
     }
@@ -39,17 +42,17 @@ class VehicleRepositoryImpl implements VehicleRepository {
 
   @override
   Future<List<Vehicle>> getVehiclesForClient(
-    String accessToken, 
     String workshopId, 
     String clientId
   ) async {
     try {
       final models = await remoteDataSource.getVehiclesForClient(
-        accessToken, 
         workshopId, 
         clientId
       );
       return models.map((model) => VehicleMapper.toEntity(model)).toList();
+    } on AuthException {
+      rethrow;
     } catch (e) {
       throw _handleException(e);
     }
@@ -57,7 +60,6 @@ class VehicleRepositoryImpl implements VehicleRepository {
 
   @override
   Future<void> addVehicle({
-    required String accessToken,
     required String workshopId,
     required String clientId,
     required String make,
@@ -69,7 +71,6 @@ class VehicleRepositoryImpl implements VehicleRepository {
   }) async {
     try {
       await remoteDataSource.addVehicle(
-        accessToken: accessToken,
         workshopId: workshopId,
         clientId: clientId,
         make: make,
@@ -79,6 +80,8 @@ class VehicleRepositoryImpl implements VehicleRepository {
         licensePlate: licensePlate,
         mileage: mileage,
       );
+    } on AuthException {
+      rethrow;
     } catch (e) {
       throw _handleException(e);
     }
@@ -86,7 +89,6 @@ class VehicleRepositoryImpl implements VehicleRepository {
 
   @override
   Future<void> updateVehicle({
-    required String accessToken,
     required String workshopId,
     required String vehicleId,
     required String make,
@@ -98,7 +100,6 @@ class VehicleRepositoryImpl implements VehicleRepository {
   }) async {
     try {
       await remoteDataSource.updateVehicle(
-        accessToken: accessToken,
         workshopId: workshopId,
         vehicleId: vehicleId,
         make: make,
@@ -108,6 +109,8 @@ class VehicleRepositoryImpl implements VehicleRepository {
         licensePlate: licensePlate,
         mileage: mileage,
       );
+    } on AuthException {
+      rethrow;
     } catch (e) {
       throw _handleException(e);
     }
@@ -115,16 +118,16 @@ class VehicleRepositoryImpl implements VehicleRepository {
 
   @override
   Future<void> deleteVehicle(
-    String accessToken, 
     String workshopId, 
     String vehicleId
   ) async {
     try {
       await remoteDataSource.deleteVehicle(
-        accessToken, 
         workshopId, 
         vehicleId
       );
+    } on AuthException {
+      rethrow;
     } catch (e) {
       throw _handleException(e);
     }
@@ -132,6 +135,11 @@ class VehicleRepositoryImpl implements VehicleRepository {
 
   Exception _handleException(dynamic error) {
     if (error is ServerException) return error;
+    if (error is DioException) {
+      return ServerException(
+        message: error.response?.data['message'] ?? 'Network request failed'
+      );
+    }
     return ServerException(message: 'Vehicle operation failed: ${error.toString()}');
   }
 }
