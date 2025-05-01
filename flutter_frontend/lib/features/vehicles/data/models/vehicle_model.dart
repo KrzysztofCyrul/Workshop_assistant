@@ -16,7 +16,7 @@ class VehicleModel extends Vehicle {
 
   factory VehicleModel.fromJson(Map<String, dynamic> json) {
     return VehicleModel(
-id: json['id'],
+      id: json['id'],
       clientId: json['client'],
       make: json['make'] ?? '',
       model: json['model'] ?? '',
@@ -44,5 +44,33 @@ id: json['id'],
     };
   }
 
-  toEntity() {}
+  Vehicle toEntity() {
+    return Vehicle(
+      id: id,
+      clientId: clientId,
+      make: make,
+      model: model,
+      year: year,
+      vin: vin,
+      licensePlate: licensePlate,
+      createdAt: createdAt,
+      updatedAt: updatedAt,
+      mileage: mileage,
+    );
+  }
+
+  static VehicleModel fromEntity(Vehicle entity) {
+    return VehicleModel(
+      id: entity.id,
+      clientId: entity.clientId,
+      make: entity.make,
+      model: entity.model,
+      year: entity.year,
+      vin: entity.vin,
+      licensePlate: entity.licensePlate,
+      createdAt: entity.createdAt,
+      updatedAt: entity.updatedAt,
+      mileage: entity.mileage,
+    );
+  }
 }

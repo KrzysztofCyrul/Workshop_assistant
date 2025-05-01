@@ -1,6 +1,3 @@
-import 'package:dio/dio.dart';
-import 'package:flutter_frontend/core/errors/exceptions.dart';
-import 'package:flutter_frontend/features/vehicles/data/mappers/vehicle_mapper.dart';
 import 'package:flutter_frontend/features/vehicles/domain/repositories/vehicle_repository.dart';
 import '../../domain/entities/vehicle.dart';
 import '../datasources/vehicle_remote_data_source.dart';
@@ -14,11 +11,9 @@ class VehicleRepositoryImpl implements VehicleRepository {
   Future<List<Vehicle>> getVehicles(String workshopId) async {
     try {
       final models = await remoteDataSource.getVehicles(workshopId);
-      return models.map((model) => VehicleMapper.toEntity(model)).toList();
-    } on AuthException {
-      rethrow; // Przekaż wyjątki autentykacji bez zmian
-    } catch (e) {
-      throw _handleException(e);
+      return models.map((model) => model.toEntity()).toList();
+    } on Exception {
+      rethrow;
     }
   }
 
@@ -32,11 +27,9 @@ class VehicleRepositoryImpl implements VehicleRepository {
         workshopId, 
         vehicleId
       );
-      return VehicleMapper.toEntity(model);
-    } on AuthException {
+      return model.toEntity();
+    } on Exception {
       rethrow;
-    } catch (e) {
-      throw _handleException(e);
     }
   }
 
@@ -50,11 +43,9 @@ class VehicleRepositoryImpl implements VehicleRepository {
         workshopId, 
         clientId
       );
-      return models.map((model) => VehicleMapper.toEntity(model)).toList();
-    } on AuthException {
+      return models.map((model) => model.toEntity()).toList();
+    } on Exception {
       rethrow;
-    } catch (e) {
-      throw _handleException(e);
     }
   }
 
@@ -80,10 +71,8 @@ class VehicleRepositoryImpl implements VehicleRepository {
         licensePlate: licensePlate,
         mileage: mileage,
       );
-    } on AuthException {
+    } on Exception {
       rethrow;
-    } catch (e) {
-      throw _handleException(e);
     }
   }
 
@@ -109,10 +98,8 @@ class VehicleRepositoryImpl implements VehicleRepository {
         licensePlate: licensePlate,
         mileage: mileage,
       );
-    } on AuthException {
+    } on Exception {
       rethrow;
-    } catch (e) {
-      throw _handleException(e);
     }
   }
 
@@ -126,20 +113,8 @@ class VehicleRepositoryImpl implements VehicleRepository {
         workshopId, 
         vehicleId
       );
-    } on AuthException {
+    } on Exception {
       rethrow;
-    } catch (e) {
-      throw _handleException(e);
     }
-  }
-
-  Exception _handleException(dynamic error) {
-    if (error is ServerException) return error;
-    if (error is DioException) {
-      return ServerException(
-        message: error.response?.data['message'] ?? 'Network request failed'
-      );
-    }
-    return ServerException(message: 'Vehicle operation failed: ${error.toString()}');
   }
 }
