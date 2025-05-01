@@ -63,7 +63,7 @@ class VehicleBloc extends Bloc<VehicleEvent, VehicleState> {
       final vehicles = await getVehicles.execute(event.workshopId);
       emit(VehiclesLoaded(vehicles: vehicles));
     } on AuthException {
-      emit(VehicleUnauthenticated());
+      emit(const VehicleUnauthenticated());
     } catch (e) {
       emit(VehicleError(message: e.toString()));
     }
@@ -81,7 +81,7 @@ class VehicleBloc extends Bloc<VehicleEvent, VehicleState> {
       );
       emit(VehicleDetailsLoaded(vehicle: vehicle));
     } on AuthException {
-      emit(VehicleUnauthenticated());
+      emit(const VehicleUnauthenticated());
     } catch (e) {
       emit(VehicleError(message: e.toString()));
     }
@@ -103,10 +103,10 @@ class VehicleBloc extends Bloc<VehicleEvent, VehicleState> {
         licensePlate: event.licensePlate,
         mileage: event.mileage,
       );
-      emit(VehicleOperationSuccess(message: 'Vehicle added successfully'));
+      emit(const VehicleOperationSuccess(message: 'Vehicle added successfully'));
       add(LoadVehiclesEvent(workshopId: event.workshopId));
     } on AuthException {
-      emit(VehicleUnauthenticated());
+      emit(const VehicleUnauthenticated());
     } catch (e) {
       emit(VehicleError(message: 'Failed to add vehicle: ${e.toString()}'));
     }
@@ -128,13 +128,13 @@ class VehicleBloc extends Bloc<VehicleEvent, VehicleState> {
         licensePlate: event.licensePlate,
         mileage: event.mileage,
       );
-      emit(VehicleOperationSuccess(message: 'Vehicle updated successfully'));
+      emit(const VehicleOperationSuccess(message: 'Vehicle updated successfully'));
       add(LoadVehicleDetailsEvent(
         workshopId: event.workshopId,
         vehicleId: event.vehicleId,
       ));
     } on AuthException {
-      emit(VehicleUnauthenticated());
+      emit(const VehicleUnauthenticated());
     } catch (e) {
       emit(VehicleError(message: 'Failed to update vehicle: ${e.toString()}'));
     }
@@ -150,10 +150,10 @@ class VehicleBloc extends Bloc<VehicleEvent, VehicleState> {
         event.workshopId,
         event.vehicleId,
       );
-      emit(VehicleOperationSuccess(message: 'Vehicle deleted successfully'));
+      emit(const VehicleOperationSuccess(message: 'Vehicle deleted successfully'));
       add(LoadVehiclesEvent(workshopId: event.workshopId));
     } on AuthException {
-      emit(VehicleUnauthenticated());
+      emit(const VehicleUnauthenticated());
     } catch (e) {
       emit(VehicleError(message: 'Failed to delete vehicle: ${e.toString()}'));
     }
@@ -171,7 +171,7 @@ class VehicleBloc extends Bloc<VehicleEvent, VehicleState> {
       );
       emit(VehiclesLoaded(vehicles: vehicles));
     } on AuthException {
-      emit(VehicleUnauthenticated());
+      emit(const VehicleUnauthenticated());
     } catch (e) {
       emit(VehicleError(message: 'Failed to search vehicles: ${e.toString()}'));
     }
@@ -189,7 +189,7 @@ class VehicleBloc extends Bloc<VehicleEvent, VehicleState> {
       );
       emit(VehiclesLoaded(vehicles: vehicles));
     } on AuthException {
-      emit(VehicleUnauthenticated());
+      emit(const VehicleUnauthenticated());
     } catch (e) {
       emit(VehicleError(message: 'Failed to load client vehicles: ${e.toString()}'));
     }
@@ -206,7 +206,7 @@ class VehicleBloc extends Bloc<VehicleEvent, VehicleState> {
     VehicleLogoutEvent event,
     Emitter<VehicleState> emit,
   ) {
-    emit(VehicleUnauthenticated(message: 'Session expired. Please log in again.'));
+    emit(const VehicleUnauthenticated(message: 'Session expired. Please log in again.'));
   }
 
   @override

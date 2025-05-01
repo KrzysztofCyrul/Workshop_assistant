@@ -18,15 +18,9 @@ class VehicleRepositoryImpl implements VehicleRepository {
   }
 
   @override
-  Future<Vehicle> getVehicleDetails(
-    String workshopId, 
-    String vehicleId
-  ) async {
+  Future<Vehicle> getVehicleDetails(String workshopId, String vehicleId) async {
     try {
-      final model = await remoteDataSource.getVehicleDetails(
-        workshopId, 
-        vehicleId
-      );
+      final model = await remoteDataSource.getVehicleDetails(workshopId, vehicleId);
       return model.toEntity();
     } on Exception {
       rethrow;
@@ -34,15 +28,9 @@ class VehicleRepositoryImpl implements VehicleRepository {
   }
 
   @override
-  Future<List<Vehicle>> getVehiclesForClient(
-    String workshopId, 
-    String clientId
-  ) async {
+  Future<List<Vehicle>> getVehiclesForClient(String workshopId, String clientId) async {
     try {
-      final models = await remoteDataSource.getVehiclesForClient(
-        workshopId, 
-        clientId
-      );
+      final models = await remoteDataSource.getVehiclesForClient(workshopId, clientId);
       return models.map((model) => model.toEntity()).toList();
     } on Exception {
       rethrow;
@@ -104,15 +92,9 @@ class VehicleRepositoryImpl implements VehicleRepository {
   }
 
   @override
-  Future<void> deleteVehicle(
-    String workshopId, 
-    String vehicleId
-  ) async {
+  Future<void> deleteVehicle(String workshopId, String vehicleId) async {
     try {
-      await remoteDataSource.deleteVehicle(
-        workshopId, 
-        vehicleId
-      );
+      await remoteDataSource.deleteVehicle(workshopId, vehicleId);
     } on Exception {
       rethrow;
     }

@@ -43,4 +43,34 @@ class ClientModel extends Client{
       'updated_at': updatedAt.toIso8601String(),
     };
   }
+
+  Client toEntity() {
+    return Client(
+      id: id,
+      workshopId: workshopId,
+      firstName: firstName,
+      lastName: lastName,
+      email: email,
+      phone: phone,
+      address: address,
+      segment: segment,
+      createdAt: createdAt,
+      updatedAt: updatedAt,
+    );
+  }
+
+  static ClientModel fromEntity(Client client) {
+    return ClientModel(
+      id: client.id,
+      workshopId: client.workshopId,
+      firstName: client.firstName,
+      lastName: client.lastName,
+      email: client.email,
+      phone: client.phone,
+      address: client.address,
+      segment: client.segment,
+      createdAt: client.createdAt,
+      updatedAt: client.updatedAt,
+    );
+  }
 }
