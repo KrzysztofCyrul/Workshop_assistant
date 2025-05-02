@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_frontend/features/clients/domain/entities/client.dart';
-import 'package:flutter_frontend/core/utils/colors.dart';
+// import 'package:flutter_frontend/core/utils/colors.dart';
 
 class ClientsListWidget extends StatelessWidget {
   final List<Client> clients;
@@ -24,27 +24,29 @@ class ClientsListWidget extends StatelessWidget {
           client.email.toLowerCase().contains(searchQuery.toLowerCase()) ||
           (client.phone?.contains(searchQuery) ?? false);
 
-      final matchesSegment = selectedSegment == 'Wszystkie' ||
-          client.segment == selectedSegment;
+      // Commented out segment filtering
+      /*final matchesSegment = selectedSegment == 'Wszystkie' ||
+          client.segment == selectedSegment;*/
 
-      return matchesSearchQuery && matchesSegment;
+      //return matchesSearchQuery && matchesSegment;
+      return matchesSearchQuery;  // Only filter by search query
     }).toList();
   }
 
-  Color _getSegmentColor(String? segment) {
-    switch (segment) {
-      case 'A':
-        return SegmentColors.segmentA;
-      case 'B':
-        return SegmentColors.segmentB;
-      case 'C':
-        return SegmentColors.segmentC;
-      case 'D':
-        return SegmentColors.segmentD;
-      default:
-        return Colors.grey;
-    }
-  }
+  // Color _getSegmentColor(String? segment) {
+  //   switch (segment) {
+  //     case 'A':
+  //       return SegmentColors.segmentA;
+  //     case 'B':
+  //       return SegmentColors.segmentB;
+  //     case 'C':
+  //       return SegmentColors.segmentC;
+  //     case 'D':
+  //       return SegmentColors.segmentD;
+  //     default:
+  //       return Colors.grey;
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -70,21 +72,20 @@ class ClientsListWidget extends StatelessWidget {
             ),
             title: Text('${client.firstName} ${client.lastName}'),
             subtitle: Text(
-              'Email: ${client.email}\nTelefon: ${client.phone ?? 'Brak'}',
+              'Telefon: ${client.phone ?? 'Brak'}',
             ),
-            trailing: CircleAvatar(
-              radius: 12,
-              backgroundColor: _getSegmentColor(client.segment),
-              child: Text(
-                client.segment ?? '-',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 12,
-                ),
-              ),
-            ),
-            isThreeLine: true,
+            // trailing: CircleAvatar(
+            //   radius: 12,
+            //   backgroundColor: _getSegmentColor(client.segment),
+            //   child: Text(
+            //     client.segment ?? '-',
+            //     style: const TextStyle(
+            //       color: Colors.white,
+            //       fontWeight: FontWeight.bold,
+            //       fontSize: 12,
+            //     ),
+            //   ),
+            // ),
             onTap: () => onClientTap(client),
           ),
         );

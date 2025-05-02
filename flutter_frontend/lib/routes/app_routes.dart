@@ -3,6 +3,7 @@ import 'package:flutter_frontend/features/vehicles/presentation/screens/vehicle_
 import 'package:flutter_frontend/features/vehicles/presentation/screens/vehicle_edit_screen.dart';
 import 'package:flutter_frontend/features/vehicles/presentation/screens/vehicle_list_screen.dart';
 import 'package:flutter_frontend/features/vehicles/presentation/screens/client_vehicles_screen.dart';
+import 'package:flutter_frontend/features/vehicles/presentation/screens/add_vehicle_screen.dart';
 import 'package:flutter_frontend/features/auth/presentation/screens/login_screen.dart';
 import 'package:flutter_frontend/features/auth/presentation/screens/register_screen.dart';
 import 'package:flutter_frontend/features/clients/presentation/screens/client_details_screen.dart';
@@ -26,7 +27,7 @@ import '../screens/settings/settings_screen.dart';
 import '../screens/employee/employee_details_screen.dart';
 // import '../screens/vehicles/client_vehicle_list_screen.dart';
 // import '../screens/clients/add_client_screen.dart';
-import '../screens/vehicles/add_vehicle_screen.dart';
+// import '../screens/vehicles/add_vehicle_screen.dart';
 // import '../screens/appointments/appointment_calendar_screen.dart';
 import '../screens/service_records/service_history_screen.dart';
 import '../screens/workshop/add_workshop_screen.dart';

@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import '../workshop/add_workshop_screen.dart';
-import '../vehicles/add_vehicle_screen.dart';
 import '../appointments/add_appointment_screen.dart';
 import '../appointments/appointments_screen.dart';
 import '../settings/settings_screen.dart';
-import '../clients/add_client_screen.dart';
 import '../relationships/client_statistics_screen.dart';
 import '../relationships/send_email_screen.dart';
 import '../employee/use_code_screen.dart';
@@ -102,23 +99,14 @@ class HomeScreen extends StatelessWidget {
         'icon': Icons.description,
         'action': () => _navigateToQuotations(context, workshopId),
       },
-      {
-        'title': 'Dodaj Klienta',
-        'icon': Icons.person_add,
-        'action': () => _navigateToAddClient(context),
-      },
+
       {
         'title': 'Klienci',
         'icon': Icons.people,
         'action': () => _navigateToClientsList(context, workshopId),
       },
       {
-        'title': 'Dodaj Pojazd',
-        'icon': Icons.directions_car,
-        'action': () => _navigateToAddVehicle(context, workshopId, null),
-      },
-      {
-        'title': 'Lista Pojazdów',
+        'title': 'Pojazdy',
         'icon': Icons.directions_car,
         'action': () => _navigateToVehicleList(context, workshopId),
       },
@@ -218,21 +206,6 @@ class HomeScreen extends StatelessWidget {
   void _navigateToSettings(BuildContext context) {
     Navigator.of(context).pushNamed(SettingsScreen.routeName);
   }
-
-  void _navigateToAddClient(BuildContext context) {
-    Navigator.of(context).pushNamed(AddClientScreen.routeName);
-  }
-
-  void _navigateToAddVehicle(BuildContext context, String workshopId, String? clientId) {
-    Navigator.of(context).pushNamed(
-      AddVehicleScreen.routeName,
-      arguments: {
-        'workshopId': workshopId,
-        'selectedClient': null, // Changed from clientId to match the expected type
-      },
-    );
-  }
-
   void _logout(BuildContext context) {
     context.read<AuthBloc>().add(LogoutRequested());
   }

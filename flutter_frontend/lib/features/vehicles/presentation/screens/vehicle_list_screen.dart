@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_frontend/features/vehicles/domain/entities/vehicle.dart';
 import 'package:flutter_frontend/features/vehicles/presentation/bloc/vehicle_bloc.dart';
 import 'package:flutter_frontend/features/vehicles/presentation/screens/vehicle_details_screen.dart';
+import 'package:flutter_frontend/features/vehicles/presentation/screens/add_vehicle_screen.dart';
 
 class VehicleListScreen extends StatefulWidget {
   static const routeName = '/vehicle-list';
@@ -53,6 +54,20 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: _loadVehicles,
+          ),
+          IconButton(
+            icon: const Icon(Icons.person_add),
+            onPressed: () async {
+              final result = await Navigator.pushNamed(
+                context,
+                AddVehicleScreen.routeName,
+                arguments: {'workshopId': widget.workshopId},
+              );
+
+              if (result == true) {
+                _loadVehicles();
+              }
+            },
           ),
         ],
       ),
