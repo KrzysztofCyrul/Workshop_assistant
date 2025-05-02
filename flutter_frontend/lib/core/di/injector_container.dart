@@ -33,6 +33,18 @@ import 'package:flutter_frontend/features/vehicles/domain/usecases/search_vehicl
 import 'package:flutter_frontend/features/vehicles/domain/usecases/get_vehicles_for_client.dart';
 import 'package:flutter_frontend/features/vehicles/presentation/bloc/vehicle_bloc.dart';
 
+// Features - Clients
+import 'package:flutter_frontend/features/clients/data/datasources/client_remote_data_source.dart';
+import 'package:flutter_frontend/features/clients/data/repositories/client_repository_impl.dart';
+import 'package:flutter_frontend/features/clients/domain/repositories/client_repository.dart';
+import 'package:flutter_frontend/features/clients/domain/usecases/get_clients.dart';
+import 'package:flutter_frontend/features/clients/domain/usecases/get_client_details.dart';
+import 'package:flutter_frontend/features/clients/domain/usecases/add_client.dart';
+import 'package:flutter_frontend/features/clients/domain/usecases/update_client.dart';
+import 'package:flutter_frontend/features/clients/domain/usecases/delete_client.dart';
+import 'package:flutter_frontend/features/clients/presentation/bloc/client_bloc.dart';
+
+
 final getIt = GetIt.instance;
 
 Future<void> initDependencies() async {
@@ -44,6 +56,9 @@ Future<void> initDependencies() async {
   
   // Initialize vehicle dependencies
   await _initVehicleDependencies();
+
+  // Initialize client dependencies
+  await _initClientDependencies();
 }
 
 Future<void> _initCoreDependencies() async {
@@ -130,6 +145,35 @@ Future<void> _initVehicleDependencies() async {
     deleteVehicle: getIt(),
     searchVehicles: getIt(),
     getVehiclesForClient: getIt(),
+    authBloc: getIt(),
+  ));
+}
+
+Future<void> _initClientDependencies() async {
+  // Data sources - używa Dio z ApiClient
+  getIt.registerLazySingleton<ClientRemoteDataSource>(
+    () => ClientRemoteDataSource(dio: getIt<ApiClient>().dio),
+  );
+
+  // Repository
+  getIt.registerLazySingleton<ClientRepository>(
+    () => ClientRepositoryImpl(remoteDataSource: getIt()),
+  );
+
+  // Use cases
+  getIt.registerLazySingleton(() => GetClients(getIt()));
+  getIt.registerLazySingleton(() => GetClientDetails(getIt()));
+  getIt.registerLazySingleton(() => AddClient(getIt()));
+  getIt.registerLazySingleton(() => UpdateClient(getIt()));
+  getIt.registerLazySingleton(() => DeleteClient(getIt()));
+
+  // BLoC
+  getIt.registerFactory(() => ClientBloc(
+    getClients: getIt(),
+    getClientDetails: getIt(),
+    addClient: getIt(),
+    updateClient: getIt(),
+    deleteClient: getIt(),
     authBloc: getIt(),
   ));
 }

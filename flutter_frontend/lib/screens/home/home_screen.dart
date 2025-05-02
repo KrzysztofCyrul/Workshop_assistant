@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import '../workshop/add_workshop_screen.dart';
 import '../vehicles/add_vehicle_screen.dart';
 import '../appointments/add_appointment_screen.dart';
-import '../clients/clients_screen.dart';
 import '../appointments/appointments_screen.dart';
 import '../settings/settings_screen.dart';
 import '../clients/add_client_screen.dart';
@@ -13,6 +12,7 @@ import '../employee/use_code_screen.dart';
 import '../quotations/quotations_screen.dart';
 import '../quotations/add_quotation_screen.dart';
 import 'package:flutter_frontend/features/vehicles/presentation/screens/vehicle_list_screen.dart';
+import 'package:flutter_frontend/features/clients/presentation/screens/clients_list_screen.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../features/auth/presentation/bloc/auth_bloc.dart';
 
@@ -110,12 +110,12 @@ class HomeScreen extends StatelessWidget {
       {
         'title': 'Klienci',
         'icon': Icons.people,
-        'action': () => _navigateToClients(context),
+        'action': () => _navigateToClientsList(context, workshopId),
       },
       {
         'title': 'Dodaj Pojazd',
         'icon': Icons.directions_car,
-        'action': () => _navigateToAddVehicle(context, workshopId, ''),
+        'action': () => _navigateToAddVehicle(context, workshopId, null),
       },
       {
         'title': 'Lista Pojazdów',
@@ -192,8 +192,13 @@ class HomeScreen extends StatelessWidget {
     Navigator.of(context).pushNamed(AddAppointmentScreen.routeName);
   }
 
-  void _navigateToClients(BuildContext context) {
-    Navigator.of(context).pushNamed(ClientsScreen.routeName);
+  void _navigateToClientsList(BuildContext context, String workshopId) {
+    Navigator.of(context).pushNamed(
+      ClientsListScreen.routeName, 
+      arguments: {
+        'workshopId': workshopId,
+      },
+    );
   }
 
   void _navigateToAppointments(BuildContext context) {
@@ -218,12 +223,12 @@ class HomeScreen extends StatelessWidget {
     Navigator.of(context).pushNamed(AddClientScreen.routeName);
   }
 
-  void _navigateToAddVehicle(BuildContext context, String workshopId, String clientId) {
+  void _navigateToAddVehicle(BuildContext context, String workshopId, String? clientId) {
     Navigator.of(context).pushNamed(
       AddVehicleScreen.routeName,
       arguments: {
         'workshopId': workshopId,
-        'clientId': clientId,
+        'selectedClient': null, // Changed from clientId to match the expected type
       },
     );
   }

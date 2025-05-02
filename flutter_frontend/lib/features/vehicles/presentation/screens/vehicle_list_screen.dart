@@ -21,48 +21,26 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      _debugVehicleState();
       _loadVehicles();
     });
-  }
-
-  void _debugVehicleState() {
-    final vehicleState = context.read<VehicleBloc>().state;
-    debugPrint('VehicleListScreen - Current state: ${vehicleState.runtimeType}');
-
-    switch (vehicleState.runtimeType) {
-      case VehicleUnauthenticated:
-        debugPrint('VehicleListScreen - User is not authenticated');
-        break;
-      case VehiclesLoaded:
-        final loadedState = vehicleState as VehiclesLoaded;
-        debugPrint('VehicleListScreen - Loaded vehicles count: ${loadedState.vehicles.length}');
-        break;
-      case VehicleError:
-        final errorState = vehicleState as VehicleError;
-        debugPrint('VehicleListScreen - Error: ${errorState.message}');
-        break;
-      default:
-        debugPrint('VehicleListScreen - State: $vehicleState');
-    }
   }
 
   void _loadVehicles() {
     if (!mounted) return;
     debugPrint('VehicleListScreen - Loading vehicles for workshop: ${widget.workshopId}');
     context.read<VehicleBloc>().add(LoadVehiclesEvent(
-      workshopId: widget.workshopId,
-    ));
+          workshopId: widget.workshopId,
+        ));
   }
 
   List<Vehicle> _filterVehicles(List<Vehicle> vehicles) {
     if (_searchQuery.isEmpty) return vehicles;
-    
+
     final query = _searchQuery.toLowerCase();
     return vehicles.where((vehicle) {
       return vehicle.make.toLowerCase().contains(query) == true ||
-             vehicle.model.toLowerCase().contains(query) == true ||
-             vehicle.licensePlate.toLowerCase().contains(query) == true;
+          vehicle.model.toLowerCase().contains(query) == true ||
+          vehicle.licensePlate.toLowerCase().contains(query) == true;
     }).toList();
   }
 
@@ -163,9 +141,7 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
     final vehicles = _filterVehicles(state.vehicles);
 
     if (vehicles.isEmpty) {
-      return _buildEmptyState(_searchQuery.isEmpty
-          ? 'Brak pojazdów w warsztacie'
-          : 'Brak wyników dla: "$_searchQuery"');
+      return _buildEmptyState(_searchQuery.isEmpty ? 'Brak pojazdów w warsztacie' : 'Brak wyników dla: "$_searchQuery"');
     }
 
     return ListView.builder(

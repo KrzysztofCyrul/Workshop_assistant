@@ -5,8 +5,13 @@ import 'package:flutter_frontend/features/vehicles/presentation/screens/vehicle_
 import 'package:flutter_frontend/features/vehicles/presentation/screens/client_vehicles_screen.dart';
 import 'package:flutter_frontend/features/auth/presentation/screens/login_screen.dart';
 import 'package:flutter_frontend/features/auth/presentation/screens/register_screen.dart';
-import 'package:flutter_frontend/screens/clients/edit_client_screen.dart';
-import '../models/client.dart';
+import 'package:flutter_frontend/features/clients/presentation/screens/client_details_screen.dart';
+import 'package:flutter_frontend/features/clients/presentation/screens/clients_list_screen.dart';
+import 'package:flutter_frontend/features/clients/presentation/screens/add_client_screen.dart';
+import 'package:flutter_frontend/features/clients/presentation/screens/client_edit_screen.dart';
+
+// import 'package:flutter_frontend/screens/clients/edit_client_screen.dart';
+// import '../models/client.dart';
 // import '../screens/auth/login_screen.dart';
 // import '../screens/auth/register_screen.dart';
 import '../screens/home/home_screen.dart';
@@ -16,11 +21,11 @@ import '../screens/appointments/pending_appointments_screen.dart';
 import '../screens/appointments/appointment_details_screen.dart';
 import '../screens/appointments/add_appointment_screen.dart';
 import '../screens/settings/settings_screen.dart';
-import '../screens/clients/clients_screen.dart';
-import '../screens/clients/client_details_screen.dart';
+// import '../screens/clients/clients_screen.dart';
+// import '../screens/clients/client_details_screen.dart';
 import '../screens/employee/employee_details_screen.dart';
 // import '../screens/vehicles/client_vehicle_list_screen.dart';
-import '../screens/clients/add_client_screen.dart';
+// import '../screens/clients/add_client_screen.dart';
 import '../screens/vehicles/add_vehicle_screen.dart';
 // import '../screens/appointments/appointment_calendar_screen.dart';
 import '../screens/service_records/service_history_screen.dart';
@@ -43,57 +48,85 @@ class AppRoutes {
     CompletedAppointmentsScreen.routeName: (context) => const CompletedAppointmentsScreen(),
     CanceledAppointmentsScreen.routeName: (context) => const CanceledAppointmentsScreen(),
     PendingAppointmentsScreen.routeName: (context) => const PendingAppointmentsScreen(),
-AppointmentDetailsScreen.routeName: (context) {
-  final args = ModalRoute.of(context)!.settings.arguments as Map<String, String>?;
-  
-  if (args == null) {
-    Navigator.of(context).pushReplacementNamed(LoginScreen.routeName);
-    return const Scaffold(
-      body: Center(
-        child: Text('Błąd: Brak wymaganych argumentów.'),
-      ),
-    );
-  }
+    AppointmentDetailsScreen.routeName: (context) {
+      final args = ModalRoute.of(context)!.settings.arguments as Map<String, String>?;
 
-  final workshopId = args['workshopId'];
-  final appointmentId = args['appointmentId'];
+      if (args == null) {
+        Navigator.of(context).pushReplacementNamed(LoginScreen.routeName);
+        return const Scaffold(
+          body: Center(
+            child: Text('Błąd: Brak wymaganych argumentów.'),
+          ),
+        );
+      }
 
-  if (workshopId == null || appointmentId == null) {
-    return const Scaffold(
-      body: Center(
-        child: Text('Błąd: Brak wymaganych argumentów.'),
-      ),
-    );
-  }
+      final workshopId = args['workshopId'];
+      final appointmentId = args['appointmentId'];
 
-  return AppointmentDetailsScreen(
-    workshopId: workshopId,
-    appointmentId: appointmentId,
-  );
-},
+      if (workshopId == null || appointmentId == null) {
+        return const Scaffold(
+          body: Center(
+            child: Text('Błąd: Brak wymaganych argumentów.'),
+          ),
+        );
+      }
+
+      return AppointmentDetailsScreen(
+        workshopId: workshopId,
+        appointmentId: appointmentId,
+      );
+    },
     AddAppointmentScreen.routeName: (context) => const AddAppointmentScreen(),
     // AppointmentCalendarScreen.routeName: (context) => const AppointmentCalendarScreen(),
-    ClientsScreen.routeName: (context) => const ClientsScreen(),
-    AddClientScreen.routeName: (context) => const AddClientScreen(),
-    EditClientScreen.routeName: (context) {
-      final client = ModalRoute.of(context)!.settings.arguments as Client;
-      return EditClientScreen(client: client);
+    AddClientScreen.routeName: (context) {
+      final args = ModalRoute.of(context)?.settings.arguments as Map<String, String>?;
+      if (args == null || args['workshopId'] == null) {
+        return _buildErrorScreen('Brak wymaganych parametrów dla AddClientScreen');
+      }
+      return AddClientScreen(workshopId: args['workshopId']!);
+    },
+    ClientEditScreen.routeName: (context) {
+      final args = ModalRoute.of(context)?.settings.arguments as Map<String, String>?;
+      if (args == null || args['workshopId'] == null || args['clientId'] == null) {
+        return _buildErrorScreen('Brak wymaganych parametrów dla ClientEditScreen');
+      }
+      return ClientEditScreen(workshopId: args['workshopId']!, clientId: args['clientId']!);
     },
     EmployeeDetailsScreen.routeName: (context) {
-      final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
-      final workshopId = args['workshopId']!;
-      final employeeId = args['employeeId']!;
-      return EmployeeDetailsScreen(workshopId: workshopId, employeeId: employeeId);
+      final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+      if (args == null || args['workshopId'] == null || args['employeeId'] == null) {
+        return _buildErrorScreen('Brak wymaganych parametrów dla EmployeeDetailsScreen');
+      }
+      return EmployeeDetailsScreen(workshopId: args['workshopId']! as String, employeeId: args['employeeId']! as String);
+    },
+    ClientsListScreen.routeName: (context) {
+      final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+      if (args == null || args['workshopId'] == null) {
+        return _buildErrorScreen('Brak wymaganych parametrów dla ClientListScreen');
+      }
+      return ClientsListScreen(workshopId: args['workshopId']! as String);
     },
     VehicleListScreen.routeName: (context) {
-      final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
-      final workshopId = args['workshopId']!;
-      return VehicleListScreen(workshopId: workshopId);
+      final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+      if (args == null || args['workshopId'] == null) {
+        return _buildErrorScreen('Brak wymaganych parametrów dla VehicleListScreen');
+      }
+      return VehicleListScreen(workshopId: args['workshopId']! as String);
     },
     AddVehicleScreen.routeName: (context) {
+      final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+      if (args == null) return const AddVehicleScreen(workshopId: '');
+
+      return AddVehicleScreen(
+        workshopId: args['workshopId'] as String,
+        selectedClient: args['selectedClient'],
+      );
+    },
+    ClientDetailsScreen.routeName: (context) {
       final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
       final workshopId = args['workshopId']!;
-      return AddVehicleScreen(workshopId: workshopId);
+      final clientId = args['clientId']!;
+      return ClientDetailsScreen(workshopId: workshopId, clientId: clientId);
     },
     ClientVehicleListScreen.routeName: (context) {
       final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
@@ -101,19 +134,15 @@ AppointmentDetailsScreen.routeName: (context) {
       final clientId = args['clientId']!;
       return ClientVehicleListScreen(workshopId: workshopId, clientId: clientId);
     },
-VehicleDetailsScreen.routeName: (context) {
-  final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>?;
-  if (args == null || args['workshopId'] == null || args['vehicleId'] == null) {
-    return _buildErrorScreen('Brak wymaganych parametrów dla VehicleDetailsScreen');
-  }
-  return VehicleDetailsScreen(
-    workshopId: args['workshopId']! as String,
-    vehicleId: args['vehicleId']! as String,
-  );
-},
-    ClientDetailsScreen.routeName: (context) {
-      final client = ModalRoute.of(context)!.settings.arguments as Client;
-      return ClientDetailsScreen(client: client);
+    VehicleDetailsScreen.routeName: (context) {
+      final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>?;
+      if (args == null || args['workshopId'] == null || args['vehicleId'] == null) {
+        return _buildErrorScreen('Brak wymaganych parametrów dla VehicleDetailsScreen');
+      }
+      return VehicleDetailsScreen(
+        workshopId: args['workshopId']! as String,
+        vehicleId: args['vehicleId']! as String,
+      );
     },
     SettingsScreen.routeName: (context) => const SettingsScreen(),
     VehicleServiceHistoryScreen.routeName: (context) {

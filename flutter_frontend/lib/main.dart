@@ -24,6 +24,12 @@ import 'features/vehicles/domain/usecases/update_vehicle.dart';
 import 'features/vehicles/domain/usecases/delete_vehicle.dart';
 import 'features/vehicles/domain/usecases/search_vehicles.dart';
 import 'features/vehicles/domain/usecases/get_vehicles_for_client.dart';
+import 'features/clients/presentation/bloc/client_bloc.dart';
+import 'features/clients/domain/usecases/get_clients.dart';
+import 'features/clients/domain/usecases/get_client_details.dart';
+import 'features/clients/domain/usecases/add_client.dart';
+import 'features/clients/domain/usecases/update_client.dart';
+import 'features/clients/domain/usecases/delete_client.dart';
 import 'features/auth/presentation/bloc/auth_bloc.dart';
 import 'features/auth/domain/usecases/login.dart';
 import 'features/auth/domain/usecases/register.dart';
@@ -68,6 +74,17 @@ Future<void> main() async {
             deleteVehicle: getIt<DeleteVehicle>(),
             searchVehicles: getIt<SearchVehicles>(),
             getVehiclesForClient: getIt<GetVehiclesForClient>(),
+          ),
+        
+        ),
+        BlocProvider(
+          create: (_) => ClientBloc(
+            authBloc: getIt<AuthBloc>(),
+            getClients: getIt<GetClients>(),
+            getClientDetails: getIt<GetClientDetails>(),
+            addClient: getIt<AddClient>(),
+            updateClient: getIt<UpdateClient>(),
+            deleteClient: getIt<DeleteClient>(),
           ),
         ),
       ],
