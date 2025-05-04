@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:dropdown_search/dropdown_search.dart';
+import 'package:flutter_frontend/features/clients/presentation/screens/add_client_screen.dart';
 import 'package:provider/provider.dart';
 
 import '../models/client.dart';
 import '../../providers/client_provider.dart';
 import '../core/utils/colors.dart';
-import '../screens/clients/add_client_screen.dart';
 
 class ClientSearchWidget extends StatefulWidget {
   final Client? selectedClient;
@@ -88,7 +88,7 @@ class _ClientSearchWidgetState extends State<ClientSearchWidget> {
               onPressed: () async {
                 final newClient = await Navigator.of(context).push<Client>(
                   MaterialPageRoute(
-                    builder: (_) => const AddClientScreen(),
+                    builder: (_) => const AddClientScreen(workshopId: '',),
                   ),
                 );
 

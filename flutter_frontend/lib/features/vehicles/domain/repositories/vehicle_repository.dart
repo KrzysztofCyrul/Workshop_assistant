@@ -1,4 +1,5 @@
 import '../entities/vehicle.dart';
+import '../entities/service_record.dart';
 
 abstract class VehicleRepository {
   Future<List<Vehicle>> getVehicles(String workshopId);
@@ -28,4 +29,6 @@ abstract class VehicleRepository {
   });
   
   Future<void> deleteVehicle(String workshopId, String vehicleId);
+
+  Future<List<ServiceRecord>> getServiceRecords(String workshopId, String vehicleId);
 }

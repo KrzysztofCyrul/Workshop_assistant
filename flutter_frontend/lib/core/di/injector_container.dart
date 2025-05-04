@@ -31,6 +31,7 @@ import 'package:flutter_frontend/features/vehicles/domain/usecases/update_vehicl
 import 'package:flutter_frontend/features/vehicles/domain/usecases/delete_vehicle.dart';
 import 'package:flutter_frontend/features/vehicles/domain/usecases/search_vehicles.dart';
 import 'package:flutter_frontend/features/vehicles/domain/usecases/get_vehicles_for_client.dart';
+import 'package:flutter_frontend/features/vehicles/domain/usecases/get_service_records.dart';
 import 'package:flutter_frontend/features/vehicles/presentation/bloc/vehicle_bloc.dart';
 
 // Features - Clients
@@ -135,6 +136,7 @@ Future<void> _initVehicleDependencies() async {
   getIt.registerLazySingleton(() => DeleteVehicle(getIt()));
   getIt.registerLazySingleton(() => SearchVehicles(getIt()));
   getIt.registerLazySingleton(() => GetVehiclesForClient(getIt()));
+  getIt.registerLazySingleton(() => GetServiceRecords(getIt()));
 
   // BLoC
   getIt.registerFactory(() => VehicleBloc(
@@ -146,6 +148,7 @@ Future<void> _initVehicleDependencies() async {
     searchVehicles: getIt(),
     getVehiclesForClient: getIt(),
     authBloc: getIt(),
+    getServiceRecords: getIt(),
   ));
 }
 

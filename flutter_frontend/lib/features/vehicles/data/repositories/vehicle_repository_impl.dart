@@ -1,5 +1,6 @@
 import 'package:flutter_frontend/features/vehicles/domain/repositories/vehicle_repository.dart';
 import '../../domain/entities/vehicle.dart';
+import '../../domain/entities/service_record.dart';
 import '../datasources/vehicle_remote_data_source.dart';
 
 class VehicleRepositoryImpl implements VehicleRepository {
@@ -95,6 +96,16 @@ class VehicleRepositoryImpl implements VehicleRepository {
   Future<void> deleteVehicle(String workshopId, String vehicleId) async {
     try {
       await remoteDataSource.deleteVehicle(workshopId, vehicleId);
+    } on Exception {
+      rethrow;
+    }
+  }
+
+  @override
+  Future<List<ServiceRecord>> getServiceRecords(String workshopId, String vehicleId) async {
+    try {
+      final models = await remoteDataSource.getServiceRecords(workshopId, vehicleId);
+      return models.map((model) => model.toEntity()).toList();
     } on Exception {
       rethrow;
     }

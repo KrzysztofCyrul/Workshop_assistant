@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_frontend/features/vehicles/domain/entities/service_record.dart';
 import 'package:flutter_frontend/features/vehicles/presentation/bloc/vehicle_bloc.dart';
 import 'package:flutter_frontend/features/vehicles/presentation/screens/vehicle_edit_screen.dart';
+
 import 'package:intl/intl.dart';
 
 class VehicleDetailsScreen extends StatefulWidget {
@@ -24,11 +26,21 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen> {
   void initState() {
     super.initState();
     _loadVehicleDetails();
+    _loadServiceRecords();
   }
 
   void _loadVehicleDetails() {
     if (mounted) {
       context.read<VehicleBloc>().add(LoadVehicleDetailsEvent(
+        workshopId: widget.workshopId,
+        vehicleId: widget.vehicleId,
+      ));
+    }
+  }
+
+  void _loadServiceRecords() {
+    if (mounted) {
+      context.read<VehicleBloc>().add(LoadServiceRecordsEvent(
         workshopId: widget.workshopId,
         vehicleId: widget.vehicleId,
       ));
@@ -93,6 +105,28 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen> {
     );
   }
 
+  Widget _buildServiceHistorySection(List<ServiceRecord> records) {
+    return _buildDetailSection(
+      'Historia serwisowa',
+      [
+        if (records.isEmpty)
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Text('Brak wpisów w historii serwisowej'),
+          )
+        else
+          ...records.map((record) => Card(
+                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                child: ListTile(
+                  title: Text('Data: ${record.date}, Przebieg: ${record.mileage} km'),
+                  subtitle: Text(record.description),
+                  trailing: Text(_formatDate(DateTime.parse(record.createdAt))),
+                ),
+              )),
+      ],
+    );
+  }
+
   Widget _buildBody(VehicleState state) {
     if (state is VehicleInitial || state is VehicleLoading) {
       return const Center(child: CircularProgressIndicator());
@@ -121,6 +155,10 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen> {
     }
     if (state is VehicleDetailsLoaded) {
       final vehicle = state.vehicle;
+      final serviceRecords = state is VehicleDetailsWithRecordsLoaded 
+          ? state.serviceRecords 
+          : <ServiceRecord>[];
+
       return SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -173,6 +211,7 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen> {
                 _buildInfoTile('Ostatnia aktualizacja:', _formatDate(vehicle.updatedAt), icon: Icons.update),
               ],
             ),
+            _buildServiceHistorySection(serviceRecords),
           ],
         ),
       );
@@ -195,7 +234,10 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen> {
                   'workshopId': widget.workshopId,
                   'vehicleId': widget.vehicleId,
                 },
-              ).then((_) => _loadVehicleDetails());
+              ).then((_) {
+                _loadVehicleDetails();
+                _loadServiceRecords();
+              });
             },
           ),
         ],

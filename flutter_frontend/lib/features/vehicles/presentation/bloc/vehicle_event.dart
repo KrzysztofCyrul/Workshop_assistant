@@ -97,3 +97,13 @@ class LoadVehiclesForClientEvent extends VehicleEvent {
 class ResetVehicleStateEvent extends VehicleEvent {}
 
 class VehicleLogoutEvent extends VehicleEvent {}
+
+class LoadServiceRecordsEvent extends VehicleEvent {
+  final String workshopId;
+  final String vehicleId;
+
+  const LoadServiceRecordsEvent({
+    required this.workshopId,
+    required this.vehicleId,
+  });
+}

@@ -10,6 +10,8 @@ import 'package:flutter_frontend/features/vehicles/domain/usecases/update_vehicl
 import 'package:flutter_frontend/features/vehicles/domain/usecases/delete_vehicle.dart';
 import 'package:flutter_frontend/features/vehicles/domain/usecases/search_vehicles.dart';
 import 'package:flutter_frontend/features/vehicles/domain/usecases/get_vehicles_for_client.dart';
+import 'package:flutter_frontend/features/vehicles/domain/usecases/get_service_records.dart';
+import 'package:flutter_frontend/features/vehicles/domain/entities/service_record.dart';
 
 part 'vehicle_event.dart';
 part 'vehicle_state.dart';
@@ -24,6 +26,7 @@ class VehicleBloc extends Bloc<VehicleEvent, VehicleState> {
   final GetVehiclesForClient getVehiclesForClient;
   final AuthBloc authBloc;
   late final StreamSubscription<AuthState> _authSubscription;
+  final GetServiceRecords getServiceRecords;
 
   VehicleBloc({
     required this.getVehicles,
@@ -34,6 +37,7 @@ class VehicleBloc extends Bloc<VehicleEvent, VehicleState> {
     required this.searchVehicles,
     required this.getVehiclesForClient,
     required this.authBloc,
+    required this.getServiceRecords,
   }) : super(VehicleInitial()) {
     // Event handlers
     on<LoadVehiclesEvent>(_onLoadVehicles);
@@ -45,6 +49,7 @@ class VehicleBloc extends Bloc<VehicleEvent, VehicleState> {
     on<LoadVehiclesForClientEvent>(_onLoadVehiclesForClient);
     on<ResetVehicleStateEvent>(_onResetState);
     on<VehicleLogoutEvent>(_onLogout);
+    on<LoadServiceRecordsEvent>(_onLoadServiceRecords);
 
     // Auth state listener
     _authSubscription = authBloc.stream.listen((authState) {
@@ -207,6 +212,32 @@ class VehicleBloc extends Bloc<VehicleEvent, VehicleState> {
     Emitter<VehicleState> emit,
   ) {
     emit(const VehicleUnauthenticated(message: 'Session expired. Please log in again.'));
+  }
+
+  Future<void> _onLoadServiceRecords(
+    LoadServiceRecordsEvent event,
+    Emitter<VehicleState> emit,
+  ) async {
+    try {
+      final serviceRecords = await getServiceRecords.execute(
+        event.workshopId,
+        event.vehicleId,
+      );
+
+      if (state is VehicleDetailsLoaded) {
+        final currentState = state as VehicleDetailsLoaded;
+        emit(VehicleDetailsWithRecordsLoaded(
+          vehicle: currentState.vehicle,
+          serviceRecords: serviceRecords,
+        ));
+      } else {
+        emit(ServiceRecordsLoaded(serviceRecords: serviceRecords));
+      }
+    } on AuthException {
+      emit(const VehicleUnauthenticated());
+    } catch (e) {
+      emit(VehicleError(message: 'Failed to load service records: ${e.toString()}'));
+    }
   }
 
   @override

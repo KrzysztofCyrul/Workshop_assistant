@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_frontend/core/utils/constants.dart' as api_constants;
 import 'package:flutter_frontend/features/vehicles/data/models/vehicle_model.dart';
+import 'package:flutter_frontend/features/vehicles/data/models/service_record_model.dart';
 import 'package:flutter_frontend/core/errors/dio_error_handler.dart';
 
 class VehicleRemoteDataSource {
@@ -106,6 +107,17 @@ class VehicleRemoteDataSource {
         queryParameters: {'q': query},
       );
       return (response.data as List).map((json) => VehicleModel.fromJson(json)).toList();
+    } on DioException catch (e) {
+      throw DioErrorHandler.handle(e);
+    }
+  }
+
+  Future<List<ServiceRecordModel>> getServiceRecords(String workshopId, String vehicleId) async {
+    try {
+      final response = await dio.get(
+        '${api_constants.baseUrl}/workshops/$workshopId/vehicles/$vehicleId/service-records/',
+      );
+      return (response.data as List).map((json) => ServiceRecordModel.fromJson(json)).toList();
     } on DioException catch (e) {
       throw DioErrorHandler.handle(e);
     }

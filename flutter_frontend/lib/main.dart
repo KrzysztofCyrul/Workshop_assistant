@@ -24,6 +24,7 @@ import 'features/vehicles/domain/usecases/update_vehicle.dart';
 import 'features/vehicles/domain/usecases/delete_vehicle.dart';
 import 'features/vehicles/domain/usecases/search_vehicles.dart';
 import 'features/vehicles/domain/usecases/get_vehicles_for_client.dart';
+import 'features/vehicles/domain/usecases/get_service_records.dart';
 import 'features/clients/presentation/bloc/client_bloc.dart';
 import 'features/clients/domain/usecases/get_clients.dart';
 import 'features/clients/domain/usecases/get_client_details.dart';
@@ -74,6 +75,7 @@ Future<void> main() async {
             deleteVehicle: getIt<DeleteVehicle>(),
             searchVehicles: getIt<SearchVehicles>(),
             getVehiclesForClient: getIt<GetVehiclesForClient>(),
+            getServiceRecords: getIt<GetServiceRecords>(),
           ),
         
         ),

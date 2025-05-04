@@ -20,6 +20,15 @@ class VehicleDetailsLoaded extends VehicleState {
   const VehicleDetailsLoaded({required this.vehicle});
 }
 
+class VehicleDetailsWithRecordsLoaded extends VehicleDetailsLoaded {
+  final List<ServiceRecord> serviceRecords;
+
+  const VehicleDetailsWithRecordsLoaded({
+    required super.vehicle,
+    required this.serviceRecords,
+  });
+}
+
 class VehicleOperationSuccess extends VehicleState {
   final String message;
 
@@ -38,4 +47,10 @@ class VehicleUnauthenticated extends VehicleState {
   const VehicleUnauthenticated({
     this.message = 'Session expired. Please log in again.',
   });
+}
+
+class ServiceRecordsLoaded extends VehicleState {
+  final List<ServiceRecord> serviceRecords;
+
+  const ServiceRecordsLoaded({required this.serviceRecords});
 }
