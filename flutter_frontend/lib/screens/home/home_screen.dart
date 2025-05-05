@@ -1,18 +1,14 @@
 import 'package:flutter/material.dart';
-import '../workshop/add_workshop_screen.dart';
-import '../appointments/add_appointment_screen.dart';
-// import '../appointments/appointments_screen.dart';
-
-
+import 'package:flutter_frontend/features/workshop/presentation/screens/add_workshop_screen.dart';
+import 'package:flutter_frontend/features/workshop/presentation/screens/get_temporary_code_screen.dart';
 import '../settings/settings_screen.dart';
 import '../relationships/client_statistics_screen.dart';
 import '../relationships/send_email_screen.dart';
-import '../employee/use_code_screen.dart';
 import '../quotations/quotations_screen.dart';
-import '../quotations/add_quotation_screen.dart';
 import 'package:flutter_frontend/features/vehicles/presentation/screens/vehicle_list_screen.dart';
 import 'package:flutter_frontend/features/clients/presentation/screens/clients_list_screen.dart';
 import 'package:flutter_frontend/features/appointments/presentation/screens/appointments_list_screen.dart';
+import 'package:flutter_frontend/features/workshop/presentation/screens/use_code_screen.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../features/auth/presentation/bloc/auth_bloc.dart';
@@ -31,11 +27,10 @@ class HomeScreen extends StatelessWidget {
           final employeeProfiles = user.employeeProfiles;
           final isWorkshopOwner = user.roles.contains('workshop_owner');
 
-          // Redirect logic
           if (employeeProfiles.isEmpty) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               if (isWorkshopOwner) {
-                Navigator.of(context).pushReplacementNamed(CreateWorkshopScreen.routeName);
+                Navigator.of(context).pushReplacementNamed(AddWorkshopScreen.routeName);
               } else {
                 Navigator.of(context).pushReplacementNamed(UseCodeScreen.routeName);
               }
@@ -84,26 +79,15 @@ class HomeScreen extends StatelessWidget {
   Widget _buildWorkshopActions(BuildContext context, String workshopId, String? employeeId) {
     final actions = [
       {
-        'title': 'Dodaj Zlecenie',
-        'icon': Icons.add_circle_outline,
-        'action': () => _navigateToAddAppointment(context),
-      },
-      {
         'title': 'Zlecenia',
         'icon': Icons.assignment,
-        'action': () => _navigateToAppointments(context, workshopId),
-      },
-      {
-        'title': 'Dodaj Wycenę',
-        'icon': Icons.add,
-        'action': () => _navigateToAddQuotation(context, workshopId),
+        'action': () => _navigateToAppointmentsList(context, workshopId),
       },
       {
         'title': 'Wyceny',
         'icon': Icons.description,
         'action': () => _navigateToQuotations(context, workshopId),
       },
-
       {
         'title': 'Klienci',
         'icon': Icons.people,
@@ -123,6 +107,12 @@ class HomeScreen extends StatelessWidget {
         'title': 'Wyślij E-mail',
         'icon': Icons.email,
         'action': () => _navigateToSendEmail(context, workshopId),
+      },
+      //TODO : Jak przechodzimy do ekranu getTemporaryCode to źle są przekazywane parametry
+      {
+        'title': 'Generuj kod',
+        'icon': Icons.code,
+        'action': () => _navigateToGetTemporaryCode(context, workshopId),
       },
     ];
 
@@ -180,20 +170,16 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  void _navigateToAddAppointment(BuildContext context) {
-    Navigator.of(context).pushNamed(AddAppointmentScreen.routeName);
-  }
-
   void _navigateToClientsList(BuildContext context, String workshopId) {
     Navigator.of(context).pushNamed(
-      ClientsListScreen.routeName, 
+      ClientsListScreen.routeName,
       arguments: {
         'workshopId': workshopId,
       },
     );
   }
 
-  void _navigateToAppointments(BuildContext context, String workshopId) {
+  void _navigateToAppointmentsList(BuildContext context, String workshopId) {
     Navigator.of(context).pushNamed(
       AppointmentsListScreen.routeName,
       arguments: {
@@ -201,7 +187,6 @@ class HomeScreen extends StatelessWidget {
       },
     );
   }
-
 
   void _navigateToVehicleList(BuildContext context, String workshopId) {
     Navigator.of(context).pushNamed(
@@ -212,9 +197,16 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  void _navigateToSettings(BuildContext context) {
-    Navigator.of(context).pushNamed(SettingsScreen.routeName);
+  void _navigateToGetTemporaryCode(BuildContext context, String workshopId) {
+    Navigator.of(context).pushNamed(
+      GetTemporaryCodeScreen.routeName,
+      arguments: {
+        'workshopId': workshopId,
+      },
+    );
+    Navigator.of(context).pushNamed(GetTemporaryCodeScreen.routeName);
   }
+
   void _logout(BuildContext context) {
     context.read<AuthBloc>().add(LogoutRequested());
   }
@@ -232,7 +224,6 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-
   void _navigateToQuotations(BuildContext context, String workshopId) {
     Navigator.of(context).pushNamed(
       QuotationsScreen.routeName,
@@ -242,12 +233,7 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  void _navigateToAddQuotation(BuildContext context, String workshopId) {
-    Navigator.of(context).pushNamed(
-      AddQuotationScreen.routeName,
-      arguments: {
-        'workshopId': workshopId,
-      },
-    );
+  void _navigateToSettings(BuildContext context) {
+    Navigator.of(context).pushNamed(SettingsScreen.routeName);
   }
 }

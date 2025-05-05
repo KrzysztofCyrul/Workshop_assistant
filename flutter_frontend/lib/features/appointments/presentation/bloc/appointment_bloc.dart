@@ -9,6 +9,7 @@ import 'package:flutter_frontend/features/appointments/domain/usecases/edit_note
 import 'package:flutter_frontend/features/appointments/domain/usecases/get_appointment_details.dart';
 import 'package:flutter_frontend/features/appointments/domain/usecases/get_appointments.dart';
 import 'package:flutter_frontend/features/appointments/domain/usecases/update_appointment.dart';
+import 'package:flutter_frontend/features/appointments/domain/usecases/update_appointment_status.dart';
 import 'package:flutter_frontend/features/appointments/domain/entities/part.dart';
 import 'package:flutter_frontend/features/appointments/domain/entities/repair_item.dart';
 import 'package:flutter_frontend/features/appointments/domain/usecases/partss/get_parts.dart';
@@ -29,6 +30,7 @@ class AppointmentBloc extends Bloc<AppointmentEvent, AppointmentState> {
   final AddAppointment addAppointment;
   final UpdateAppointment updateAppointment;
   final DeleteAppointment deleteAppointment;
+  final UpdateAppointmentStatus updateAppointmentStatus;
   final EditNotesValue editNotesValue;
   final GetParts getParts;
   final AddPart addPart;
@@ -48,6 +50,7 @@ class AppointmentBloc extends Bloc<AppointmentEvent, AppointmentState> {
     required this.addAppointment,
     required this.updateAppointment,
     required this.deleteAppointment,
+    required this.updateAppointmentStatus,
     required this.editNotesValue,
     required this.getParts,
     required this.addPart,
@@ -65,6 +68,7 @@ class AppointmentBloc extends Bloc<AppointmentEvent, AppointmentState> {
     on<AddAppointmentEvent>(_onAddAppointment);
     on<UpdateAppointmentEvent>(_onUpdateAppointment);
     on<DeleteAppointmentEvent>(_onDeleteAppointment);
+    on<UpdateAppointmentStatusEvent>(_onUpdateAppointmentStatus);
     on<EditNotesValueEvent>(_onEditNotesValue);
     on<LoadPartsEvent>(_onLoadParts);
     on<AddPartEvent>(_onAddPart);
@@ -183,6 +187,25 @@ class AppointmentBloc extends Bloc<AppointmentEvent, AppointmentState> {
       emit(const AppointmentUnauthenticated());
     } catch (e) {
       emit(AppointmentError(message: 'Failed to delete appointment: ${e.toString()}'));
+    }
+  }
+
+  Future<void> _onUpdateAppointmentStatus(
+    UpdateAppointmentStatusEvent event,
+    Emitter<AppointmentState> emit,
+  ) async {
+    emit(AppointmentLoading());
+    try {
+      await updateAppointmentStatus.execute(
+        workshopId: event.workshopId,
+        appointmentId: event.appointmentId,
+        status: event.status,
+      );
+      emit(const AppointmentOperationSuccess(message: 'Appointment status updated successfully'));
+    } on AuthException {
+      emit(const AppointmentUnauthenticated());
+    } catch (e) {
+      emit(AppointmentError(message: 'Failed to update appointment status: ${e.toString()}'));
     }
   }
 

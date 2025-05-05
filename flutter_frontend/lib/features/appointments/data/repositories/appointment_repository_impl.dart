@@ -94,6 +94,23 @@ class AppointmentRepositoryImpl implements AppointmentRepository {
   }
 
   @override
+  Future<void> updateAppointmentStatus({
+    required String workshopId,
+    required String appointmentId,
+    required String status,
+  }) async {
+    try {
+      await remoteDataSource.updateAppointmentStatus(
+        workshopId: workshopId,
+        appointmentId: appointmentId,
+        status: status,
+      );
+    } on Exception {
+      rethrow;
+    }
+  }
+
+  @override
   Future<void> editNotesValue({
     required String workshopId,
     required String appointmentId,

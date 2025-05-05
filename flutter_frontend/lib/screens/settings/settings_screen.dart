@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'general_settings_screen.dart';
 import 'segment_colors_screen.dart';
 import 'email_settings_screen.dart';
-import 'generate_code_screen.dart';
+import 'X_generate_code_screen.dart';
 import '../../providers/auth_provider.dart'; // Importujemy AuthProvider
 
 class SettingsScreen extends StatelessWidget {

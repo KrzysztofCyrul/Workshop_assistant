@@ -16,65 +16,96 @@ class ChangeStatusWidget extends StatelessWidget {
   });
 
   void _updateAppointmentStatus(BuildContext context, String newStatus) {
+    if (appointment.status == newStatus) {
+      Navigator.pop(context);
+      return;
+    }
+
     context.read<AppointmentBloc>().add(
-      UpdateAppointmentEvent(
-        workshopId: workshopId,
-        appointmentId: appointment.id,
-        status: newStatus,
-      ),
-    );
+          UpdateAppointmentStatusEvent(
+            workshopId: workshopId,
+            appointmentId: appointment.id,
+            status: newStatus,
+          ),
+        );
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<AppointmentBloc, AppointmentState>(
+    return BlocConsumer<AppointmentBloc, AppointmentState>(
       listener: (context, state) {
         if (state is AppointmentOperationSuccess) {
           onStatusChanged();
           Navigator.pop(context);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.message),
+              backgroundColor: Colors.green,
+            ),
+          );
         }
         if (state is AppointmentError) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Nie udało się zmienić statusu: ${state.message}')),
+            SnackBar(
+              content: Text(state.message),
+              backgroundColor: Colors.red,
+            ),
           );
         }
+        if (state is AppointmentUnauthenticated) {
+          Navigator.of(context).pushReplacementNamed('/login');
+        }
       },
-      child: AlertDialog(
-        title: const Text('Zmień status wizyty'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _StatusListTile(
-              icon: Icons.pending,
-              color: Colors.orange,
-              title: 'Do wykonania',
-              status: 'pending',
-              onTap: () => _updateAppointmentStatus(context, 'pending'),
-            ),
-            _StatusListTile(
-              icon: Icons.timelapse,
-              color: Colors.blue,
-              title: 'W trakcie',
-              status: 'in_progress',
-              onTap: () => _updateAppointmentStatus(context, 'in_progress'),
-            ),
-            _StatusListTile(
-              icon: Icons.check_circle,
-              color: Colors.green,
-              title: 'Zakończone',
-              status: 'completed',
-              onTap: () => _updateAppointmentStatus(context, 'completed'),
-            ),
-            _StatusListTile(
-              icon: Icons.cancel,
-              color: Colors.red,
-              title: 'Anulowane',
-              status: 'canceled',
-              onTap: () => _updateAppointmentStatus(context, 'canceled'),
+      builder: (context, state) {
+        return AlertDialog(
+          title: const Text('Zmień status wizyty'),
+          content: state is AppointmentLoading
+              ? const Center(child: CircularProgressIndicator())
+              : Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _StatusListTile(
+                      icon: Icons.pending,
+                      color: Colors.orange,
+                      title: 'Do wykonania',
+                      status: 'pending',
+                      isSelected: appointment.status == 'pending',
+                      onTap: () => _updateAppointmentStatus(context, 'pending'),
+                    ),
+                    _StatusListTile(
+                      icon: Icons.timelapse,
+                      color: Colors.blue,
+                      title: 'W trakcie',
+                      status: 'in_progress',
+                      isSelected: appointment.status == 'in_progress',
+                      onTap: () => _updateAppointmentStatus(context, 'in_progress'),
+                    ),
+                    _StatusListTile(
+                      icon: Icons.check_circle,
+                      color: Colors.green,
+                      title: 'Zakończone',
+                      status: 'completed',
+                      isSelected: appointment.status == 'completed',
+                      onTap: () => _updateAppointmentStatus(context, 'completed'),
+                    ),
+                    _StatusListTile(
+                      icon: Icons.cancel,
+                      color: Colors.red,
+                      title: 'Anulowane',
+                      status: 'canceled',
+                      isSelected: appointment.status == 'canceled',
+                      onTap: () => _updateAppointmentStatus(context, 'canceled'),
+                    ),
+                  ],
+                ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Anuluj'),
             ),
           ],
-        ),
-      ),
+        );
+      },
     );
   }
 }
@@ -84,6 +115,7 @@ class _StatusListTile extends StatelessWidget {
   final Color color;
   final String title;
   final String status;
+  final bool isSelected;
   final VoidCallback onTap;
 
   const _StatusListTile({
@@ -91,6 +123,7 @@ class _StatusListTile extends StatelessWidget {
     required this.color,
     required this.title,
     required this.status,
+    required this.isSelected,
     required this.onTap,
   });
 
@@ -99,7 +132,10 @@ class _StatusListTile extends StatelessWidget {
     return ListTile(
       leading: Icon(icon, color: color),
       title: Text(title),
+      selected: isSelected,
+      selectedTileColor: Colors.grey.withOpacity(0.2),
       onTap: onTap,
+      trailing: isSelected ? const Icon(Icons.check) : null,
     );
   }
 }

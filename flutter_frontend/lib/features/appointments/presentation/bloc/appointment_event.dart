@@ -78,6 +78,18 @@ class DeleteAppointmentEvent extends AppointmentEvent {
   });
 }
 
+class UpdateAppointmentStatusEvent extends AppointmentEvent {
+  final String workshopId;
+  final String appointmentId;
+  final String status;
+
+  UpdateAppointmentStatusEvent({
+    required this.workshopId,
+    required this.appointmentId,
+    required this.status,
+  });
+}
+
 class EditNotesValueEvent extends AppointmentEvent {
   final String workshopId;
   final String appointmentId;

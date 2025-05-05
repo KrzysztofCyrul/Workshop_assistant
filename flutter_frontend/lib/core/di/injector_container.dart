@@ -54,6 +54,7 @@ import 'package:flutter_frontend/features/appointments/domain/usecases/get_appoi
 import 'package:flutter_frontend/features/appointments/domain/usecases/add_appointment.dart';
 import 'package:flutter_frontend/features/appointments/domain/usecases/update_appointment.dart';
 import 'package:flutter_frontend/features/appointments/domain/usecases/delete_appointment.dart';
+import 'package:flutter_frontend/features/appointments/domain/usecases/update_appointment_status.dart';
 import 'package:flutter_frontend/features/appointments/domain/usecases/edit_notes_value.dart';
 import 'package:flutter_frontend/features/appointments/domain/usecases/partss/get_parts.dart';
 import 'package:flutter_frontend/features/appointments/domain/usecases/partss/add_part.dart';
@@ -65,8 +66,22 @@ import 'package:flutter_frontend/features/appointments/domain/usecases/repair_it
 import 'package:flutter_frontend/features/appointments/domain/usecases/repair_items/delete_repair_item.dart';
 import 'package:flutter_frontend/features/appointments/presentation/bloc/appointment_bloc.dart';
 
-
-
+// Features - Workshop
+import 'package:flutter_frontend/features/workshop/data/datasources/workshop_remote_data_source.dart';
+import 'package:flutter_frontend/features/workshop/data/repositories/workshop_repository_impl.dart';
+import 'package:flutter_frontend/features/workshop/domain/repositories/workshop_repository.dart';
+import 'package:flutter_frontend/features/workshop/domain/usecases/get_workshops.dart';
+import 'package:flutter_frontend/features/workshop/domain/usecases/get_workshop_details.dart';
+import 'package:flutter_frontend/features/workshop/domain/usecases/add_workshop.dart';
+import 'package:flutter_frontend/features/workshop/domain/usecases/update_workshop.dart';
+import 'package:flutter_frontend/features/workshop/domain/usecases/delete_workshop.dart';
+import 'package:flutter_frontend/features/workshop/domain/usecases/get_temporary_code.dart';
+import 'package:flutter_frontend/features/workshop/domain/usecases/use_temporary_code.dart';
+import 'package:flutter_frontend/features/workshop/domain/usecases/assign_creator_to_workshop.dart';
+import 'package:flutter_frontend/features/workshop/domain/usecases/remove_employee_from_workshop.dart';
+import 'package:flutter_frontend/features/workshop/domain/usecases/get_employees.dart';
+import 'package:flutter_frontend/features/workshop/domain/usecases/get_employee_details.dart';
+import 'package:flutter_frontend/features/workshop/presentation/bloc/workshop_bloc.dart';
 
 final getIt = GetIt.instance;
 
@@ -85,6 +100,9 @@ Future<void> initDependencies() async {
 
   // Initialize appointment dependencies
   await _initAppointmentDependencies();
+
+  // Initialize workshop dependencies
+  await _initWorkshopDependencies();
 }
 
 Future<void> _initCoreDependencies() async {
@@ -223,6 +241,7 @@ Future<void> _initAppointmentDependencies() async {
   getIt.registerLazySingleton(() => AddAppointment(getIt()));
   getIt.registerLazySingleton(() => UpdateAppointment(getIt()));
   getIt.registerLazySingleton(() => DeleteAppointment(getIt()));
+  getIt.registerLazySingleton(() => UpdateAppointmentStatus(getIt()));
   getIt.registerLazySingleton(() => EditNotesValue(getIt()));
   
   // Parts use cases
@@ -244,6 +263,7 @@ Future<void> _initAppointmentDependencies() async {
     addAppointment: getIt(),
     updateAppointment: getIt(),
     deleteAppointment: getIt(),
+    updateAppointmentStatus: getIt(),
     editNotesValue: getIt(),
     getParts: getIt(),
     addPart: getIt(),
@@ -253,6 +273,48 @@ Future<void> _initAppointmentDependencies() async {
     addRepairItem: getIt(),
     updateRepairItem: getIt(),
     deleteRepairItem: getIt(),
+    authBloc: getIt(),
+  ));
+}
+
+Future<void> _initWorkshopDependencies() async {
+  // Data sources - używa Dio z ApiClient
+  getIt.registerLazySingleton<WorkshopRemoteDataSource>(
+    () => WorkshopRemoteDataSource(dio: getIt<ApiClient>().dio),
+  );
+
+  // Repository
+  getIt.registerLazySingleton<WorkshopRepository>(
+    () => WorkshopRepositoryImpl(remoteDataSource: getIt()),
+  );
+
+  // Use cases
+  getIt.registerLazySingleton(() => GetWorkshops(getIt()));
+  getIt.registerLazySingleton(() => GetWorkshopDetails(getIt()));
+  getIt.registerLazySingleton(() => AddWorkshop(getIt()));
+  getIt.registerLazySingleton(() => UpdateWorkshop(getIt()));
+  getIt.registerLazySingleton(() => DeleteWorkshop(getIt()));
+  getIt.registerLazySingleton(() => GetTemporaryCode(getIt()));
+  getIt.registerLazySingleton(() => UseTemporaryCode(getIt()));
+  getIt.registerLazySingleton(() => AssignCreatorToWorkshop(getIt()));
+  getIt.registerLazySingleton(() => RemoveEmployeeFromWorkshop(getIt()));
+  getIt.registerLazySingleton(() => GetEmployees(getIt()));
+  getIt.registerLazySingleton(() => GetEmployeeDetails(getIt()));
+
+
+  // BLoC
+  getIt.registerFactory(() => WorkshopBloc(
+    getWorkshops: getIt(),
+    getWorkshopDetails: getIt(),
+    addWorkshop: getIt(),
+    updateWorkshop: getIt(),
+    deleteWorkshop: getIt(),
+    getTemporaryCode: getIt(),
+    useTemporaryCode: getIt(),
+    assignCreatorToWorkshop: getIt(),
+    removeEmployeeFromWorkshop: getIt(),
+    getEmployees: getIt(),
+    getEmployeeDetails: getIt(),
     authBloc: getIt(),
   ));
 }

@@ -33,11 +33,18 @@ abstract class AppointmentRepository {
 
   Future<void> deleteAppointment(String workshopId, String appointmentId);
 
+  Future<void> updateAppointmentStatus({
+    required String workshopId,
+    required String appointmentId,
+    required String status,
+  });
+
   Future<void> editNotesValue({
     required String workshopId,
     required String appointmentId,
     required String newNotes,
   });
+
 
   Future<List<RepairItem>> getRepairItems({
     required String workshopId,

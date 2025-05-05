@@ -12,7 +12,7 @@ import '../../providers/auth_provider.dart';
 import '../../services/client_service.dart';
 import '../../services/employee_service.dart';
 import '../../widgets/client_search_widget.dart';
-import '../../screens/vehicles/add_vehicle_screen.dart';
+import '../vehicles/X_add_vehicle_screen.dart';
 import 'appointment_details_screen.dart';
 import 'package:intl/intl.dart';
 

@@ -97,6 +97,21 @@ class AppointmentRemoteDataSource {
     }
   }
 
+  Future<void> updateAppointmentStatus({
+    required String workshopId,
+    required String appointmentId,
+    required String status,
+  }) async {
+    try {
+      await dio.patch(
+        '${api_constants.baseUrl}/workshops/$workshopId/appointments/$appointmentId/',
+        data: {'status': status},
+      );
+    } on DioException catch (e) {
+      throw DioErrorHandler.handle(e);
+    }
+  }
+
   Future<void> editNotesValue({
     required String workshopId,
     required String appointmentId,
