@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_frontend/core/di/injector_container.dart';
-import 'package:flutter_frontend/features/auth/presentation/screens/login_screen.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'providers/vehicle_provider.dart';
 import 'package:provider/provider.dart';
@@ -11,7 +10,6 @@ import 'providers/client_provider.dart';
 import 'providers/email_provider.dart';
 import 'routes/app_routes.dart';
 import 'providers/employee_provider.dart';
-import 'screens/appointments/appointments_screen.dart';
 import 'core/utils/colors.dart';
 import 'providers/temporary_code_provider.dart';
 import 'providers/generate_code_provider.dart';
@@ -35,14 +33,29 @@ import 'features/auth/presentation/bloc/auth_bloc.dart';
 import 'features/auth/domain/usecases/login.dart';
 import 'features/auth/domain/usecases/register.dart';
 import 'features/auth/domain/usecases/logout.dart';
+import 'package:flutter_frontend/features/appointments/presentation/bloc/appointment_bloc.dart';
+import 'features/appointments/domain/usecases/get_appointments.dart';
+import 'features/appointments/domain/usecases/get_appointment_details.dart';
+import 'features/appointments/domain/usecases/add_appointment.dart';
+import 'features/appointments/domain/usecases/update_appointment.dart';
+import 'features/appointments/domain/usecases/delete_appointment.dart';
+import 'features/appointments/domain/usecases/edit_notes_value.dart';
+import 'features/appointments/domain/usecases/partss/get_parts.dart';
+import 'features/appointments/domain/usecases/partss/add_part.dart';
+import 'features/appointments/domain/usecases/partss/update_part.dart';
+import 'features/appointments/domain/usecases/partss/delete_part.dart';
+import 'features/appointments/domain/usecases/repair_items/get_repair_items.dart';
+import 'features/appointments/domain/usecases/repair_items/add_repair_item.dart';
+import 'features/appointments/domain/usecases/repair_items/update_repair_item.dart';
+import 'features/appointments/domain/usecases/repair_items/delete_repair_item.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Inicjalizacja zależności i kolorów
   initDependencies(); // Inicjalizacja DI
   await SegmentColors.loadColors();
-  
+
   // Inicjalizacja formatowania daty dla polskiej lokalizacji
   await initializeDateFormatting('pl_PL', null);
 
@@ -61,8 +74,8 @@ Future<void> main() async {
         ChangeNotifierProvider(create: (_) => ClientProvider()),
         ChangeNotifierProvider(create: (_) => EmployeeProvider()),
         ChangeNotifierProvider(create: (_) => VehicleProvider()),
-        ChangeNotifierProvider(create: (_) => ServiceRecordProvider()),    
-        ChangeNotifierProvider(create: (_) => EmailProvider()),    
+        ChangeNotifierProvider(create: (_) => ServiceRecordProvider()),
+        ChangeNotifierProvider(create: (_) => EmailProvider()),
         ChangeNotifierProvider(create: (_) => TemporaryCodeProvider()),
         ChangeNotifierProvider(create: (_) => GenerateCodeProvider()),
         BlocProvider(
@@ -77,7 +90,6 @@ Future<void> main() async {
             getVehiclesForClient: getIt<GetVehiclesForClient>(),
             getServiceRecords: getIt<GetServiceRecords>(),
           ),
-        
         ),
         BlocProvider(
           create: (_) => ClientBloc(
@@ -87,6 +99,25 @@ Future<void> main() async {
             addClient: getIt<AddClient>(),
             updateClient: getIt<UpdateClient>(),
             deleteClient: getIt<DeleteClient>(),
+          ),
+        ),
+        BlocProvider(
+          create: (_) => AppointmentBloc(
+            authBloc: getIt<AuthBloc>(),
+            getAppointments: getIt<GetAppointments>(),
+            getAppointmentDetails: getIt<GetAppointmentDetails>(),
+            addAppointment: getIt<AddAppointment>(),
+            updateAppointment: getIt<UpdateAppointment>(),
+            deleteAppointment: getIt<DeleteAppointment>(),
+            editNotesValue: getIt<EditNotesValue>(),
+            getParts: getIt<GetParts>(),
+            addPart: getIt<AddPart>(),
+            updatePart: getIt<UpdatePart>(),
+            deletePart: getIt<DeletePart>(),
+            getRepairItems: getIt<GetRepairItems>(),
+            addRepairItem: getIt<AddRepairItem>(),
+            updateRepairItem: getIt<UpdateRepairItem>(),
+            deleteRepairItem: getIt<DeleteRepairItem>(),
           ),
         ),
       ],
@@ -100,7 +131,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final authProvider = Provider.of<AuthProvider>(context);
+    Provider.of<AuthProvider>(context);
     return MaterialApp(
       title: 'Warsztat Samochodowy',
       theme: ThemeData(
@@ -108,9 +139,6 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
       ),
       routes: AppRoutes.routes,
-      initialRoute: authProvider.isAuthenticated
-          ? AppointmentsScreen.routeName
-          : LoginScreen.routeName,
     );
   }
 }

@@ -9,14 +9,14 @@ class CustomTextField extends StatelessWidget {
   final Widget? prefixIcon;
 
   const CustomTextField({
-    Key? key,
+    super.key,
     required this.controller,
     required this.label,
     this.obscureText = false,
     this.keyboardType,
     this.validator,
     this.prefixIcon,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

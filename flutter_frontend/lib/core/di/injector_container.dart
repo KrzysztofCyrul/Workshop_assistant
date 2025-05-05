@@ -45,6 +45,28 @@ import 'package:flutter_frontend/features/clients/domain/usecases/update_client.
 import 'package:flutter_frontend/features/clients/domain/usecases/delete_client.dart';
 import 'package:flutter_frontend/features/clients/presentation/bloc/client_bloc.dart';
 
+// Features - Appointments
+import 'package:flutter_frontend/features/appointments/data/datasources/appointment_remote_data_source.dart';
+import 'package:flutter_frontend/features/appointments/data/repositories/appointment_repository_impl.dart';
+import 'package:flutter_frontend/features/appointments/domain/repositories/appointment_repository.dart';
+import 'package:flutter_frontend/features/appointments/domain/usecases/get_appointments.dart';
+import 'package:flutter_frontend/features/appointments/domain/usecases/get_appointment_details.dart';
+import 'package:flutter_frontend/features/appointments/domain/usecases/add_appointment.dart';
+import 'package:flutter_frontend/features/appointments/domain/usecases/update_appointment.dart';
+import 'package:flutter_frontend/features/appointments/domain/usecases/delete_appointment.dart';
+import 'package:flutter_frontend/features/appointments/domain/usecases/edit_notes_value.dart';
+import 'package:flutter_frontend/features/appointments/domain/usecases/partss/get_parts.dart';
+import 'package:flutter_frontend/features/appointments/domain/usecases/partss/add_part.dart';
+import 'package:flutter_frontend/features/appointments/domain/usecases/partss/update_part.dart';
+import 'package:flutter_frontend/features/appointments/domain/usecases/partss/delete_part.dart';
+import 'package:flutter_frontend/features/appointments/domain/usecases/repair_items/get_repair_items.dart';
+import 'package:flutter_frontend/features/appointments/domain/usecases/repair_items/add_repair_item.dart';
+import 'package:flutter_frontend/features/appointments/domain/usecases/repair_items/update_repair_item.dart';
+import 'package:flutter_frontend/features/appointments/domain/usecases/repair_items/delete_repair_item.dart';
+import 'package:flutter_frontend/features/appointments/presentation/bloc/appointment_bloc.dart';
+
+
+
 
 final getIt = GetIt.instance;
 
@@ -60,6 +82,9 @@ Future<void> initDependencies() async {
 
   // Initialize client dependencies
   await _initClientDependencies();
+
+  // Initialize appointment dependencies
+  await _initAppointmentDependencies();
 }
 
 Future<void> _initCoreDependencies() async {
@@ -177,6 +202,57 @@ Future<void> _initClientDependencies() async {
     addClient: getIt(),
     updateClient: getIt(),
     deleteClient: getIt(),
+    authBloc: getIt(),
+  ));
+}
+
+Future<void> _initAppointmentDependencies() async {
+  // Data sources - używa Dio z ApiClient
+  getIt.registerLazySingleton<AppointmentRemoteDataSource>(
+    () => AppointmentRemoteDataSource(dio: getIt<ApiClient>().dio),
+  );
+
+  // Repository
+  getIt.registerLazySingleton<AppointmentRepository>(
+    () => AppointmentRepositoryImpl(remoteDataSource: getIt()),
+  );
+
+  // Use cases
+  getIt.registerLazySingleton(() => GetAppointments(getIt()));
+  getIt.registerLazySingleton(() => GetAppointmentDetails(getIt()));
+  getIt.registerLazySingleton(() => AddAppointment(getIt()));
+  getIt.registerLazySingleton(() => UpdateAppointment(getIt()));
+  getIt.registerLazySingleton(() => DeleteAppointment(getIt()));
+  getIt.registerLazySingleton(() => EditNotesValue(getIt()));
+  
+  // Parts use cases
+  getIt.registerLazySingleton(() => GetParts(getIt()));
+  getIt.registerLazySingleton(() => AddPart(getIt()));
+  getIt.registerLazySingleton(() => UpdatePart(getIt()));
+  getIt.registerLazySingleton(() => DeletePart(getIt()));
+
+  // Repair items use cases
+  getIt.registerLazySingleton(() => GetRepairItems(getIt()));
+  getIt.registerLazySingleton(() => AddRepairItem(getIt()));
+  getIt.registerLazySingleton(() => UpdateRepairItem(getIt()));
+  getIt.registerLazySingleton(() => DeleteRepairItem(getIt()));
+
+  // BLoC
+  getIt.registerFactory(() => AppointmentBloc(
+    getAppointments: getIt(),
+    getAppointmentDetails: getIt(),
+    addAppointment: getIt(),
+    updateAppointment: getIt(),
+    deleteAppointment: getIt(),
+    editNotesValue: getIt(),
+    getParts: getIt(),
+    addPart: getIt(),
+    updatePart: getIt(),
+    deletePart: getIt(),
+    getRepairItems: getIt(),
+    addRepairItem: getIt(),
+    updateRepairItem: getIt(),
+    deleteRepairItem: getIt(),
     authBloc: getIt(),
   ));
 }

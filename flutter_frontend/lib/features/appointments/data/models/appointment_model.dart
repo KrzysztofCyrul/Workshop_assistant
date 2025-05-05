@@ -24,24 +24,35 @@ class AppointmentModel extends Appointment {
     super.totalCost,
   });
 
-  factory AppointmentModel.fromJson(Map<String, dynamic> json) {
+factory AppointmentModel.fromJson(Map<String, dynamic> json) {
     return AppointmentModel(
-      id: json['id'],
-      workshopId: json['workshop_id'],
-      client: ClientModel.fromJson(json['client']),
-      vehicle: VehicleModel.fromJson(json['vehicle']),
-      assignedMechanics: List<String>.from(json['assigned_mechanics']),
-      mileage: json['mileage'] ?? 0,
-      scheduledTime: DateTime.parse(json['scheduled_time']),
-      status: json['status'] ?? '',
-      notes: json['notes'],
-      createdAt: DateTime.parse(json['created_at']),
-      updatedAt: DateTime.parse(json['updated_at']),
-      repairItems: (json['repair_items'] as List<dynamic>).map((item) => RepairItemModel.fromJson(item)).toList(),
-      parts: (json['parts'] as List<dynamic>).map((item) => PartModel.fromJson(item)).toList(), // Nowe pole
-      recommendations: json['recommendations'] ?? '',
-      estimatedDuration: json['estimated_duration'] != null ? Duration(seconds: json['estimated_duration']) : null,
-      totalCost: json['total_cost'] != null ? double.parse(json['total_cost'].toString()) : null,
+      id: json['id'] as String? ?? '',
+      workshopId: json['workshop'] as String? ?? '',
+      client: ClientModel.fromJson(json['client'] as Map<String, dynamic>),
+      vehicle: VehicleModel.fromJson(json['vehicle'] as Map<String, dynamic>),
+      assignedMechanics: (json['assigned_mechanics'] as List<dynamic>?)
+              ?.map((item) => item as String)
+              .toList() ??
+          [],
+      repairItems: (json['repair_items'] as List<dynamic>?)
+              ?.map((item) => RepairItemModel.fromJson(item as Map<String, dynamic>))
+              .toList() ??
+          [],
+      parts: (json['parts'] as List<dynamic>?)
+              ?.map((item) => PartModel.fromJson(item as Map<String, dynamic>))
+              .toList() ??
+          [],
+      scheduledTime: DateTime.parse(json['scheduled_time'] as String),
+      status: json['status'] as String? ?? '',
+      notes: json['notes'] as String? ?? '',
+      createdAt: DateTime.parse(json['created_at'] as String),
+      updatedAt: DateTime.parse(json['updated_at'] as String),
+      mileage: json['mileage'] as int? ?? 0,
+      recommendations: json['recommendations'] as String? ?? '',
+      estimatedDuration: json['estimated_duration'] != null
+          ? Duration(hours: int.parse(json['estimated_duration'].split(':')[0]))
+          : null,
+      totalCost: double.tryParse(json['total_cost']?.toString() ?? '0.0') ?? 0.0,
     );
   }
 

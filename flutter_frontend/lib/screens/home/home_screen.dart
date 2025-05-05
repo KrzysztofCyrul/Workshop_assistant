@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import '../workshop/add_workshop_screen.dart';
 import '../appointments/add_appointment_screen.dart';
-import '../appointments/appointments_screen.dart';
+// import '../appointments/appointments_screen.dart';
+
+
 import '../settings/settings_screen.dart';
 import '../relationships/client_statistics_screen.dart';
 import '../relationships/send_email_screen.dart';
@@ -10,6 +12,8 @@ import '../quotations/quotations_screen.dart';
 import '../quotations/add_quotation_screen.dart';
 import 'package:flutter_frontend/features/vehicles/presentation/screens/vehicle_list_screen.dart';
 import 'package:flutter_frontend/features/clients/presentation/screens/clients_list_screen.dart';
+import 'package:flutter_frontend/features/appointments/presentation/screens/appointments_list_screen.dart';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../features/auth/presentation/bloc/auth_bloc.dart';
 
@@ -87,7 +91,7 @@ class HomeScreen extends StatelessWidget {
       {
         'title': 'Zlecenia',
         'icon': Icons.assignment,
-        'action': () => _navigateToAppointments(context),
+        'action': () => _navigateToAppointments(context, workshopId),
       },
       {
         'title': 'Dodaj Wycenę',
@@ -189,8 +193,13 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  void _navigateToAppointments(BuildContext context) {
-    Navigator.of(context).pushNamed(AppointmentsScreen.routeName);
+  void _navigateToAppointments(BuildContext context, String workshopId) {
+    Navigator.of(context).pushNamed(
+      AppointmentsListScreen.routeName,
+      arguments: {
+        'workshopId': workshopId,
+      },
+    );
   }
 
 

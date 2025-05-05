@@ -1,0 +1,88 @@
+# Flutter/Dart/Pub related
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+build/
+*.dart.js
+*.js_
+*.js.deps
+*.js.map
+*.kernel.dart
+*.app.dill
+*.snapshot
+*.flutter-plugins
+*.flutter-plugins-dependencies
+
+# Android related
+**/android/**/gradle-wrapper.jar
+**/android/.gradle/
+**/android/captures/
+**/android/gradlew
+**/android/gradlew.bat
+**/android/local.properties
+**/android/app/debug.keystore
+
+# iOS related
+**/ios/Flutter/.last_build_id
+**/ios/.generated/
+**/ios/.symlinks/
+**/ios/Pods/
+**/ios/Runner.xcworkspace/
+**/ios/Flutter/Flutter.framework/
+**/ios/Flutter/Flutter.podspec
+**/ios/Flutter/App.framework/
+**/ios/Flutter/engine/
+**/ios/Flutter/Flutter.podspec.json
+
+# Web related
+**/web/.dart_tool/
+**/web/.packages
+**/web/build/
+
+# macOS related
+**/macos/Flutter/ephemeral/
+**/macos/Flutter/Flutter.framework/
+**/macos/Flutter/Flutter.podspec
+**/macos/Flutter/App.framework/
+**/macos/Flutter/engine/
+**/macos/Flutter/Flutter.podspec.json
+
+# Windows related
+**/windows/flutter/ephemeral/
+
+# Linux related
+**/linux/flutter/ephemeral/
+
+# Generated files
+*.log
+*.lock
+*.pyc
+*.pyo
+*.class
+*.swp
+*.iml
+*.hprof
+*.orig
+*.rej
+*.bak
+*.tmp
+*.DS_Store
+*.idea/
+*.vscode/
+*.metadata/
+*.svn/
+*.git/
+*.hg/
+*.bzr/
+*.tox/
+*.coverage
+*.coverage.*
+*.egg-info/
+*.eggs/
+*.pytest_cache/
+*.mypy_cache/
+*.hypothesis/
+*.ipynb_checkpoints/

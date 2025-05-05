@@ -11,12 +11,16 @@ import 'package:flutter_frontend/features/clients/presentation/screens/clients_l
 import 'package:flutter_frontend/features/clients/presentation/screens/add_client_screen.dart';
 import 'package:flutter_frontend/features/clients/presentation/screens/client_edit_screen.dart';
 
+import 'package:flutter_frontend/features/appointments/presentation/screens/appointments_list_screen.dart';
+
+
 // import 'package:flutter_frontend/screens/clients/edit_client_screen.dart';
 // import '../models/client.dart';
 // import '../screens/auth/login_screen.dart';
 // import '../screens/auth/register_screen.dart';
 import '../screens/home/home_screen.dart';
-import '../screens/appointments/appointments_screen.dart';
+// import '../screens/appointments/appointments_screen.dart';
+
 import '../screens/appointments/completed_appointments_screen.dart';
 import '../screens/appointments/pending_appointments_screen.dart';
 import '../screens/appointments/appointment_details_screen.dart';
@@ -42,10 +46,16 @@ import '../screens/quotations/quotations_screen.dart';
 
 class AppRoutes {
   static final routes = <String, WidgetBuilder>{
-    LoginScreen.routeName: (context) => LoginScreen(),
+    LoginScreen.routeName: (context) => const LoginScreen(),
     RegisterScreen.routeName: (context) => const RegisterScreen(),
     HomeScreen.routeName: (context) => const HomeScreen(),
-    AppointmentsScreen.routeName: (context) => const AppointmentsScreen(),
+    AppointmentsListScreen.routeName: (context) {
+      final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+      if (args == null || args['workshopId'] == null) {
+        return _buildErrorScreen('Brak wymaganych parametrów dla AppointmentsListScreen');
+      }
+      return AppointmentsListScreen(workshopId: args['workshopId']! as String);
+    },
     CompletedAppointmentsScreen.routeName: (context) => const CompletedAppointmentsScreen(),
     CanceledAppointmentsScreen.routeName: (context) => const CanceledAppointmentsScreen(),
     PendingAppointmentsScreen.routeName: (context) => const PendingAppointmentsScreen(),

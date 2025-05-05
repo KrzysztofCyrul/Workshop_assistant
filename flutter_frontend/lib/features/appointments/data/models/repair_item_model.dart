@@ -15,15 +15,15 @@ class RepairItemModel extends RepairItem {
 
   factory RepairItemModel.fromJson(Map<String, dynamic> json) {
     return RepairItemModel(
-      id: json['id'] as String? ?? '',
-      appointmentId: json['appointment_id'] as String? ?? '',
-      description: json['description'] as String? ?? '',
+      appointmentId: json['appointment'] as String?,
+      description: json['description'] as String?,
       isCompleted: json['is_completed'] as bool? ?? false,
-      completedBy: json['completed_by'] as String? ?? '',
+      completedBy: json['completed_by'] as String?,
       status: json['status'] as String? ?? 'pending',
+      id: json['id'],
       createdAt: DateTime.parse(json['created_at']),
       updatedAt: DateTime.parse(json['updated_at']),
-      order: json['order'] as int? ?? 0,
+      order: json['order'] ?? 0,
     );
   }
 
