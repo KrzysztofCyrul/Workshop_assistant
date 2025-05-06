@@ -19,9 +19,11 @@ import 'package:flutter_frontend/features/vehicles/presentation/screens/vehicle_
 
 // Appointment screens
 import 'package:flutter_frontend/features/appointments/presentation/screens/appointments_list_screen.dart';
+import 'package:flutter_frontend/features/appointments/presentation/screens/appointment_details_screen.dart';
+
 import '../screens/appointments/completed_appointments_screen.dart';
 import '../screens/appointments/pending_appointments_screen.dart';
-import '../screens/appointments/appointment_details_screen.dart';
+// import '../screens/appointments/appointment_details_screen.dart';
 import '../screens/appointments/add_appointment_screen.dart';
 import '../screens/appointments/canceled_appointments_screen.dart';
 
