@@ -11,6 +11,7 @@ import '../../domain/services/appointment_pdf_generator.dart';
 import 'package:flutter_frontend/features/vehicles/presentation/screens/service_history_screen.dart';
 import 'package:flutter_frontend/features/vehicles/domain/entities/vehicle.dart';
 import 'package:flutter_frontend/features/clients/domain/entities/client.dart';
+
 // Constants
 class AppointmentStatus {
   static const String pending = 'pending';
@@ -32,7 +33,7 @@ class AppointmentStatus {
         return status;
     }
   }
-  
+
   static IconData getIcon(String status) {
     switch (status) {
       case pending:
@@ -118,19 +119,19 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
   final _buyCostPartController = TextEditingController(text: '0.0');
   final _repairDescriptionController = TextEditingController();
   final _notesController = TextEditingController();
-  
+
   // Pomocnicze metody
   String _getInitials(String firstName, String lastName) {
     String initials = '';
-    
+
     if (firstName.isNotEmpty) {
       initials += firstName[0];
     }
-    
+
     if (lastName.isNotEmpty) {
       initials += lastName[0];
     }
-    
+
     return initials.isNotEmpty ? initials.toUpperCase() : '?';
   }
 
@@ -166,7 +167,9 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
       ),
       body: _buildBody(),
     );
-  }  void _onPrintButtonPressed(Appointment appointment) {
+  }
+
+  void _onPrintButtonPressed(Appointment appointment) {
     final pdfGenerator = AppointmentPdfGenerator();
     pdfGenerator.generateAndPrint(
       appointment,
@@ -174,7 +177,7 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
       appointment.repairItems,
     );
   }
-  
+
   Future<void> _confirmDeletePartItem(Part part, Appointment appointment) async {
     // Wyświetl dialog z potwierdzeniem usunięcia
     final shouldDelete = await showDialog<bool>(
@@ -213,19 +216,20 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
         );
       },
     );
-    
+
     // Jeśli użytkownik potwierdził usunięcie
     if (shouldDelete == true) {
       if (!mounted) return;
-      
+
       // Wyślij event do BloC
       context.read<AppointmentBloc>().add(DeletePartEvent(
-        workshopId: appointment.workshopId,
-        appointmentId: appointment.id,
-        partId: part.id,
-      ));
+            workshopId: appointment.workshopId,
+            appointmentId: appointment.id,
+            partId: part.id,
+          ));
     }
   }
+
   Widget _buildBody() {
     return BlocConsumer<AppointmentBloc, AppointmentState>(
       listener: (context, state) {
@@ -245,9 +249,9 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
           );
           // Reload appointment details after successful operation
           context.read<AppointmentBloc>().add(LoadAppointmentDetailsEvent(
-            workshopId: widget.workshopId,
-            appointmentId: widget.appointmentId,
-          ));
+                workshopId: widget.workshopId,
+                appointmentId: widget.appointmentId,
+              ));
         } else if (state is AppointmentOperationSuccessWithDetails) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -256,12 +260,10 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
             ),
           );
         }
-      },      buildWhen: (previous, current) {
+      },
+      buildWhen: (previous, current) {
         // Only rebuild for states that affect the UI
-        return current is AppointmentLoading || 
-               current is AppointmentDetailsLoaded || 
-               current is AppointmentOperationSuccessWithDetails ||
-               current is AppointmentError;
+        return current is AppointmentLoading || current is AppointmentDetailsLoaded || current is AppointmentOperationSuccessWithDetails || current is AppointmentError;
       },
       builder: (context, state) {
         if (state is AppointmentLoading) {
@@ -282,9 +284,9 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
                   ElevatedButton.icon(
                     onPressed: () {
                       context.read<AppointmentBloc>().add(LoadAppointmentDetailsEvent(
-                        workshopId: widget.workshopId,
-                        appointmentId: widget.appointmentId,
-                      ));
+                            workshopId: widget.workshopId,
+                            appointmentId: widget.appointmentId,
+                          ));
                     },
                     icon: const Icon(Icons.refresh),
                     label: const Text('Ponów próbę'),
@@ -325,6 +327,7 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
       ),
     );
   }
+
   Widget _buildAppointmentDetailsCard(BuildContext context, Appointment appointment) {
     Widget buildDetailRow(String label, String value, {IconData? icon, Color? iconColor}) {
       return Container(
@@ -372,7 +375,7 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       margin: const EdgeInsets.symmetric(vertical: 4.0),
       child: ExpansionTile(
-        initiallyExpanded: true,
+        initiallyExpanded: false,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         collapsedShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         tilePadding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
@@ -474,18 +477,18 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
                             style: const TextStyle(fontSize: 14),
                             onFieldSubmitted: (newValue) {
                               context.read<AppointmentBloc>().add(EditNotesValueEvent(
-                                workshopId: appointment.workshopId,
-                                appointmentId: appointment.id,
-                                newNotes: newValue,
-                              ));
+                                    workshopId: appointment.workshopId,
+                                    appointmentId: appointment.id,
+                                    newNotes: newValue,
+                                  ));
                             },
                             onTapOutside: (_) {
                               if (FocusScope.of(context).hasFocus) {
                                 context.read<AppointmentBloc>().add(EditNotesValueEvent(
-                                  workshopId: appointment.workshopId,
-                                  appointmentId: appointment.id,
-                                  newNotes: controller.text,
-                                ));
+                                      workshopId: appointment.workshopId,
+                                      appointmentId: appointment.id,
+                                      newNotes: controller.text,
+                                    ));
                                 FocusManager.instance.primaryFocus?.unfocus();
                               }
                             },
@@ -502,6 +505,7 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
       ),
     );
   }
+
   Widget _buildVehicleDetailsCard(Vehicle vehicle) {
     Widget buildDetailRow(String label, String value, {IconData? icon, Color iconColor = Colors.teal}) {
       return Container(
@@ -546,7 +550,7 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       margin: const EdgeInsets.symmetric(vertical: 4.0),
       child: ExpansionTile(
-        initiallyExpanded: true,
+        initiallyExpanded: false,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         collapsedShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         tilePadding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
@@ -584,7 +588,6 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
                 buildDetailRow('Rok', vehicle.year.toString(), icon: Icons.date_range, iconColor: Colors.teal.shade500),
                 buildDetailRow('VIN', vehicle.vin, icon: Icons.tag, iconColor: Colors.teal.shade700),
                 buildDetailRow('Rejestracja', vehicle.licensePlate, icon: Icons.badge, iconColor: Colors.teal.shade600),
-                
                 const SizedBox(height: 12.0),
                 Container(
                   width: double.infinity,
@@ -609,11 +612,7 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
                             ),
                           ],
                         ),
-                        child: Icon(
-                          Icons.directions_car, 
-                          size: 32, 
-                          color: Colors.teal.shade700
-                        ),
+                        child: Icon(Icons.directions_car, size: 32, color: Colors.teal.shade700),
                       ),
                       const SizedBox(width: 16),
                       Expanded(
@@ -621,19 +620,16 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              '${vehicle.make} ${vehicle.model} (${vehicle.year})', 
+                              '${vehicle.make} ${vehicle.model} (${vehicle.year})',
                               style: TextStyle(
-                                fontWeight: FontWeight.bold, 
+                                fontWeight: FontWeight.bold,
                                 fontSize: 18,
                                 color: Colors.teal.shade900,
                               ),
                             ),
                             Text(
-                              'Nr rejestracyjny: ${vehicle.licensePlate}', 
-                              style: const TextStyle(
-                                fontStyle: FontStyle.italic,
-                                fontSize: 14
-                              ),
+                              'Nr rejestracyjny: ${vehicle.licensePlate}',
+                              style: const TextStyle(fontStyle: FontStyle.italic, fontSize: 14),
                             ),
                           ],
                         ),
@@ -648,6 +644,7 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
       ),
     );
   }
+
   Widget _buildClientDetailsCard(Client client) {
     Widget buildDetailRow(String label, String value, {IconData? icon, Color iconColor = Colors.purple}) {
       return Container(
@@ -719,7 +716,7 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       margin: const EdgeInsets.symmetric(vertical: 4.0),
       child: ExpansionTile(
-        initiallyExpanded: true,
+        initiallyExpanded: false,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         collapsedShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         tilePadding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
@@ -738,7 +735,8 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
         subtitle: Text(
           '${client.firstName} ${client.lastName}',
           style: TextStyle(color: Colors.purple.shade700, fontWeight: FontWeight.w500),
-        ),        trailing: Container(
+        ),
+        trailing: Container(
           width: 40,
           height: 40,
           decoration: BoxDecoration(
@@ -781,7 +779,8 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
                     children: [
                       Row(
                         children: [
-                          Container(                            width: 60,
+                          Container(
+                            width: 60,
                             height: 60,
                             decoration: BoxDecoration(
                               color: Colors.white,
@@ -826,7 +825,8 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
                           ),
                         ],
                       ),
-                      const SizedBox(height: 16),                      Row(
+                      const SizedBox(height: 16),
+                      Row(
                         children: [
                           if (client.phone != null && client.phone!.isNotEmpty)
                             buildContactButton(
@@ -885,7 +885,6 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
                     ],
                   ),
                 ),
-                
                 buildDetailRow(
                   'Imię i nazwisko',
                   '${client.firstName} ${client.lastName}',
@@ -904,7 +903,7 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
                   icon: Icons.phone,
                   iconColor: Colors.green,
                 ),
-                if (client.address != null) 
+                if (client.address != null)
                   buildDetailRow(
                     'Adres',
                     client.address!,
@@ -937,6 +936,7 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
       ],
     );
   }
+
   Widget _buildAddRepairItemForm(BuildContext context, Appointment appointment) {
     final TextEditingController repairDescriptionController = TextEditingController();
 
@@ -992,12 +992,12 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
                     }
 
                     context.read<AppointmentBloc>().add(AddRepairItemEvent(
-                      workshopId: appointment.workshopId,
-                      appointmentId: appointment.id,
-                      description: repairDescriptionController.text,
-                      status: 'pending',
-                      order: appointment.repairItems.length + 1,
-                    ));
+                          workshopId: appointment.workshopId,
+                          appointmentId: appointment.id,
+                          description: repairDescriptionController.text,
+                          status: 'pending',
+                          order: appointment.repairItems.length + 1,
+                        ));
 
                     repairDescriptionController.clear();
                   },
@@ -1009,17 +1009,18 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
       },
     );
   }
+
   Widget _buildRepairItemsTable(BuildContext context, Appointment appointment) {
     void updateRepairItemStatus(RepairItem item, String newStatus) {
       context.read<AppointmentBloc>().add(UpdateRepairItemEvent(
-        workshopId: appointment.workshopId,
-        appointmentId: appointment.id,
-        repairItemId: item.id,
-        description: item.description ?? '',
-        status: newStatus,
-        order: item.order,
-        isCompleted: newStatus == 'completed',
-      ));
+            workshopId: appointment.workshopId,
+            appointmentId: appointment.id,
+            repairItemId: item.id,
+            description: item.description ?? '',
+            status: newStatus,
+            order: item.order,
+            isCompleted: newStatus == 'completed',
+          ));
     }
 
     void showStatusChangeDialog(RepairItem item) {
@@ -1069,7 +1070,7 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
         },
       );
     }
-    
+
     Future<void> _confirmDeleteRepairItem(RepairItem item) async {
       // Wyświetl dialog z potwierdzeniem usunięcia
       final shouldDelete = await showDialog<bool>(
@@ -1107,17 +1108,17 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
           );
         },
       );
-      
+
       // Jeśli użytkownik potwierdził usunięcie
       if (shouldDelete == true) {
         if (!mounted) return;
-        
+
         // Wyślij event do BloC
         context.read<AppointmentBloc>().add(DeleteRepairItemEvent(
-          workshopId: appointment.workshopId,
-          appointmentId: appointment.id,
-          repairItemId: item.id,
-        ));
+              workshopId: appointment.workshopId,
+              appointmentId: appointment.id,
+              repairItemId: item.id,
+            ));
       }
     }
 
@@ -1167,9 +1168,7 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
                     if (states.contains(WidgetState.selected)) {
                       return Colors.blue.shade50;
                     }
-                    return states.any((element) => element == MaterialState.hovered) 
-                        ? Colors.grey.shade200 
-                        : Colors.grey.shade50;
+                    return states.any((element) => element == MaterialState.hovered) ? Colors.grey.shade200 : Colors.grey.shade50;
                   }),
                   columns: [
                     DataColumn(
@@ -1178,7 +1177,7 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
                           child: Text(
                             'Opis',
                             style: TextStyle(
-                              fontWeight: FontWeight.bold, 
+                              fontWeight: FontWeight.bold,
                               fontSize: 15,
                             ),
                             textAlign: TextAlign.center,
@@ -1221,9 +1220,7 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
                         if (states.contains(WidgetState.selected)) {
                           return Colors.blue.shade50;
                         }
-                        return states.any((element) => element == MaterialState.hovered) 
-                            ? Colors.grey.shade200 
-                            : null; // Use the default value.
+                        return states.any((element) => element == MaterialState.hovered) ? Colors.grey.shade200 : null; // Use the default value.
                       }),
                       cells: [
                         DataCell(
@@ -1240,26 +1237,27 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
                               maxLines: null,
                               onFieldSubmitted: (newValue) {
                                 context.read<AppointmentBloc>().add(UpdateRepairItemEvent(
-                                  workshopId: appointment.workshopId,
-                                  appointmentId: appointment.id,
-                                  repairItemId: item.id,
-                                  description: newValue,
-                                  status: item.status,
-                                  order: item.order,
-                                  isCompleted: item.isCompleted,
-                                ));
-                              },                        onTapOutside: (_) {
+                                      workshopId: appointment.workshopId,
+                                      appointmentId: appointment.id,
+                                      repairItemId: item.id,
+                                      description: newValue,
+                                      status: item.status,
+                                      order: item.order,
+                                      isCompleted: item.isCompleted,
+                                    ));
+                              },
+                              onTapOutside: (_) {
                                 final value = FocusScope.of(context).focusedChild?.context?.widget;
                                 if (value != null && value is TextFormField) {
                                   context.read<AppointmentBloc>().add(UpdateRepairItemEvent(
-                                    workshopId: appointment.workshopId,
-                                    appointmentId: appointment.id,
-                                    repairItemId: item.id,
-                                    description: value.controller?.text ?? value.initialValue ?? '',
-                                    status: item.status,
-                                    order: item.order,
-                                    isCompleted: item.isCompleted,
-                                  ));
+                                        workshopId: appointment.workshopId,
+                                        appointmentId: appointment.id,
+                                        repairItemId: item.id,
+                                        description: value.controller?.text ?? value.initialValue ?? '',
+                                        status: item.status,
+                                        order: item.order,
+                                        isCompleted: item.isCompleted,
+                                      ));
                                   FocusManager.instance.primaryFocus?.unfocus();
                                 }
                               },
@@ -1346,6 +1344,7 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
       ],
     );
   }
+
   Widget _buildAddPartForm(BuildContext context, Appointment appointment) {
     final TextEditingController partNameController = TextEditingController();
     final TextEditingController quantityController = TextEditingController(text: '1');
@@ -1367,12 +1366,11 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
                     Expanded(
                       flex: 3,
                       child: PartsSuggestionField(
-                        controller: partNameController,
-                        label: 'Nazwa części',
-                        onChanged: (value) {
-                          partNameController.text = value;
-                        }
-                      ),
+                          controller: partNameController,
+                          label: 'Nazwa części',
+                          onChanged: (value) {
+                            partNameController.text = value;
+                          }),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -1477,15 +1475,15 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
                         }
 
                         context.read<AppointmentBloc>().add(AddPartEvent(
-                          workshopId: appointment.workshopId,
-                          appointmentId: appointment.id,
-                          name: partNameController.text,
-                          description: '',
-                          quantity: int.tryParse(quantityController.text) ?? 1,
-                          costPart: double.tryParse(partCostController.text) ?? 0.0,
-                          costService: double.tryParse(serviceCostController.text) ?? 0.0,
-                          buyCostPart: double.tryParse(buyCostPartController.text) ?? 0.0,
-                        ));
+                              workshopId: appointment.workshopId,
+                              appointmentId: appointment.id,
+                              name: partNameController.text,
+                              description: '',
+                              quantity: int.tryParse(quantityController.text) ?? 1,
+                              costPart: double.tryParse(partCostController.text) ?? 0.0,
+                              costService: double.tryParse(serviceCostController.text) ?? 0.0,
+                              buyCostPart: double.tryParse(buyCostPartController.text) ?? 0.0,
+                            ));
 
                         partNameController.clear();
                         quantityController.text = '1';
@@ -1502,29 +1500,25 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
         );
       },
     );
-  }Widget _buildPartsTable(BuildContext context, Appointment appointment) {
+  }
+
+  Widget _buildPartsTable(BuildContext context, Appointment appointment) {
     void editPartValue(Part part, String field, dynamic newValue) {
       context.read<AppointmentBloc>().add(UpdatePartEvent(
-        workshopId: appointment.workshopId,
-        appointmentId: appointment.id,
-        partId: part.id,
-        name: field == 'name' ? newValue : part.name,
-        description: part.description,
-        quantity: field == 'quantity' ? newValue : part.quantity,
-        costPart: field == 'costPart' ? newValue : part.costPart,
-        costService: field == 'costService' ? newValue : part.costService,
-        buyCostPart: field == 'buyCostPart' ? newValue : part.buyCostPart,
-      ));
+            workshopId: appointment.workshopId,
+            appointmentId: appointment.id,
+            partId: part.id,
+            name: field == 'name' ? newValue : part.name,
+            description: part.description,
+            quantity: field == 'quantity' ? newValue : part.quantity,
+            costPart: field == 'costPart' ? newValue : part.costPart,
+            costService: field == 'costService' ? newValue : part.costService,
+            buyCostPart: field == 'buyCostPart' ? newValue : part.buyCostPart,
+          ));
     }
-    
-    DataCell buildEditableCell(
-      String initialValue, 
-      String fieldName, 
-      Part part, 
-      {TextInputType keyboardType = TextInputType.text, 
-      bool isNumber = false,
-      bool alignCenter = false}
-    ) {
+
+    DataCell buildEditableCell(String initialValue, String fieldName, Part part,
+        {TextInputType keyboardType = TextInputType.text, bool isNumber = false, bool alignCenter = false}) {
       final controller = TextEditingController(text: initialValue);
       return DataCell(
         TextFormField(
@@ -1593,187 +1587,184 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
         child: LayoutBuilder(
           builder: (context, constraints) {
             return SingleChildScrollView(
-              child: SizedBox(
-                width: constraints.maxWidth,
-                child: DataTable(
-                  columnSpacing: 16.0,
-                  horizontalMargin: 16.0,
-                  headingRowHeight: 48.0,
-                  dataRowHeight: 56.0,
-                  border: TableBorder.all(
-                    color: Colors.grey.shade300,
-                    width: 1,
-                    borderRadius: BorderRadius.circular(8.0),
+                scrollDirection: Axis.horizontal,
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minWidth: constraints.maxWidth, // Ważne: ustawia minimalną szerokość na szerokość ekranu
                   ),
-                  headingRowColor: MaterialStateProperty.resolveWith(
-                    (states) => Colors.green.shade100,
-                  ),
-                  dataRowColor: MaterialStateProperty.resolveWith((states) {
-                    if (states.contains(MaterialState.selected)) {
-                      return Colors.green.shade50;
-                    }
-                    return states.any((element) => element == MaterialState.hovered) 
-                        ? Colors.grey.shade200 
-                        : Colors.grey.shade50;
-                  }),
-                  columns: const [
-                    DataColumn(
-                      label: Expanded(
-                        child: Center(
-                          child: Text(
-                            'Część',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 15,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
+                  child: SingleChildScrollView(
+                    child: DataTable(
+                      columnSpacing: 10.0,
+                      horizontalMargin: 16.0,
+                      headingRowHeight: 48.0,
+                      dataRowHeight: 56.0,
+                      // Ustawienie dostosowania szerokości kolumny
+                      border: TableBorder.all(
+                        color: Colors.grey.shade300,
+                        width: 1,
+                        borderRadius: BorderRadius.circular(8.0),
                       ),
-                    ),
-                    DataColumn(
-                      label: Expanded(
-                        child: Center(
-                          child: Text(
-                            'Ilość',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 15,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
+                      headingRowColor: MaterialStateProperty.resolveWith(
+                        (states) => Colors.green.shade100,
                       ),
-                    ),
-                    DataColumn(
-                      label: Expanded(
-                        child: Center(
-                          child: Text(
-                            'Hurtowa',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 15,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                      ),
-                    ),
-                    DataColumn(
-                      label: Expanded(
-                        child: Center(
-                          child: Text(
-                            'Części',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 15,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                      ),
-                    ),
-                    DataColumn(
-                      label: Expanded(
-                        child: Center(
-                          child: Text(
-                            'Suma',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 15,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                      ),
-                    ),
-                    DataColumn(
-                      label: Expanded(
-                        child: Center(
-                          child: Text(
-                            'Usługa',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 15,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                      ),
-                    ),
-                    DataColumn(
-                      label: Expanded(
-                        child: Center(
-                          child: Text(
-                            'Akcje',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 15,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                  rows: appointment.parts.map((part) {
-                    return DataRow(
-                      cells: [
-                        buildEditableCell(part.name, 'name', part),
-                        buildEditableCell(part.quantity.toString(), 'quantity', part,
-                          keyboardType: TextInputType.number, isNumber: true, alignCenter: true),
-                        buildEditableCell(part.buyCostPart.toStringAsFixed(2), 'buyCostPart', part,
-                          keyboardType: const TextInputType.numberWithOptions(decimal: true), 
-                          isNumber: true, 
-                          alignCenter: true),
-                        buildEditableCell(part.costPart.toStringAsFixed(2), 'costPart', part,
-                          keyboardType: const TextInputType.numberWithOptions(decimal: true), 
-                          isNumber: true,
-                          alignCenter: true),
-                        DataCell(
-                          Center(
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-                              decoration: BoxDecoration(
-                                color: Colors.green.shade50,
-                                borderRadius: BorderRadius.circular(8.0),
-                                border: Border.all(color: Colors.green.shade200),
-                              ),
+                      dataRowColor: MaterialStateProperty.resolveWith((states) {
+                        if (states.contains(MaterialState.selected)) {
+                          return Colors.green.shade50;
+                        }
+                        return states.any((element) => element == MaterialState.hovered) ? Colors.grey.shade200 : Colors.grey.shade50;
+                      }),
+                      columns: const [
+                        DataColumn(
+                          label: Expanded(
+                            child: Center(
                               child: Text(
-                                (part.costPart * part.quantity).toStringAsFixed(2),
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
+                                'Część',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15,
                                 ),
+                                textAlign: TextAlign.center,
                               ),
                             ),
                           ),
                         ),
-                        buildEditableCell(part.costService.toStringAsFixed(2), 'costService', part,
-                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                          isNumber: true,
-                          alignCenter: true),
-                        DataCell(
-                          Center(
-                            child: IconButton(
-                              icon: const Icon(Icons.delete, color: Colors.red, size: 20),
-                              onPressed: () => _confirmDeletePartItem(part, appointment),
-                              tooltip: 'Usuń część',
-                              splashRadius: 20,
+                        DataColumn(
+                          label: Expanded(
+                            child: Center(
+                              child: Text(
+                                'Ilość',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ),
+                        ),
+                        DataColumn(
+                          label: Expanded(
+                            child: Center(
+                              child: Text(
+                                'Hurtowa',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ),
+                        ),
+                        DataColumn(
+                          label: Expanded(
+                            child: Center(
+                              child: Text(
+                                'Części',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ),
+                        ),
+                        DataColumn(
+                          label: Expanded(
+                            child: Center(
+                              child: Text(
+                                'Suma',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ),
+                        ),
+                        DataColumn(
+                          label: Expanded(
+                            child: Center(
+                              child: Text(
+                                'Usługa',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ),
+                        ),
+                        DataColumn(
+                          label: Expanded(
+                            child: Center(
+                              child: Text(
+                                'Akcje',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
                             ),
                           ),
                         ),
                       ],
-                    );
-                  }).toList(),
-                ),
-              ),
-            );
+                      rows: appointment.parts.map((part) {
+                        return DataRow(
+                          cells: [
+                            buildEditableCell(part.name, 'name', part),
+                            buildEditableCell(part.quantity.toString(), 'quantity', part, keyboardType: TextInputType.number, isNumber: true, alignCenter: true),
+                            buildEditableCell(part.buyCostPart.toStringAsFixed(2), 'buyCostPart', part,
+                                keyboardType: const TextInputType.numberWithOptions(decimal: true), isNumber: true, alignCenter: true),
+                            buildEditableCell(part.costPart.toStringAsFixed(2), 'costPart', part,
+                                keyboardType: const TextInputType.numberWithOptions(decimal: true), isNumber: true, alignCenter: true),
+                            DataCell(
+                              Center(
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                                  decoration: BoxDecoration(
+                                    color: Colors.green.shade50,
+                                    borderRadius: BorderRadius.circular(8.0),
+                                    border: Border.all(color: Colors.green.shade200),
+                                  ),
+                                  child: Text(
+                                    (part.costPart * part.quantity).toStringAsFixed(2),
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            buildEditableCell(part.costService.toStringAsFixed(2), 'costService', part,
+                                keyboardType: const TextInputType.numberWithOptions(decimal: true), isNumber: true, alignCenter: true),
+                            DataCell(
+                              Center(
+                                child: IconButton(
+                                  icon: const Icon(Icons.delete, color: Colors.red, size: 20),
+                                  onPressed: () => _confirmDeletePartItem(part, appointment),
+                                  tooltip: 'Usuń część',
+                                  splashRadius: 20,
+                                ),
+                              ),
+                            ),
+                          ],
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                ));
           },
         ),
       ),
     );
   }
+
   Widget _buildCostSummary(Appointment appointment) {
     double totalBuyCostPart = appointment.parts.fold(0, (sum, item) => sum + (item.buyCostPart * item.quantity));
     double totalPartCost = appointment.parts.fold(0, (sum, item) => sum + (item.costPart * item.quantity));
@@ -1824,11 +1815,13 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
           ),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
-            decoration: isTotal ? BoxDecoration(
-              color: Colors.green.shade50,
-              borderRadius: BorderRadius.circular(8.0),
-              border: Border.all(color: Colors.green.shade200),
-            ) : null,
+            decoration: isTotal
+                ? BoxDecoration(
+                    color: Colors.green.shade50,
+                    borderRadius: BorderRadius.circular(8.0),
+                    border: Border.all(color: Colors.green.shade200),
+                  )
+                : null,
             child: Text(
               '${value.toStringAsFixed(2)} PLN',
               style: TextStyle(
@@ -1865,10 +1858,8 @@ class _AppBarBuilder extends StatelessWidget implements PreferredSizeWidget {
         },
         builder: (context, state) {
           if (state is AppointmentDetailsLoaded || state is AppointmentOperationSuccessWithDetails) {
-            final appointment = state is AppointmentDetailsLoaded 
-                ? state.appointment 
-                : (state as AppointmentOperationSuccessWithDetails).appointment;
-            
+            final appointment = state is AppointmentDetailsLoaded ? state.appointment : (state as AppointmentOperationSuccessWithDetails).appointment;
+
             return Text(
               '${DateFormat('dd-MM-yyyy').format(appointment.scheduledTime.toLocal())} '
               '- ${appointment.vehicle.make} ${appointment.vehicle.model}',
@@ -1887,7 +1878,8 @@ class _AppBarBuilder extends StatelessWidget implements PreferredSizeWidget {
         builder: (context, state) {
           if (state is! AppointmentDetailsLoaded) {
             return const SizedBox.shrink();
-          }          return IconButton(
+          }
+          return IconButton(
             icon: const Icon(Icons.history),
             tooltip: 'Historia pojazdu',
             onPressed: () {

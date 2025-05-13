@@ -1049,30 +1049,30 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
           ),
         ),
         const SizedBox(height: 16),
-        ConstrainedBox(
-          constraints: const BoxConstraints(maxHeight: 80),
-          child: TextFormField(
-            controller: _estimatedDurationController,
-            decoration: InputDecoration(
-              labelText: 'Szacowany czas trwania (min)',
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-              prefixIcon: const Icon(Icons.timer),
-              filled: true,
-              fillColor: Colors.grey.shade50,
-              contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-            ),
-            keyboardType: TextInputType.number,
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Proszę podać szacowany czas';
-              }
-              if (int.tryParse(value) == null) {
-                return 'Proszę podać prawidłową liczbę';
-              }
-              return null;
-            },
-          ),
-        ),
+        // ConstrainedBox(
+        //   constraints: const BoxConstraints(maxHeight: 80),
+        //   child: TextFormField(
+        //     controller: _estimatedDurationController,
+        //     decoration: InputDecoration(
+        //       labelText: 'Szacowany czas trwania (min)',
+        //       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+        //       prefixIcon: const Icon(Icons.timer),
+        //       filled: true,
+        //       fillColor: Colors.grey.shade50,
+        //       contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+        //     ),
+        //     keyboardType: TextInputType.number,
+        //     validator: (value) {
+        //       if (value == null || value.isEmpty) {
+        //         return 'Proszę podać szacowany czas';
+        //       }
+        //       if (int.tryParse(value) == null) {
+        //         return 'Proszę podać prawidłową liczbę';
+        //       }
+        //       return null;
+        //     },
+        //   ),
+        // ),
         const SizedBox(height: 16),
         Card(
           elevation: 2,

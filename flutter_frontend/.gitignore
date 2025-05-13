@@ -23,7 +23,7 @@ build/
 **/android/gradlew
 **/android/gradlew.bat
 **/android/local.properties
-**/android/app/debug.keystore
+**/android/app
 
 # iOS related
 **/ios/Flutter/.last_build_id
