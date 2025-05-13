@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_frontend/screens/appointments/add_appointment_screen.dart';
+// import 'package:flutter_frontend/screens/appointments/add_appointment_screen.dart';
 // import 'package:flutter_frontend/screens/appointments/appointment_details_screen.dart';
 import 'package:flutter_frontend/features/appointments/presentation/screens/appointment_details_screen.dart';
 
@@ -316,7 +316,7 @@ class _AppointmentsListScreenState extends State<AppointmentsListScreen> {
   void _navigateToAddAppointment() async {
     final result = await Navigator.pushNamed(
       context,
-      AddAppointmentScreen.routeName,
+      AppointmentDetailsScreen.routeName,
     );
 
     if (result == true) {

@@ -20,6 +20,16 @@ class AppointmentDetailsLoaded extends AppointmentState {
   AppointmentDetailsLoaded({required this.appointment});
 }
 
+class AppointmentOperationSuccessWithDetails extends AppointmentState {
+  final String message;
+  final Appointment appointment;
+
+  const AppointmentOperationSuccessWithDetails({
+    required this.message,
+    required this.appointment,
+  });
+}
+
 class AppointmentAdded extends AppointmentState {
   final Appointment appointment;
 

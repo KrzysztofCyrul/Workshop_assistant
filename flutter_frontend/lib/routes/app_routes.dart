@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_frontend/features/appointments/presentation/bloc/appointment_bloc.dart';
+import 'package:flutter_frontend/core/di/injector_container.dart' as di;
 
 // Auth screens
 import 'package:flutter_frontend/features/auth/presentation/screens/login_screen.dart';
@@ -21,11 +24,11 @@ import 'package:flutter_frontend/features/vehicles/presentation/screens/vehicle_
 import 'package:flutter_frontend/features/appointments/presentation/screens/appointments_list_screen.dart';
 import 'package:flutter_frontend/features/appointments/presentation/screens/appointment_details_screen.dart';
 
-import '../screens/appointments/completed_appointments_screen.dart';
-import '../screens/appointments/pending_appointments_screen.dart';
+// import '../screens/appointments/completed_appointments_screen.dart';
+// import '../screens/appointments/pending_appointments_screen.dart';
 // import '../screens/appointments/appointment_details_screen.dart';
 import '../screens/appointments/add_appointment_screen.dart';
-import '../screens/appointments/canceled_appointments_screen.dart';
+// import '../screens/appointments/canceled_appointments_screen.dart';
 
 // Workshop screens
 import 'package:flutter_frontend/features/workshop/presentation/screens/add_workshop_screen.dart';
@@ -63,9 +66,6 @@ class AppRoutes {
       }
       return AppointmentsListScreen(workshopId: args['workshopId']! as String);
     },
-    CompletedAppointmentsScreen.routeName: (context) => const CompletedAppointmentsScreen(),
-    CanceledAppointmentsScreen.routeName: (context) => const CanceledAppointmentsScreen(),
-    PendingAppointmentsScreen.routeName: (context) => const PendingAppointmentsScreen(),
     AppointmentDetailsScreen.routeName: (context) {
       final args = ModalRoute.of(context)!.settings.arguments as Map<String, String>?;
 
@@ -87,14 +87,19 @@ class AppRoutes {
             child: Text('Błąd: Brak wymaganych argumentów.'),
           ),
         );
-      }
-
-      return AppointmentDetailsScreen(
-        workshopId: workshopId,
-        appointmentId: appointmentId,
+      }      return BlocProvider(
+        create: (context) => di.getIt<AppointmentBloc>()
+          ..add(LoadAppointmentDetailsEvent(
+            workshopId: workshopId,
+            appointmentId: appointmentId,
+          )),
+        child: AppointmentDetailsScreen(
+          workshopId: workshopId,
+          appointmentId: appointmentId,
+        ),
       );
     },
-    AddAppointmentScreen.routeName: (context) => const AddAppointmentScreen(),
+    // AddAppointmentScreen.routeName: (context) => const AddAppointmentScreen(),
 
     // Client routes
     ClientsListScreen.routeName: (context) {

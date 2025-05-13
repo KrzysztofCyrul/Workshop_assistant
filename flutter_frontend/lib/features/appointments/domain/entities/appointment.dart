@@ -39,4 +39,42 @@ class Appointment {
     this.estimatedDuration,
     this.totalCost,
   });
+
+  Appointment copyWith({
+    String? id,
+    String? workshopId,
+    Client? client,
+    Vehicle? vehicle,
+    List<String>? assignedMechanics,
+    int? mileage,
+    DateTime? scheduledTime,
+    String? status,
+    String? notes,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    List<RepairItem>? repairItems,
+    List<Part>? parts,
+    String? recommendations,
+    Duration? estimatedDuration,
+    double? totalCost,
+  }) {
+    return Appointment(
+      id: id ?? this.id,
+      workshopId: workshopId ?? this.workshopId,
+      client: client ?? this.client,
+      vehicle: vehicle ?? this.vehicle,
+      assignedMechanics: assignedMechanics ?? this.assignedMechanics,
+      mileage: mileage ?? this.mileage,
+      scheduledTime: scheduledTime ?? this.scheduledTime,
+      status: status ?? this.status,
+      notes: notes ?? this.notes,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      repairItems: repairItems ?? this.repairItems,
+      parts: parts ?? this.parts,
+      recommendations: recommendations ?? this.recommendations,
+      estimatedDuration: estimatedDuration ?? this.estimatedDuration,
+      totalCost: totalCost ?? this.totalCost,
+    );
+  }
 }
