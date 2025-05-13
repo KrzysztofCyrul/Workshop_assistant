@@ -1887,20 +1887,24 @@ class _AppBarBuilder extends StatelessWidget implements PreferredSizeWidget {
         builder: (context, state) {
           if (state is! AppointmentDetailsLoaded) {
             return const SizedBox.shrink();
-          }
-          return IconButton(
+          }          return IconButton(
             icon: const Icon(Icons.history),
             tooltip: 'Historia pojazdu',
             onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => VehicleServiceHistoryScreen(
-                    workshopId: state.appointment.workshopId,
-                    vehicleId: state.appointment.vehicle.id,
-                  ),
-                ),
-              );
+              // Use a safer approach with additionalPostFrameCallback to navigate
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (context.mounted) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => VehicleServiceHistoryScreen(
+                        workshopId: state.appointment.workshopId,
+                        vehicleId: state.appointment.vehicle.id,
+                      ),
+                    ),
+                  );
+                }
+              });
             },
           );
         },

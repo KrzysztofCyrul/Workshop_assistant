@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_frontend/features/appointments/presentation/bloc/appointment_bloc.dart';
 import 'package:flutter_frontend/core/di/injector_container.dart' as di;
+import 'dart:async';
 
 // Auth screens
 import 'package:flutter_frontend/features/auth/presentation/screens/login_screen.dart';
@@ -23,11 +24,12 @@ import 'package:flutter_frontend/features/vehicles/presentation/screens/vehicle_
 // Appointment screens
 import 'package:flutter_frontend/features/appointments/presentation/screens/appointments_list_screen.dart';
 import 'package:flutter_frontend/features/appointments/presentation/screens/appointment_details_screen.dart';
+import 'package:flutter_frontend/features/appointments/presentation/screens/add_appointment_screen.dart';
 
 // import '../screens/appointments/completed_appointments_screen.dart';
 // import '../screens/appointments/pending_appointments_screen.dart';
 // import '../screens/appointments/appointment_details_screen.dart';
-import '../screens/appointments/add_appointment_screen.dart';
+// import '../screens/appointments/add_appointment_screen.dart';
 // import '../screens/appointments/canceled_appointments_screen.dart';
 
 // Workshop screens
@@ -48,6 +50,43 @@ import '../screens/quotations/add_quotation_screen.dart';
 import '../screens/quotations/quotation_details_screen.dart';
 import '../screens/quotations/quotations_screen.dart';
 
+/// A widget that schedules navigation after the first build is complete
+class _NavigateAfterBuild extends StatefulWidget {
+  final String navigateTo;
+  final Widget child;
+  final Map<String, dynamic>? arguments;
+
+  const _NavigateAfterBuild({
+    required this.navigateTo,
+    required this.child,
+    this.arguments,
+  });
+
+  @override
+  _NavigateAfterBuildState createState() => _NavigateAfterBuildState();
+}
+
+class _NavigateAfterBuildState extends State<_NavigateAfterBuild> {
+  @override
+  void initState() {
+    super.initState();
+    // Schedule navigation for after the build is complete
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        Navigator.of(context).pushReplacementNamed(
+          widget.navigateTo,
+          arguments: widget.arguments,
+        );
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return widget.child;
+  }
+}
+
 class AppRoutes {
   static final routes = <String, WidgetBuilder>{
     // Auth routes
@@ -65,15 +104,18 @@ class AppRoutes {
         return _buildErrorScreen('Brak wymaganych parametrów dla AppointmentsListScreen');
       }
       return AppointmentsListScreen(workshopId: args['workshopId']! as String);
-    },
-    AppointmentDetailsScreen.routeName: (context) {
+    },    AppointmentDetailsScreen.routeName: (context) {
       final args = ModalRoute.of(context)!.settings.arguments as Map<String, String>?;
 
+      // Simple error checking - instead of navigating inside the build phase,
+      // we return a widget that will handle navigation once the build is complete
       if (args == null) {
-        Navigator.of(context).pushReplacementNamed(LoginScreen.routeName);
-        return const Scaffold(
-          body: Center(
-            child: Text('Błąd: Brak wymaganych argumentów.'),
+        return _NavigateAfterBuild(
+          navigateTo: LoginScreen.routeName,
+          child: const Scaffold(
+            body: Center(
+              child: CircularProgressIndicator(),
+            ),
           ),
         );
       }
@@ -82,12 +124,15 @@ class AppRoutes {
       final appointmentId = args['appointmentId'];
 
       if (workshopId == null || appointmentId == null) {
-        return const Scaffold(
-          body: Center(
-            child: Text('Błąd: Brak wymaganych argumentów.'),
+        return _NavigateAfterBuild(
+          navigateTo: HomeScreen.routeName, 
+          child: const Scaffold(
+            body: Center(
+              child: CircularProgressIndicator(),
+            ),
           ),
         );
-      }      return BlocProvider(
+      }return BlocProvider(
         create: (context) => di.getIt<AppointmentBloc>()
           ..add(LoadAppointmentDetailsEvent(
             workshopId: workshopId,
@@ -97,9 +142,14 @@ class AppRoutes {
           workshopId: workshopId,
           appointmentId: appointmentId,
         ),
-      );
+      );    },
+    AddAppointmentScreen.routeName: (context) {
+      final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+      if (args == null || args['workshopId'] == null) {
+        return _buildErrorScreen('Brak wymaganych parametrów dla AddAppointmentScreen');
+      }
+      return AddAppointmentScreen(workshopId: args['workshopId']! as String);
     },
-    // AddAppointmentScreen.routeName: (context) => const AddAppointmentScreen(),
 
     // Client routes
     ClientsListScreen.routeName: (context) {
@@ -122,9 +172,11 @@ class AppRoutes {
         return _buildErrorScreen('Brak wymaganych parametrów dla ClientEditScreen');
       }
       return ClientEditScreen(workshopId: args['workshopId']!, clientId: args['clientId']!);
-    },
-    ClientDetailsScreen.routeName: (context) {
-      final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+    },    ClientDetailsScreen.routeName: (context) {
+      final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+      if (args == null || args['workshopId'] == null || args['clientId'] == null) {
+        return _buildErrorScreen('Brak wymaganych parametrów dla ClientDetailsScreen');
+      }
       final workshopId = args['workshopId']!;
       final clientId = args['clientId']!;
       return ClientDetailsScreen(workshopId: workshopId, clientId: clientId);
@@ -221,12 +273,26 @@ class AppRoutes {
     EmailSettingsScreen.routeName: (context) => const EmailSettingsScreen(),
     SendEmailScreen.routeName: (context) => const SendEmailScreen(),
   };
-
   static Widget _buildErrorScreen(String message) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Błąd')),
-      body: Center(
-        child: Text(message),
+    // Use the safer navigation method that happens after the build phase is complete
+    return _NavigateAfterBuild(
+      navigateTo: HomeScreen.routeName,
+      child: Scaffold(
+        appBar: AppBar(title: const Text('Błąd')),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error_outline, color: Colors.red, size: 48),
+              const SizedBox(height: 16),
+              Text(message, textAlign: TextAlign.center),
+              const SizedBox(height: 16),
+              const CircularProgressIndicator(),
+              const SizedBox(height: 16),
+              const Text('Przekierowuję do strony głównej...')
+            ],
+          ),
+        ),
       ),
     );
   }

@@ -74,7 +74,7 @@ class _ClientsStatisticsScreenState extends State<ClientsStatisticsScreen> {
     try {
       final results = await Future.wait([
         ClientService.getClients(accessToken, workshopId),
-        AppointmentService().getAppointments(accessToken, workshopId),
+        // AppointmentService().getAppointments(accessToken, workshopId),
       ]);
 
       final allClients = results[0] as List<Client>;

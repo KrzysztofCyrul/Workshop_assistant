@@ -57,7 +57,7 @@ class AppointmentOperationSuccess extends AppointmentState {
 class AppointmentError extends AppointmentState {
   final String message;
 
-  AppointmentError({required this.message});
+  const AppointmentError({required this.message});
 }
 
 class AppointmentUnauthenticated extends AppointmentState {

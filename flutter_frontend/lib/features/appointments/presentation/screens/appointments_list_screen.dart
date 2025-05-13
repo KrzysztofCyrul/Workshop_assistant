@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 // import 'package:flutter_frontend/screens/appointments/add_appointment_screen.dart';
 // import 'package:flutter_frontend/screens/appointments/appointment_details_screen.dart';
 import 'package:flutter_frontend/features/appointments/presentation/screens/appointment_details_screen.dart';
+import 'package:flutter_frontend/features/appointments/presentation/screens/add_appointment_screen.dart';
+
 
 import 'package:intl/intl.dart';
 import '../bloc/appointment_bloc.dart';
@@ -312,11 +314,11 @@ class _AppointmentsListScreenState extends State<AppointmentsListScreen> {
       },
     );
   }
-
   void _navigateToAddAppointment() async {
     final result = await Navigator.pushNamed(
       context,
-      AppointmentDetailsScreen.routeName,
+      AddAppointmentScreen.routeName,
+      arguments: {'workshopId': widget.workshopId},
     );
 
     if (result == true) {

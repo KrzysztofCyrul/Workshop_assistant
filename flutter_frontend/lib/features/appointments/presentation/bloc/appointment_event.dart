@@ -31,8 +31,9 @@ class AddAppointmentEvent extends AppointmentEvent {
   final Duration? estimatedDuration;
   final double? totalCost;
   final String status;
+  final List<String> assignedMechanicIds;
 
-  AddAppointmentEvent({
+  const AddAppointmentEvent({
     required this.workshopId,
     required this.clientId,
     required this.vehicleId,
@@ -43,6 +44,7 @@ class AddAppointmentEvent extends AppointmentEvent {
     this.recommendations,
     this.estimatedDuration,
     this.totalCost,
+    this.assignedMechanicIds = const [],
   });
 }
 

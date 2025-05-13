@@ -8,7 +8,7 @@ import 'providers/vehicle_provider.dart';
 import 'package:provider/provider.dart';
 import 'providers/service_record_provider.dart';
 import 'providers/auth_provider.dart';
-import 'providers/workshop_provider.dart';
+// import 'providers/workshop_provider.dart';
 import 'providers/client_provider.dart';
 import 'providers/email_provider.dart';
 import 'routes/app_routes.dart';
@@ -89,7 +89,7 @@ Future<void> main() async {
             logoutUseCase: getIt<LogoutUseCase>(),
           ),
         ),
-        ChangeNotifierProvider(create: (_) => WorkshopProvider()),
+        // ChangeNotifierProvider(create: (_) => WorkshopProvider()),
         ChangeNotifierProvider(create: (_) => ClientProvider()),
         ChangeNotifierProvider(create: (_) => EmployeeProvider()),
         ChangeNotifierProvider(create: (_) => VehicleProvider()),
@@ -173,6 +173,32 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
       ),
       routes: AppRoutes.routes,
+      // Add error builder for safer navigation
+      onUnknownRoute: (settings) {
+        return MaterialPageRoute(
+          builder: (context) => Scaffold(
+            appBar: AppBar(title: const Text('Błąd')),
+            body: Center(
+              child: Text('Nie znaleziono strony: ${settings.name}'),
+            ),
+          ),
+        );
+      },
+      builder: (context, child) {
+        // Global error handler for navigation
+        return Navigator(
+          onGenerateRoute: (settings) {
+            return MaterialPageRoute(
+              settings: settings,
+              builder: (context) => child ?? const Scaffold(
+                body: Center(
+                  child: CircularProgressIndicator(),
+                ),
+              ),
+            );
+          },
+        );
+      },
       home: BlocBuilder<AuthBloc, AuthState>(
         builder: (context, state) {
           if (state is Authenticated) {
