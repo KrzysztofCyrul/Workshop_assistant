@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../bloc/appointment_bloc.dart';
 import '../widgets/parts_suggestion_field.dart';
 import '../../domain/entities/appointment.dart';
@@ -117,6 +118,21 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
   final _buyCostPartController = TextEditingController(text: '0.0');
   final _repairDescriptionController = TextEditingController();
   final _notesController = TextEditingController();
+  
+  // Pomocnicze metody
+  String _getInitials(String firstName, String lastName) {
+    String initials = '';
+    
+    if (firstName.isNotEmpty) {
+      initials += firstName[0];
+    }
+    
+    if (lastName.isNotEmpty) {
+      initials += lastName[0];
+    }
+    
+    return initials.isNotEmpty ? initials.toUpperCase() : '?';
+  }
 
   @override
   void initState() {
@@ -309,28 +325,38 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
       ),
     );
   }
-
   Widget _buildAppointmentDetailsCard(BuildContext context, Appointment appointment) {
-    Widget buildDetailRow(String label, String value, {IconData? icon}) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4.0),
+    Widget buildDetailRow(String label, String value, {IconData? icon, Color? iconColor}) {
+      return Container(
+        margin: const EdgeInsets.only(bottom: 8.0),
+        padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0),
+        decoration: BoxDecoration(
+          color: Colors.grey.shade50,
+          borderRadius: BorderRadius.circular(8.0),
+          border: Border.all(color: Colors.grey.shade200),
+        ),
         child: Row(
           children: [
             if (icon != null)
-              Padding(
-                padding: const EdgeInsets.only(right: 8.0),
-                child: Icon(icon, size: 20, color: Colors.blue),
+              Container(
+                padding: const EdgeInsets.all(8.0),
+                margin: const EdgeInsets.only(right: 12.0),
+                decoration: BoxDecoration(
+                  color: (iconColor ?? Colors.blue).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+                child: Icon(icon, size: 20, color: iconColor ?? Colors.blue),
               ),
             Expanded(
               child: Text(
                 label,
-                style: const TextStyle(fontWeight: FontWeight.w600),
+                style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
               ),
             ),
             Expanded(
               child: Text(
                 value,
-                style: const TextStyle(color: Colors.grey),
+                style: TextStyle(color: Colors.grey.shade700, fontSize: 15),
               ),
             ),
           ],
@@ -338,64 +364,136 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
       );
     }
 
+    final statusColor = AppointmentStatus.getColor(appointment.status);
+    final statusIcon = AppointmentStatus.getIcon(appointment.status);
+
     return Card(
-      elevation: 2,
+      elevation: 3,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      margin: const EdgeInsets.symmetric(vertical: 4.0),
       child: ExpansionTile(
-        title: const Text('Szczegóły Zlecenia'),
+        initiallyExpanded: true,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        collapsedShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        tilePadding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
+        leading: Container(
+          padding: const EdgeInsets.all(8.0),
+          decoration: BoxDecoration(
+            color: Colors.blue.shade100,
+            borderRadius: BorderRadius.circular(8.0),
+          ),
+          child: const Icon(Icons.assignment, color: Colors.blue),
+        ),
+        title: const Text(
+          'Szczegóły Zlecenia',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+        ),
+        subtitle: Text(
+          AppointmentStatus.getLabel(appointment.status),
+          style: TextStyle(color: statusColor, fontWeight: FontWeight.w500),
+        ),
         children: [
-          Padding(
+          Container(
             padding: const EdgeInsets.all(16.0),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: const BorderRadius.only(
+                bottomLeft: Radius.circular(12),
+                bottomRight: Radius.circular(12),
+              ),
+            ),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 buildDetailRow(
                   'Data',
                   DateFormat('dd-MM-yyyy HH:mm').format(appointment.scheduledTime.toLocal()),
                   icon: Icons.calendar_today,
+                  iconColor: Colors.orange,
                 ),
                 buildDetailRow(
                   'Status',
                   AppointmentStatus.getLabel(appointment.status),
-                  icon: Icons.info,
+                  icon: statusIcon,
+                  iconColor: statusColor,
                 ),
                 buildDetailRow(
                   'Przebieg',
                   '${appointment.mileage} km',
                   icon: Icons.speed,
+                  iconColor: Colors.green,
                 ),
-                const SizedBox(height: 8.0),
-                const Text(
-                  'Notatki:',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),                Builder(
-                  builder: (context) {
-                    final controller = TextEditingController(text: appointment.notes ?? '');
-                    return TextFormField(
-                      controller: controller,
-                      decoration: const InputDecoration(
-                        hintText: 'Dodaj notatki...',
-                        border: InputBorder.none,
+                const SizedBox(height: 12.0),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12.0),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade50,
+                    borderRadius: BorderRadius.circular(8.0),
+                    border: Border.all(color: Colors.grey.shade200),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.note, size: 18, color: Colors.blue),
+                          const SizedBox(width: 8),
+                          const Text(
+                            'Notatki:',
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                          ),
+                        ],
                       ),
-                      maxLines: 3,
-                      onFieldSubmitted: (newValue) {
-                        context.read<AppointmentBloc>().add(EditNotesValueEvent(
-                          workshopId: appointment.workshopId,
-                          appointmentId: appointment.id,
-                          newNotes: newValue,
-                        ));
-                      },
-                      onTapOutside: (_) {
-                        if (FocusScope.of(context).hasFocus) {
-                          context.read<AppointmentBloc>().add(EditNotesValueEvent(
-                            workshopId: appointment.workshopId,
-                            appointmentId: appointment.id,
-                            newNotes: controller.text,
-                          ));
-                          FocusManager.instance.primaryFocus?.unfocus();
-                        }
-                      },
-                    );
-                  },
+                      const SizedBox(height: 8.0),
+                      Builder(
+                        builder: (context) {
+                          final controller = TextEditingController(text: appointment.notes ?? '');
+                          return TextFormField(
+                            controller: controller,
+                            decoration: InputDecoration(
+                              hintText: 'Dodaj notatki...',
+                              hintStyle: TextStyle(color: Colors.grey.shade400, fontStyle: FontStyle.italic),
+                              filled: true,
+                              fillColor: Colors.white,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8.0),
+                                borderSide: BorderSide(color: Colors.grey.shade300),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8.0),
+                                borderSide: BorderSide(color: Colors.grey.shade300),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8.0),
+                                borderSide: BorderSide(color: Colors.blue.shade300, width: 2),
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                            ),
+                            maxLines: 3,
+                            style: const TextStyle(fontSize: 14),
+                            onFieldSubmitted: (newValue) {
+                              context.read<AppointmentBloc>().add(EditNotesValueEvent(
+                                workshopId: appointment.workshopId,
+                                appointmentId: appointment.id,
+                                newNotes: newValue,
+                              ));
+                            },
+                            onTapOutside: (_) {
+                              if (FocusScope.of(context).hasFocus) {
+                                context.read<AppointmentBloc>().add(EditNotesValueEvent(
+                                  workshopId: appointment.workshopId,
+                                  appointmentId: appointment.id,
+                                  newNotes: controller.text,
+                                ));
+                                FocusManager.instance.primaryFocus?.unfocus();
+                              }
+                            },
+                          );
+                        },
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -404,74 +502,38 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
       ),
     );
   }
-
   Widget _buildVehicleDetailsCard(Vehicle vehicle) {
-    Widget buildDetailRow(String label, String value) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4.0),
-        child: Row(
-          children: [
-            Expanded(
-              child: Text(
-                label,
-                style: const TextStyle(fontWeight: FontWeight.w600),
-              ),
-            ),
-            Expanded(
-              child: Text(
-                value,
-                style: const TextStyle(color: Colors.grey),
-              ),
-            ),
-          ],
+    Widget buildDetailRow(String label, String value, {IconData? icon, Color iconColor = Colors.teal}) {
+      return Container(
+        margin: const EdgeInsets.only(bottom: 8.0),
+        padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0),
+        decoration: BoxDecoration(
+          color: Colors.grey.shade50,
+          borderRadius: BorderRadius.circular(8.0),
+          border: Border.all(color: Colors.grey.shade200),
         ),
-      );
-    }
-
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: ExpansionTile(
-        title: const Text('Szczegóły Pojazdu'),
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                buildDetailRow('Marka', vehicle.make),
-                buildDetailRow('Model', vehicle.model),
-                buildDetailRow('Rok', vehicle.year.toString()),
-                buildDetailRow('VIN', vehicle.vin),
-                buildDetailRow('Rejestracja', vehicle.licensePlate),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildClientDetailsCard(Client client) {
-    Widget buildDetailRow(String label, String value, {IconData? icon}) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4.0),
         child: Row(
           children: [
             if (icon != null)
-              Padding(
-                padding: const EdgeInsets.only(right: 8.0),
-                child: Icon(icon, size: 20, color: Colors.blue),
+              Container(
+                padding: const EdgeInsets.all(8.0),
+                margin: const EdgeInsets.only(right: 12.0),
+                decoration: BoxDecoration(
+                  color: iconColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+                child: Icon(icon, size: 20, color: iconColor),
               ),
             Expanded(
               child: Text(
                 label,
-                style: const TextStyle(fontWeight: FontWeight.w600),
+                style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
               ),
             ),
             Expanded(
               child: Text(
                 value,
-                style: const TextStyle(color: Colors.grey),
+                style: TextStyle(color: Colors.grey.shade700, fontSize: 15),
               ),
             ),
           ],
@@ -480,24 +542,375 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
     }
 
     return Card(
-      elevation: 2,
+      elevation: 3,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      margin: const EdgeInsets.symmetric(vertical: 4.0),
       child: ExpansionTile(
-        title: const Text('Szczegóły Klienta'),
+        initiallyExpanded: true,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        collapsedShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        tilePadding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
+        leading: Container(
+          padding: const EdgeInsets.all(8.0),
+          decoration: BoxDecoration(
+            color: Colors.teal.shade100,
+            borderRadius: BorderRadius.circular(8.0),
+          ),
+          child: const Icon(Icons.directions_car, color: Colors.teal),
+        ),
+        title: const Text(
+          'Szczegóły Pojazdu',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+        ),
+        subtitle: Text(
+          '${vehicle.make} ${vehicle.model}',
+          style: TextStyle(color: Colors.teal.shade700, fontWeight: FontWeight.w500),
+        ),
         children: [
-          Padding(
+          Container(
             padding: const EdgeInsets.all(16.0),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: const BorderRadius.only(
+                bottomLeft: Radius.circular(12),
+                bottomRight: Radius.circular(12),
+              ),
+            ),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                buildDetailRow('Marka', vehicle.make, icon: Icons.category, iconColor: Colors.teal.shade700),
+                buildDetailRow('Model', vehicle.model, icon: Icons.style, iconColor: Colors.teal.shade600),
+                buildDetailRow('Rok', vehicle.year.toString(), icon: Icons.date_range, iconColor: Colors.teal.shade500),
+                buildDetailRow('VIN', vehicle.vin, icon: Icons.tag, iconColor: Colors.teal.shade700),
+                buildDetailRow('Rejestracja', vehicle.licensePlate, icon: Icons.badge, iconColor: Colors.teal.shade600),
+                
+                const SizedBox(height: 12.0),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16.0),
+                  decoration: BoxDecoration(
+                    color: Colors.teal.shade50,
+                    borderRadius: BorderRadius.circular(8.0),
+                    border: Border.all(color: Colors.teal.shade100),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(12.0),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.shade300,
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Icon(
+                          Icons.directions_car, 
+                          size: 32, 
+                          color: Colors.teal.shade700
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '${vehicle.make} ${vehicle.model} (${vehicle.year})', 
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold, 
+                                fontSize: 18,
+                                color: Colors.teal.shade900,
+                              ),
+                            ),
+                            Text(
+                              'Nr rejestracyjny: ${vehicle.licensePlate}', 
+                              style: const TextStyle(
+                                fontStyle: FontStyle.italic,
+                                fontSize: 14
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+  Widget _buildClientDetailsCard(Client client) {
+    Widget buildDetailRow(String label, String value, {IconData? icon, Color iconColor = Colors.purple}) {
+      return Container(
+        margin: const EdgeInsets.only(bottom: 8.0),
+        padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0),
+        decoration: BoxDecoration(
+          color: Colors.grey.shade50,
+          borderRadius: BorderRadius.circular(8.0),
+          border: Border.all(color: Colors.grey.shade200),
+        ),
+        child: Row(
+          children: [
+            if (icon != null)
+              Container(
+                padding: const EdgeInsets.all(8.0),
+                margin: const EdgeInsets.only(right: 12.0),
+                decoration: BoxDecoration(
+                  color: iconColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+                child: Icon(icon, size: 20, color: iconColor),
+              ),
+            Expanded(
+              child: Text(
+                label,
+                style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+              ),
+            ),
+            Expanded(
+              child: Text(
+                value,
+                style: TextStyle(color: Colors.grey.shade700, fontSize: 15),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    Widget buildContactButton({
+      required IconData icon,
+      required String label,
+      required String value,
+      required Color color,
+      required VoidCallback onPressed,
+    }) {
+      return Container(
+        margin: const EdgeInsets.only(right: 8.0),
+        child: ElevatedButton.icon(
+          icon: Icon(icon, size: 16),
+          label: Text(label),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: color.withOpacity(0.1),
+            foregroundColor: color,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8.0),
+              side: BorderSide(color: color.withOpacity(0.2)),
+            ),
+          ),
+          onPressed: onPressed,
+        ),
+      );
+    }
+
+    return Card(
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      margin: const EdgeInsets.symmetric(vertical: 4.0),
+      child: ExpansionTile(
+        initiallyExpanded: true,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        collapsedShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        tilePadding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
+        leading: Container(
+          padding: const EdgeInsets.all(8.0),
+          decoration: BoxDecoration(
+            color: Colors.purple.shade100,
+            borderRadius: BorderRadius.circular(8.0),
+          ),
+          child: const Icon(Icons.person, color: Colors.purple),
+        ),
+        title: const Text(
+          'Szczegóły Klienta',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+        ),
+        subtitle: Text(
+          '${client.firstName} ${client.lastName}',
+          style: TextStyle(color: Colors.purple.shade700, fontWeight: FontWeight.w500),
+        ),        trailing: Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: Colors.grey.shade200,
+            shape: BoxShape.circle,
+          ),
+          child: Center(
+            child: Text(
+              _getInitials(client.firstName, client.lastName),
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
+            ),
+          ),
+        ),
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16.0),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: const BorderRadius.only(
+                bottomLeft: Radius.circular(12),
+                bottomRight: Radius.circular(12),
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16.0),
+                  margin: const EdgeInsets.only(bottom: 16.0),
+                  decoration: BoxDecoration(
+                    color: Colors.purple.shade50,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.purple.shade100),
+                  ),
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          Container(                            width: 60,
+                            height: 60,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.purple, width: 2),
+                            ),
+                            child: Center(
+                              child: Text(
+                                _getInitials(client.firstName, client.lastName),
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 24,
+                                  color: Colors.purple.shade700,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  '${client.firstName} ${client.lastName}',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18,
+                                    color: Colors.purple.shade900,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                if (client.phone != null)
+                                  Text(
+                                    client.phone!,
+                                    style: TextStyle(
+                                      color: Colors.purple.shade700,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),                      Row(
+                        children: [
+                          if (client.phone != null && client.phone!.isNotEmpty)
+                            buildContactButton(
+                              icon: Icons.phone,
+                              label: 'Zadzwoń',
+                              value: client.phone!,
+                              color: Colors.green,
+                              onPressed: () {
+                                // Implement call functionality
+                                try {
+                                  final uri = Uri.parse('tel:${client.phone}');
+                                  launchUrl(uri);
+                                } catch (e) {
+                                  // Obsługa błędu
+                                  debugPrint('Nie można wykonać połączenia: $e');
+                                }
+                              },
+                            ),
+                          if (client.email.isNotEmpty)
+                            buildContactButton(
+                              icon: Icons.email,
+                              label: 'Email',
+                              value: client.email,
+                              color: Colors.orange,
+                              onPressed: () {
+                                // Implement email functionality
+                                try {
+                                  final uri = Uri.parse('mailto:${client.email}');
+                                  launchUrl(uri);
+                                } catch (e) {
+                                  // Obsługa błędu
+                                  debugPrint('Nie można wysłać email: $e');
+                                }
+                              },
+                            ),
+                          if (client.address != null && client.address!.isNotEmpty)
+                            buildContactButton(
+                              icon: Icons.map,
+                              label: 'Mapa',
+                              value: client.address!,
+                              color: Colors.blue,
+                              onPressed: () {
+                                // Implement map functionality
+                                try {
+                                  final encodedAddress = Uri.encodeComponent(client.address!);
+                                  final uri = Uri.parse('https://maps.google.com/?q=$encodedAddress');
+                                  launchUrl(uri, mode: LaunchMode.externalApplication);
+                                } catch (e) {
+                                  // Obsługa błędu
+                                  debugPrint('Nie można otworzyć mapy: $e');
+                                }
+                              },
+                            ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                
                 buildDetailRow(
                   'Imię i nazwisko',
                   '${client.firstName} ${client.lastName}',
                   icon: Icons.person,
+                  iconColor: Colors.purple,
                 ),
-                buildDetailRow('Email', client.email, icon: Icons.email),
-                buildDetailRow('Telefon', client.phone ?? 'Brak', icon: Icons.phone),
+                buildDetailRow(
+                  'Email',
+                  client.email,
+                  icon: Icons.email,
+                  iconColor: Colors.orange,
+                ),
+                buildDetailRow(
+                  'Telefon',
+                  client.phone ?? 'Brak',
+                  icon: Icons.phone,
+                  iconColor: Colors.green,
+                ),
                 if (client.address != null) 
-                  buildDetailRow('Adres', client.address!, icon: Icons.home),
+                  buildDetailRow(
+                    'Adres',
+                    client.address!,
+                    icon: Icons.home,
+                    iconColor: Colors.blue,
+                  ),
               ],
             ),
           ),

@@ -85,10 +85,8 @@ class AppointmentPdfGenerator {
     return pw.Table(
       border: pw.TableBorder.all(),
       children: [
-        _buildInfoRow('Pojazd:', 
-          '${appointment.vehicle.licensePlate} ${appointment.vehicle.make} ${appointment.vehicle.model}',
-          ttf),
-        _buildInfoRow('Numer telefonu:', '${appointment.client.phone}', ttf),
+        _buildInfoRow('Pojazd:', '${appointment.vehicle.licensePlate} ${appointment.vehicle.make} ${appointment.vehicle.model}', ttf),
+        _buildInfoRow('Numer VIN:', appointment.vehicle.vin, ttf),
       ],
     );
   }
@@ -128,10 +126,12 @@ class AppointmentPdfGenerator {
   pw.TableRow _buildPartsTableHeader(pw.Font boldTtf) {
     final headers = ['DO ZROBIENIA', 'ILOŚĆ', 'CZĘŚCI (PLN)', 'RAZEM (PLN)', 'USŁUGA (PLN)'];
     return pw.TableRow(
-      children: headers.map((header) => pw.Padding(
-        padding: const pw.EdgeInsets.all(6.0),
-        child: pw.Text(header, style: pw.TextStyle(font: boldTtf)),
-      )).toList(),
+      children: headers
+          .map((header) => pw.Padding(
+                padding: const pw.EdgeInsets.all(6.0),
+                child: pw.Text(header, style: pw.TextStyle(font: boldTtf)),
+              ))
+          .toList(),
     );
   }
 
@@ -200,10 +200,12 @@ class AppointmentPdfGenerator {
     ];
 
     return pw.Column(
-      children: companyInfo.map((text) => pw.Text(
-        text,
-        style: pw.TextStyle(font: ttf, fontSize: 14),
-      )).toList(),
+      children: companyInfo
+          .map((text) => pw.Text(
+                text,
+                style: pw.TextStyle(font: ttf, fontSize: 14),
+              ))
+          .toList(),
     );
   }
 
