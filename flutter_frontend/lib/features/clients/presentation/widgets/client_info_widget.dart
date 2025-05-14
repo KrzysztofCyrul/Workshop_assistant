@@ -11,34 +11,121 @@ class ClientInfoWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return Card(
+      elevation: 4,
+      margin: const EdgeInsets.all(16.0),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                CircleAvatar(
+                  backgroundColor: Colors.blue.shade100,
+                  radius: 30,
+                  child: Text(
+                    _getClientInitials(),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold, 
+                      fontSize: 20,
+                      color: Colors.blue.shade800,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '${client.firstName} ${client.lastName}',
+                        style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                      ),
+                      Text(
+                        client.segment ?? 'Brak segmentu',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey.shade700,
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const Divider(height: 32),
+            _buildInfoRow(Icons.email, 'Email:', client.email),
+            _buildInfoRow(Icons.phone, 'Telefon:', client.phone ?? 'Brak'),
+            _buildInfoRow(Icons.location_on, 'Adres:', client.address ?? 'Brak'),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+              decoration: BoxDecoration(
+                color: Colors.blue.shade50,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.directions_car,
+                    color: Colors.blue.shade700,
+                    size: 18,
+                  ),
+                  const SizedBox(width: 8),
+                  const Text(
+                    'Pojazdy klienta:',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blue,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+  
+  Widget _buildInfoRow(IconData icon, String label, String value) {
     return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Icon(icon, size: 20, color: Colors.grey.shade700),
+          const SizedBox(width: 12),
           Text(
-            '${client.firstName} ${client.lastName}',
-            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+            label,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+              color: Colors.grey.shade900,
+            ),
           ),
-          const SizedBox(height: 8),
-          Text('Email: ${client.email}', 
-               style: const TextStyle(fontSize: 16)),
-          const SizedBox(height: 8),
-          Text('Telefon: ${client.phone ?? 'Brak'}', 
-               style: const TextStyle(fontSize: 16)),
-          const SizedBox(height: 8),
-          Text('Adres: ${client.address ?? 'Brak'}', 
-               style: const TextStyle(fontSize: 16)),
-          const SizedBox(height: 8),
-          Text('Segment: ${client.segment ?? 'Brak segmentu'}', 
-               style: const TextStyle(fontSize: 16)),
-          const SizedBox(height: 16),
-          const Text(
-            'Pojazdy klienta:',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(fontSize: 16),
+            ),
           ),
         ],
       ),
     );
+  }
+  
+  String _getClientInitials() {
+    final firstInitial = client.firstName.isNotEmpty ? client.firstName[0] : '?';
+    final lastInitial = client.lastName.isNotEmpty ? client.lastName[0] : '?';
+    return '$firstInitial$lastInitial'.toUpperCase();
   }
 }

@@ -49,16 +49,48 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Potwierdzenie'),
-        content: const Text('Czy na pewno chcesz usunąć tego klienta?'),
+        title: const Text(
+          'Potwierdzenie usunięcia',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        content: const Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.warning_amber_rounded,
+              color: Colors.orange,
+              size: 48,
+            ),
+            SizedBox(height: 16),
+            Text(
+              'Czy na pewno chcesz usunąć tego klienta?',
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: 8),
+            Text(
+              'Ta operacja jest nieodwracalna i spowoduje usunięcie wszystkich danych powiązanych z tym klientem.',
+              style: TextStyle(fontSize: 12, color: Colors.grey),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
             child: const Text('Anuluj'),
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.black54,
+            ),
           ),
-          TextButton(
+          ElevatedButton.icon(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Usuń'),
+            icon: const Icon(Icons.delete_forever),
+            label: const Text('Usuń klienta'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
           ),
         ],
       ),
@@ -79,15 +111,24 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
         title: BlocBuilder<ClientBloc, ClientState>(
           builder: (context, state) {
             if (state is ClientDetailsLoaded) {
-              return Text('${state.client.firstName} ${state.client.lastName}');
+              return Text(
+                '${state.client.firstName} ${state.client.lastName}',
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              );
             }
-            return const Text('Szczegóły klienta');
+            return const Text(
+              'Szczegóły klienta',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            );
           },
         ),
+        elevation: 2,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         actions: [
           IconButton(
             icon: const Icon(Icons.edit),
-            tooltip: 'Edytuj',
+            tooltip: 'Edytuj klienta',
+            color: Theme.of(context).colorScheme.primary,
             onPressed: () => Navigator.of(context).pushNamed(
               '/client-edit',
               arguments: {
@@ -98,7 +139,8 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
           ),
           IconButton(
             icon: const Icon(Icons.delete),
-            tooltip: 'Usuń',
+            tooltip: 'Usuń klienta',
+            color: Colors.red,
             onPressed: _deleteClient,
           ),
         ],
@@ -116,13 +158,21 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
           listener: (context, state) {
             if (state is ClientError) {
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(state.message)),
+                SnackBar(
+                  content: Text(state.message),
+                  backgroundColor: Colors.red.shade700,
+                  behavior: SnackBarBehavior.floating,
+                ),
               );
             } else if (state is ClientOperationSuccess) {
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(state.message)),
+                SnackBar(
+                  content: Text(state.message),
+                  backgroundColor: Colors.green.shade700,
+                  behavior: SnackBarBehavior.floating,
+                ),
               );
-              Navigator.of(context).pop();
+              Navigator.of(context).pop(true);
             } else if (state is ClientUnauthenticated) {
               Navigator.of(context).pushReplacementNamed('/login');
             }
@@ -137,7 +187,22 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
                 BlocBuilder<ClientBloc, ClientState>(
                   builder: (context, state) {
                     if (state is ClientLoading) {
-                      return const Center(child: CircularProgressIndicator());
+                      return const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(16.0),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              CircularProgressIndicator(),
+                              SizedBox(height: 16),
+                              Text(
+                                'Ładowanie danych klienta...',
+                                style: TextStyle(fontSize: 16, color: Colors.grey),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
                     } else if (state is ClientDetailsLoaded) {
                       return ClientInfoWidget(client: state.client);
                     }
@@ -145,13 +210,28 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
                   },
                 ),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  padding: const EdgeInsets.all(16.0),
                   child: TextField(
                     decoration: InputDecoration(
                       labelText: 'Wyszukaj pojazd',
+                      hintText: 'Wpisz markę, model lub numer rejestracyjny',
                       prefixIcon: const Icon(Icons.search),
+                      suffixIcon: _searchQuery.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear),
+                              onPressed: () => setState(() => _searchQuery = ''),
+                            )
+                          : null,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide(color: Theme.of(context).colorScheme.primary),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide(
+                          color: Theme.of(context).colorScheme.primary,
+                          width: 2.0,
+                        ),
                       ),
                     ),
                     onChanged: (value) => setState(() => _searchQuery = value),
@@ -162,19 +242,66 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
                   child: BlocBuilder<VehicleBloc, VehicleState>(
                     builder: (context, state) {
                       if (state is VehicleLoading) {
-                        return const Center(child: CircularProgressIndicator());
-                      } else if (state is VehicleError) {
-                        return Center(
+                        return const Center(
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Text(state.message),
-                              const SizedBox(height: 16),
-                              ElevatedButton(
-                                onPressed: _loadVehicles,
-                                child: const Text('Spróbuj ponownie'),
+                              CircularProgressIndicator(),
+                              SizedBox(height: 16),
+                              Text(
+                                'Ładowanie pojazdów...',
+                                style: TextStyle(fontSize: 16, color: Colors.grey),
                               ),
                             ],
+                          ),
+                        );
+                      } else if (state is VehicleError) {
+                        return Center(
+                          child: Card(
+                            elevation: 4,
+                            margin: const EdgeInsets.all(16),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                            child: Padding(
+                              padding: const EdgeInsets.all(24.0),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.error_outline,
+                                    size: 80,
+                                    color: Colors.red.shade300,
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Text(
+                                    'Wystąpił błąd',
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.red.shade700,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    state.message,
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      color: Colors.black87,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 24),
+                                  ElevatedButton.icon(
+                                    onPressed: _loadVehicles,
+                                    icon: const Icon(Icons.refresh),
+                                    label: const Text('Ponów próbę'),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.blue,
+                                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
                         );
                       } else if (state is VehiclesLoaded) {
@@ -192,6 +319,19 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
             ),
           ),
         ),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => Navigator.of(context).pushNamed(
+          '/add-vehicle',
+          arguments: {
+            'workshopId': widget.workshopId,
+            'clientId': widget.clientId,
+          },
+        ).then((_) => _loadVehicles()),
+        icon: const Icon(Icons.directions_car),
+        label: const Text('Dodaj pojazd'),
+        tooltip: 'Dodaj pojazd dla klienta',
+        backgroundColor: Colors.blue,
       ),
     );
   }
