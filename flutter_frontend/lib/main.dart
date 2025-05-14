@@ -55,6 +55,8 @@ import 'features/appointments/domain/usecases/repair_items/add_repair_item.dart'
 import 'features/appointments/domain/usecases/repair_items/update_repair_item.dart';
 import 'features/appointments/domain/usecases/repair_items/delete_repair_item.dart';
 
+import 'features/quotations/presentation/bloc/quotation_bloc.dart';
+
 import 'features/workshop/presentation/bloc/workshop_bloc.dart';
 import 'features/workshop/domain/usecases/get_workshops.dart';
 import 'features/workshop/domain/usecases/get_workshop_details.dart';
@@ -139,8 +141,7 @@ Future<void> main() async {
             updateRepairItem: getIt<UpdateRepairItem>(),
             deleteRepairItem: getIt<DeleteRepairItem>(),
           ),
-        ),
-        BlocProvider(
+        ),        BlocProvider(
           create: (_) => WorkshopBloc(
             authBloc: getIt<AuthBloc>(),
             getWorkshops: getIt<GetWorkshops>(),
@@ -155,6 +156,9 @@ Future<void> main() async {
             getEmployees: getIt<GetEmployees>(),
             getEmployeeDetails: getIt<GetEmployeeDetails>(),
           ),
+        ),
+        BlocProvider(
+          create: (_) => getIt<QuotationBloc>(),
         ),            
       ],
       child: const MyApp(),

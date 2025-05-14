@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_frontend/features/appointments/presentation/bloc/appointment_bloc.dart';
+import 'package:flutter_frontend/features/quotations/presentation/bloc/quotation_bloc.dart';
 import 'package:flutter_frontend/core/di/injector_container.dart' as di;
-import 'dart:async';
-
 // Auth screens
 import 'package:flutter_frontend/features/auth/presentation/screens/login_screen.dart';
 import 'package:flutter_frontend/features/auth/presentation/screens/register_screen.dart';
@@ -13,6 +12,7 @@ import 'package:flutter_frontend/features/clients/presentation/screens/add_clien
 import 'package:flutter_frontend/features/clients/presentation/screens/client_details_screen.dart';
 import 'package:flutter_frontend/features/clients/presentation/screens/client_edit_screen.dart';
 import 'package:flutter_frontend/features/clients/presentation/screens/clients_list_screen.dart';
+import 'package:flutter_frontend/features/quotations/presentation/screens/quotation_details_screen.dart';
 
 // Vehicle screens
 import 'package:flutter_frontend/features/vehicles/presentation/screens/add_vehicle_screen.dart';
@@ -46,9 +46,10 @@ import '../screens/relationships/client_statistics_screen.dart';
 import '../screens/settings/email_settings_screen.dart';
 import '../screens/relationships/send_email_screen.dart';
 // import '../screens/employee/use_code_screen.dart';
-import '../screens/quotations/add_quotation_screen.dart';
-import '../screens/quotations/quotation_details_screen.dart';
-import '../screens/quotations/quotations_screen.dart';
+
+// BLoC-based quotation screens
+import '../features/quotations/presentation/screens/add_quotation_screen.dart';
+import '../features/quotations/presentation/screens/quotations_list_screen.dart';
 
 /// A widget that schedules navigation after the first build is complete
 class _NavigateAfterBuild extends StatefulWidget {
@@ -59,6 +60,7 @@ class _NavigateAfterBuild extends StatefulWidget {
   const _NavigateAfterBuild({
     required this.navigateTo,
     required this.child,
+    // ignore: unused_element_parameter
     this.arguments,
   });
 
@@ -110,9 +112,9 @@ class AppRoutes {
       // Simple error checking - instead of navigating inside the build phase,
       // we return a widget that will handle navigation once the build is complete
       if (args == null) {
-        return _NavigateAfterBuild(
+        return const _NavigateAfterBuild(
           navigateTo: LoginScreen.routeName,
-          child: const Scaffold(
+          child: Scaffold(
             body: Center(
               child: CircularProgressIndicator(),
             ),
@@ -124,9 +126,9 @@ class AppRoutes {
       final appointmentId = args['appointmentId'];
 
       if (workshopId == null || appointmentId == null) {
-        return _NavigateAfterBuild(
+        return const _NavigateAfterBuild(
           navigateTo: HomeScreen.routeName, 
-          child: const Scaffold(
+          child: Scaffold(
             body: Center(
               child: CircularProgressIndicator(),
             ),
@@ -255,18 +257,42 @@ class AppRoutes {
       return EmployeeDetailsScreen(
         workshopId: args['workshopId']! as String,
         employeeId: args['employeeId']! as String,
-      );
-    },
-
+      );    },
+    
     // Quotation routes
-    AddQuotationScreen.routeName: (context) => const AddQuotationScreen(),
+    AddQuotationScreen.routeName: (context) {
+      final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+      if (args == null || args['workshopId'] == null) {
+        return _buildErrorScreen('Brak wymaganych parametrów dla AddQuotationScreen');
+      }
+      return AddQuotationScreen(workshopId: args['workshopId']! as String);
+    },
+    
     QuotationDetailsScreen.routeName: (context) {
       final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
       final workshopId = args['workshopId']!;
       final quotationId = args['quotationId']!;
-      return QuotationDetailsScreen(workshopId: workshopId, quotationId: quotationId);
+      return BlocProvider(
+        create: (context) => di.getIt<QuotationBloc>()
+          ..add(LoadQuotationDetailsEvent(
+            workshopId: workshopId,
+            quotationId: quotationId,
+          )),
+        child: QuotationDetailsScreen(workshopId: workshopId, quotationId: quotationId),
+      );
     },
-    QuotationsScreen.routeName: (context) => const QuotationsScreen(),
+    
+    // Single route for /quotations that's used by both the old and new implementations
+    QuotationsListScreen.routeName: (context) {
+      final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+      if (args == null || args['workshopId'] == null) {
+        return _buildErrorScreen('Brak wymaganych parametrów dla QuotationsListScreen');
+      }      return BlocProvider(
+        create: (context) => di.getIt<QuotationBloc>()
+          ..add(LoadQuotationsEvent(workshopId: args['workshopId']! as String)),
+        child: QuotationsListScreen(workshopId: args['workshopId']! as String),
+      );
+    },
 
     // Other routes
     ClientsStatisticsScreen.routeName: (context) => const ClientsStatisticsScreen(),

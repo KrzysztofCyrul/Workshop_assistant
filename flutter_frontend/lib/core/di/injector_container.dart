@@ -83,6 +83,23 @@ import 'package:flutter_frontend/features/workshop/domain/usecases/get_employees
 import 'package:flutter_frontend/features/workshop/domain/usecases/get_employee_details.dart';
 import 'package:flutter_frontend/features/workshop/presentation/bloc/workshop_bloc.dart';
 
+// Quotation feature
+import 'package:flutter_frontend/features/quotations/data/datasources/quotation_remote_data_source.dart';
+import 'package:flutter_frontend/features/quotations/data/repositories/quotation_repository_impl.dart';
+import 'package:flutter_frontend/features/quotations/domain/repositories/quotation_repository.dart';
+import 'package:flutter_frontend/features/quotations/presentation/bloc/quotation_bloc.dart';
+
+// Use cases
+import 'package:flutter_frontend/features/quotations/domain/usecases/get_quotations.dart';
+import 'package:flutter_frontend/features/quotations/domain/usecases/get_quotation_details.dart';
+import 'package:flutter_frontend/features/quotations/domain/usecases/create_quotation.dart';
+import 'package:flutter_frontend/features/quotations/domain/usecases/update_quotation.dart';
+import 'package:flutter_frontend/features/quotations/domain/usecases/delete_quotation.dart';
+import 'package:flutter_frontend/features/quotations/domain/usecases/get_quotation_parts.dart';
+import 'package:flutter_frontend/features/quotations/domain/usecases/create_quotation_part.dart';
+import 'package:flutter_frontend/features/quotations/domain/usecases/update_quotation_part.dart';
+import 'package:flutter_frontend/features/quotations/domain/usecases/delete_quotation_part.dart';
+
 final getIt = GetIt.instance;
 
 Future<void> initDependencies() async {
@@ -103,6 +120,9 @@ Future<void> initDependencies() async {
 
   // Initialize workshop dependencies
   await _initWorkshopDependencies();
+
+  // Initialize quotation dependencies
+  await initQuotationDependencies(getIt);
 }
 
 Future<void> _initCoreDependencies() async {
@@ -316,5 +336,44 @@ Future<void> _initWorkshopDependencies() async {
     getEmployees: getIt(),
     getEmployeeDetails: getIt(),
     authBloc: getIt(),
+  ));
+}
+
+Future<void> initQuotationDependencies(GetIt getIt) async {
+  // Data sources
+  getIt.registerLazySingleton<QuotationRemoteDataSource>(
+    () => QuotationRemoteDataSource(dio: getIt<ApiClient>().dio),
+  );
+
+  // Repository
+  getIt.registerLazySingleton<QuotationRepository>(
+    () => QuotationRepositoryImpl(remoteDataSource: getIt()),
+  );
+
+  // Use cases
+  getIt.registerLazySingleton(() => GetQuotations(getIt()));
+  getIt.registerLazySingleton(() => GetQuotationDetails(getIt()));
+  getIt.registerLazySingleton(() => CreateQuotation(getIt()));
+  getIt.registerLazySingleton(() => UpdateQuotation(getIt()));
+  getIt.registerLazySingleton(() => DeleteQuotation(getIt()));
+  
+  // Quotation parts use cases
+  getIt.registerLazySingleton(() => GetQuotationParts(getIt()));
+  getIt.registerLazySingleton(() => CreateQuotationPart(getIt()));
+  getIt.registerLazySingleton(() => UpdateQuotationPart(getIt()));
+  getIt.registerLazySingleton(() => DeleteQuotationPart(getIt()));
+  
+  // BLoC
+  getIt.registerFactory(() => QuotationBloc(
+    authBloc: getIt<AuthBloc>(),
+    getQuotations: getIt(),
+    getQuotationDetails: getIt(),
+    createQuotation: getIt(),
+    updateQuotation: getIt(),
+    deleteQuotation: getIt(),
+    getQuotationParts: getIt(),
+    createQuotationPart: getIt(),
+    updateQuotationPart: getIt(), 
+    deleteQuotationPart: getIt(),
   ));
 }
