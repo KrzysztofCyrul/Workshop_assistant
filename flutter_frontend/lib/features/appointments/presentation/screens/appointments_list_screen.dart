@@ -58,17 +58,85 @@ class _AppointmentsListScreenState extends State<AppointmentsListScreen> {
     }
   }
 
+  IconData _getStatusIcon(String status) {
+    switch (status.toLowerCase()) {
+      case 'completed':
+        return Icons.check_circle;
+      case 'pending':
+        return Icons.pending;
+      case 'in_progress':
+        return Icons.timelapse;
+      case 'canceled':
+        return Icons.cancel;
+      default:
+        return Icons.info;
+    }
+  }
+
+  String _getStatusLabel(String status) {
+    switch (status.toLowerCase()) {
+      case 'completed':
+        return 'Zakończone';
+      case 'pending':
+        return 'Do wykonania';
+      case 'in_progress':
+        return 'W toku';
+      case 'canceled':
+        return 'Anulowane';
+      default:
+        return status;
+    }
+  }
+
+  Widget _buildDetailRow(String label, String value, IconData icon) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 16, color: Colors.grey.shade700),
+          const SizedBox(width: 8),
+          Text(
+            '$label:',
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              color: Colors.grey.shade800,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(color: Colors.black87),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(_getAppBarTitle()),
+        title: Text(
+          _getAppBarTitle(),
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        elevation: 2,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         actions: _buildAppBarActions(),
       ),
       body: BlocConsumer<AppointmentBloc, AppointmentState>(
         listener: (context, state) {
           if (state is AppointmentError) {
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.message)));
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.message),
+                backgroundColor: Colors.red.shade700,
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
           }
           if (state is AppointmentUnauthenticated) {
             // Handle logout/unauthorized access
@@ -79,10 +147,12 @@ class _AppointmentsListScreenState extends State<AppointmentsListScreen> {
           return _buildBody(state);
         },
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: FloatingActionButton.extended(
         onPressed: _navigateToAddAppointment,
         tooltip: 'Dodaj zlecenie',
-        child: const Icon(Icons.add),
+        icon: const Icon(Icons.add),
+        label: const Text('Nowe zlecenie'),
+        backgroundColor: Colors.blue,
       ),
     );
   }
@@ -104,67 +174,93 @@ class _AppointmentsListScreenState extends State<AppointmentsListScreen> {
 
   List<Widget> _buildAppBarActions() {
     return [
-      PopupMenuButton<String>(
-        icon: const Icon(Icons.filter_alt),
-        onSelected: (String value) {
-          setState(() {
-            _currentFilter = value;
-          });
-        },
-        itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-          const PopupMenuItem<String>(
-            value: 'all',
-            child: Text('Wszystkie zlecenia'),
+      Padding(
+        padding: const EdgeInsets.only(right: 8.0),
+        child: PopupMenuButton<String>(
+          tooltip: 'Filtruj zlecenia',
+          icon: Icon(
+            Icons.filter_list,
+            color: Theme.of(context).colorScheme.primary,
           ),
-          const PopupMenuItem<String>(
-            value: 'in_progress',
-            child: Text('Wizyty w toku'),
-          ),
-          const PopupMenuItem<String>(
-            value: 'pending',
-            child: Text('Zaplanowane'),
-          ),
-          const PopupMenuItem<String>(
-            value: 'completed',
-            child: Text('Zakończone'),
-          ),
-          const PopupMenuItem<String>(
-            value: 'canceled',
-            child: Text('Anulowane'),
-          ),
-        ],
-      ),
-      IconButton(
-        icon: const Icon(Icons.add),
-        tooltip: 'Dodaj zlecenie',
-        onPressed: _navigateToAddAppointment,
+          onSelected: (String value) {
+            setState(() {
+              _currentFilter = value;
+            });
+          },
+          itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+            _buildFilterMenuItem('all', 'Wszystkie zlecenia', Icons.list_alt),
+            _buildFilterMenuItem('in_progress', 'Wizyty w toku', Icons.timelapse),
+            _buildFilterMenuItem('pending', 'Zaplanowane', Icons.pending),
+            _buildFilterMenuItem('completed', 'Zakończone', Icons.check_circle),
+            _buildFilterMenuItem('canceled', 'Anulowane', Icons.cancel),
+          ],
+        ),
       ),
     ];
   }
 
+  PopupMenuItem<String> _buildFilterMenuItem(String value, String label, IconData icon) {
+    final bool isSelected = _currentFilter == value;
+    return PopupMenuItem<String>(
+      value: value,
+      child: Row(
+        children: [
+          Icon(
+            icon,
+            color: isSelected ? Theme.of(context).colorScheme.primary : Colors.grey,
+            size: 20,
+          ),
+          const SizedBox(width: 8),
+          Text(
+            label,
+            style: TextStyle(
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+              color: isSelected ? Theme.of(context).colorScheme.primary : null,
+            ),
+          ),
+          if (isSelected) ...[
+            const Spacer(),
+            Icon(
+              Icons.check,
+              color: Theme.of(context).colorScheme.primary,
+              size: 16,
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
   Widget _buildBody(AppointmentState state) {
     if (state is AppointmentLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(height: 16),
+            Text(
+              'Ładowanie zleceń...',
+              style: TextStyle(fontSize: 16, color: Colors.grey),
+            ),
+          ],
+        ),
+      );
     }
 
     if (state is AppointmentsLoaded) {
       final filteredAppointments = _filterAppointments(state.appointments);
 
       if (filteredAppointments.isEmpty) {
-        return Center(
-          child: Text(
-            _getEmptyListMessage(),
-            style: const TextStyle(fontSize: 16),
-          ),
-        );
+        return _buildEmptyState();
       }
 
       return RefreshIndicator(
         onRefresh: () async => _loadAppointments(),
         child: ListView.separated(
-          padding: const EdgeInsets.all(8.0),
+          padding: const EdgeInsets.all(12.0),
           itemCount: filteredAppointments.length,
-          separatorBuilder: (_, __) => const Divider(),
+          separatorBuilder: (_, __) => const SizedBox(height: 4),
           itemBuilder: (context, index) {
             return _buildAppointmentItem(filteredAppointments[index]);
           },
@@ -173,34 +269,127 @@ class _AppointmentsListScreenState extends State<AppointmentsListScreen> {
     }
 
     if (state is AppointmentError) {
-      return Center(
+      return _buildErrorState(state.message);
+    }
+    
+    return const SizedBox.shrink();
+  }
+
+  Widget _buildEmptyState() {
+    final String message = _getEmptyListMessage();
+    IconData iconData;
+    
+    switch (_currentFilter) {
+      case 'completed':
+        iconData = Icons.check_circle_outline;
+        break;
+      case 'canceled':
+        iconData = Icons.cancel_outlined;
+        break;
+      case 'pending':
+        iconData = Icons.pending_outlined;
+        break;
+      case 'in_progress':
+        iconData = Icons.timelapse_outlined;
+        break;
+      default:
+        iconData = Icons.assignment_outlined;
+    }
+
+    return Center(
+      child: Card(
+        elevation: 4,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(24.0),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                state.message,
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 16, color: Colors.red),
+              Icon(
+                iconData,
+                size: 80,
+                color: Colors.grey.shade400,
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
+              Text(
+                message,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.grey.shade700,
+                ),
+              ),
+              const SizedBox(height: 24),
               ElevatedButton.icon(
-                onPressed: _loadAppointments,
-                icon: const Icon(Icons.refresh),
-                label: const Text('Ponów próbę'),
+                onPressed: _navigateToAddAppointment,
+                icon: const Icon(Icons.add),
+                label: const Text('Dodaj nowe zlecenie'),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                ),
               ),
             ],
           ),
         ),
-      );
-    }
-    return const SizedBox.shrink();
+      ),
+    );
   }
 
+  Widget _buildErrorState(String errorMessage) {
+    return Center(
+      child: Card(
+        elevation: 4,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.error_outline,
+                size: 80,
+                color: Colors.red.shade300,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Wystąpił błąd',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.red.shade700,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                errorMessage,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 16,
+                  color: Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton.icon(
+                onPressed: _loadAppointments,
+                icon: const Icon(Icons.refresh),
+                label: const Text('Ponów próbę'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
   String _getEmptyListMessage() {
     switch (_currentFilter) {
-      case 'ibn_progress':
+      case 'in_progress':
         return 'Brak wizyt w toku.';
       case 'pending':
         return 'Brak zaplanowanych zleceń.';
@@ -212,70 +401,141 @@ class _AppointmentsListScreenState extends State<AppointmentsListScreen> {
         return 'Brak zleceń.';
     }
   }
-
-  Widget _buildAppointmentSubtitle(Appointment appointment) {
-    final licensePlate = appointment.vehicle.licensePlate.toString();
-    final firstName = appointment.client.firstName.toString();
-    final lastName = appointment.client.lastName.toString();
-    final status = appointment.status.toString();
-    final notes = appointment.notes?.toString() ?? 'Brak notatek';
-    final scheduledTime = appointment.scheduledTime;
-    final formattedDate = DateFormat('dd.MM.yyyy HH:mm').format(scheduledTime);
-
-    return Padding(
-      padding: const EdgeInsets.only(top: 4.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Rejestracja: $licensePlate',
-            style: const TextStyle(fontSize: 16),
-          ),
-          Text(
-            'Klient: $firstName $lastName',
-            style: const TextStyle(fontSize: 14),
-          ),
-          Text(
-            'Data: $formattedDate',
-            style: const TextStyle(fontSize: 14),
-          ),
-          Text(
-            'Status: $status',
-            style: TextStyle(
-              fontSize: 14,
-              color: _getStatusColor(status),
-            ),
-          ),
-          if (notes.isNotEmpty) // Only show notes if they exist
-            Text(
-              'Notatki: $notes',
-              style: const TextStyle(fontSize: 14, fontStyle: FontStyle.italic),
-            ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildAppointmentItem(Appointment appointment) {
     // Add null checks and default values
     final make = appointment.vehicle.make.toString();
     final model = appointment.vehicle.model.toString();
+    final licensePlate = appointment.vehicle.licensePlate.toString();
+    final firstName = appointment.client.firstName.toString();
+    final lastName = appointment.client.lastName.toString();
+    final status = appointment.status.toString();
+    final statusColor = _getStatusColor(status);
+    final statusIcon = _getStatusIcon(status);
+    final scheduledTime = appointment.scheduledTime;
+    final formattedDate = DateFormat('dd.MM.yyyy HH:mm').format(scheduledTime);
+    
+    // Get initials for avatar
+    String initials = '';
+    if (firstName.isNotEmpty) initials += firstName[0];
+    if (lastName.isNotEmpty) initials += lastName[0];
+    initials = initials.toUpperCase();
 
-    return Card(
-      elevation: 3,
-      margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      child: ListTile(
-        leading: const Icon(Icons.event, size: 40, color: Colors.blue),
-        title: Text(
-          'Wizyta: $make $model',
-          style: const TextStyle(fontWeight: FontWeight.bold),
+    return InkWell(
+      onTap: () => _navigateToDetails(appointment.id),
+      borderRadius: BorderRadius.circular(12),
+      child: Card(
+        elevation: 3,
+        margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header row with vehicle and status
+              Row(
+                children: [
+                  CircleAvatar(
+                    backgroundColor: Colors.blue.shade100,
+                    child: Text(
+                      initials,
+                      style: TextStyle(
+                        color: Colors.blue.shade800,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '$make $model',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Zaplanowano na: $formattedDate',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey.shade700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: statusColor.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(statusIcon, size: 16, color: statusColor),
+                        const SizedBox(width: 4),
+                        Text(
+                          _getStatusLabel(status),
+                          style: TextStyle(
+                            color: statusColor,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              
+              // Divider line
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: Divider(color: Colors.grey.shade300, height: 1),
+              ),
+              
+              // Details section
+              _buildDetailRow("Rejestracja", licensePlate, Icons.car_rental),
+              _buildDetailRow("Klient", "$firstName $lastName", Icons.person),
+              if (appointment.notes?.isNotEmpty ?? false)
+                _buildDetailRow("Notatki", appointment.notes!, Icons.note),
+              
+              // Action buttons
+              Padding(
+                padding: const EdgeInsets.only(top: 8.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    OutlinedButton.icon(
+                      onPressed: () => _showChangeStatusPopup(appointment),
+                      icon: Icon(Icons.edit, size: 16, color: statusColor),
+                      label: const Text('Zmień status'),
+                      style: OutlinedButton.styleFrom(
+                        side: BorderSide(color: statusColor),
+                        foregroundColor: statusColor,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    ElevatedButton.icon(
+                      onPressed: () => _navigateToDetails(appointment.id),
+                      icon: const Icon(Icons.visibility, size: 16),
+                      label: const Text('Szczegóły'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                        foregroundColor: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
-        subtitle: _buildAppointmentSubtitle(appointment),
-        isThreeLine: true,
-        trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-        onTap: () => _navigateToDetails(appointment.id),
-        onLongPress: () => _showChangeStatusPopup(appointment),
       ),
     );
   }

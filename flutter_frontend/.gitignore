@@ -1,4 +1,6 @@
 # Flutter/Dart/Pub related
+**/doc/api/
+**/ios/Flutter/.last_build_id
 .dart_tool/
 .flutter-plugins
 .flutter-plugins-dependencies
@@ -6,15 +8,22 @@
 .pub-cache/
 .pub/
 build/
+coverage/
+lib/generated_plugin_registrant.dart
+# Symbolication related
+app.*.symbols
+# Obfuscation related
+app.*.map.json
+# Flutter/Dart/Pub related
 *.dart.js
 *.js_
 *.js.deps
 *.js.map
+*.g.dart
+*.freezed.dart
 *.kernel.dart
 *.app.dill
 *.snapshot
-*.flutter-plugins
-*.flutter-plugins-dependencies
 
 # Android related
 **/android/**/gradle-wrapper.jar
@@ -23,19 +32,49 @@ build/
 **/android/gradlew
 **/android/gradlew.bat
 **/android/local.properties
-**/android/app
+**/android/app/.cxx/
+**/android/**/configure_fingerprint.bin
+**/android/**/*.so
+**/android/**/*.aar
+**/android/**/*.apk
+**/android/**/output-metadata.json
+**/android/.idea/
+**/android/key.properties
+**/android/**/*.keystore
+**/android/**/*.jks
+**/android/**/intermediates/
+**/app/intermediates/
+**/android/**/generated/
 
-# iOS related
-**/ios/Flutter/.last_build_id
+# iOS/XCode related
+**/ios/**/*.mode1v3
+**/ios/**/*.mode2v3
+**/ios/**/*.moved-aside
+**/ios/**/*.pbxuser
+**/ios/**/*.perspectivev3
+**/ios/**/*sync/
+**/ios/**/.sconsign.dblite
+**/ios/**/.tags*
+**/ios/**/.vagrant/
+**/ios/**/DerivedData/
+**/ios/**/Icon?
+**/ios/**/Pods/
+**/ios/**/.symlinks/
+**/ios/**/profile
+**/ios/**/xcuserdata
 **/ios/.generated/
-**/ios/.symlinks/
-**/ios/Pods/
-**/ios/Runner.xcworkspace/
-**/ios/Flutter/Flutter.framework/
+**/ios/Flutter/.last_build_id
+**/ios/Flutter/App.framework
+**/ios/Flutter/Flutter.framework
 **/ios/Flutter/Flutter.podspec
-**/ios/Flutter/App.framework/
-**/ios/Flutter/engine/
-**/ios/Flutter/Flutter.podspec.json
+**/ios/Flutter/Generated.xcconfig
+**/ios/Flutter/ephemeral
+**/ios/Flutter/app.flx
+**/ios/Flutter/app.zip
+**/ios/Flutter/flutter_assets/
+**/ios/Flutter/flutter_export_environment.sh
+**/ios/ServiceDefinitions.json
+**/ios/Runner/GeneratedPluginRegistrant.*
 
 # Web related
 **/web/.dart_tool/
@@ -44,45 +83,124 @@ build/
 
 # macOS related
 **/macos/Flutter/ephemeral/
+**/macos/Flutter/GeneratedPluginRegistrant.swift
+**/macos/Flutter/Flutter-Debug.xcconfig
+**/macos/Flutter/Flutter-Release.xcconfig
+**/macos/Flutter/Flutter-Generated.xcconfig
 **/macos/Flutter/Flutter.framework/
 **/macos/Flutter/Flutter.podspec
 **/macos/Flutter/App.framework/
 **/macos/Flutter/engine/
-**/macos/Flutter/Flutter.podspec.json
 
 # Windows related
 **/windows/flutter/ephemeral/
+**/windows/flutter/generated_plugin_registrant.cc
+**/windows/flutter/generated_plugin_registrant.h
+**/windows/flutter/generated_plugins.cmake
 
 # Linux related
 **/linux/flutter/ephemeral/
+**/linux/flutter/generated_plugin_registrant.cc
+**/linux/flutter/generated_plugin_registrant.h
+**/linux/flutter/generated_plugins.cmake
+
+# IntelliJ and Android Studio related
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# VS Code related
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/*.code-snippets
+.history/
+.classpath
+.project
 
 # Generated files
 *.log
-*.lock
 *.pyc
 *.pyo
 *.class
 *.swp
-*.iml
 *.hprof
 *.orig
 *.rej
 *.bak
 *.tmp
-*.DS_Store
-*.idea/
-*.vscode/
-*.metadata/
-*.svn/
-*.git/
-*.hg/
-*.bzr/
-*.tox/
-*.coverage
-*.coverage.*
-*.egg-info/
-*.eggs/
-*.pytest_cache/
-*.mypy_cache/
-*.hypothesis/
-*.ipynb_checkpoints/
+.DS_Store
+.metadata
+.svn/
+.git/
+.hg/
+.bzr/
+
+# Flutter build-specific files
+**/*.dill
+**/*.d
+**/*.stamp
+**/*.filecache
+**/*.json_
+**/outputs.json
+**/*.apk.sha1
+**/flutter_build.d
+**/flutter_build/
+**/.dart_tool/flutter_build/
+**/intermediates/
+**/generated_plugin_registrant.cc
+**/build_model.json
+**/metadata_generation_record.json
+**/kernel_snapshot_program.d
+**/*.dex-renamer-state.txt
+**/android_gradle_build.json
+**/app-debug.apk.sha1
+**/configure_fingerprint.bin
+**/.filecache
+
+# Fastlane related
+**/fastlane/report.xml
+**/fastlane/Preview.html
+**/fastlane/screenshots
+**/fastlane/test_output
+
+# Native build files
+**/.cxx/
+**/*.so
+**/*.aar
+**/*.apk
+**/output-metadata.json
+**/*.cmake
+**/*.ninja
+**/*.bin
+**/*.ninja_deps
+**/*.ninja_log
+
+# FVM (Flutter Version Management)
+.fvm/flutter_sdk
+
+# Mason related
+.mason/
+
+# Translations
+*.mo
+
+# Firebase related
+.firebase/
+google-services.json
+GoogleService-Info.plist
+
+# Generated code
+*.mocks.dart
+*.chopper.dart
+
+# Android Studio and IntelliJ temporary files
+**/android/out/
+**/gen_dart_plugin_registrant.stamp
+**/*.kotlin_module
+**/.settings/
+**/*.cxx/
+**/*.hash
