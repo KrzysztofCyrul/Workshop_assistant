@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_frontend/features/clients/domain/entities/client.dart';
+import 'package:flutter_frontend/features/quotations/domain/entities/quotation.dart';
+import 'package:flutter_frontend/features/quotations/domain/entities/quotation_part.dart';
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:printing/printing.dart';
@@ -7,9 +10,6 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:flutter/services.dart';
 import 'dart:convert';
 import 'package:flutter_frontend/features/quotations/presentation/bloc/quotation_bloc.dart';
-import 'package:flutter_frontend/models/quotation.dart';
-import 'package:flutter_frontend/models/quotation_part.dart';
-import 'package:flutter_frontend/models/client.dart';
 import 'package:flutter_frontend/features/vehicles/domain/entities/vehicle.dart';
 
 class QuotationDetailsScreen extends StatefulWidget {
@@ -218,8 +218,8 @@ class _QuotationDetailsScreenState extends State<QuotationDetailsScreen> {
     final boldTtf = pw.Font.ttf(boldFontData);
 
     // Calculate totals
-    final totalPartsCost = getTotalPartCost(quotation.parts);
-    final totalServiceCost = getTotalServiceCost(quotation.parts);
+    final totalPartsCost = getTotalPartCost(quotation.parts.cast<QuotationPart>());
+    final totalServiceCost = getTotalServiceCost(quotation.parts.cast<QuotationPart>());
     final totalCost = totalPartsCost + totalServiceCost;
 
     pdf.addPage(
@@ -229,7 +229,7 @@ class _QuotationDetailsScreenState extends State<QuotationDetailsScreen> {
           return pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.center,
             children: [
-              pw.Text('WYCENA nr ${quotation.quotationNumber}',
+              pw.Text('WYCENA nr ${quotation.id}',
                   style: pw.TextStyle(font: boldTtf, fontSize: 20)),
               pw.Text(
                   'Data: ${DateFormat('dd.MM.yyyy').format(quotation.createdAt)}',
@@ -420,7 +420,7 @@ class _QuotationDetailsScreenState extends State<QuotationDetailsScreen> {
     );
 
     // Generate file name based on quotation information
-    final fileName = 'Wycena_${quotation.quotationNumber}_${DateFormat('ddMMyyyy').format(quotation.createdAt.toLocal())}.pdf';
+    final fileName = 'Wycena_${quotation.id}_${DateFormat('ddMMyyyy').format(quotation.createdAt.toLocal())}.pdf';
     
     // Print the PDF
     await Printing.layoutPdf(
@@ -923,7 +923,7 @@ class _QuotationDetailsScreenState extends State<QuotationDetailsScreen> {
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
         ),
         subtitle: Text(
-          'Nr: ${quotation.quotationNumber}',
+          'Nr: ${quotation.id}',
           style: const TextStyle(color: Colors.blue, fontWeight: FontWeight.w500),
         ),
         children: [
@@ -933,7 +933,7 @@ class _QuotationDetailsScreenState extends State<QuotationDetailsScreen> {
               children: [
                 _buildDetailRow(
                   'Numer wyceny',
-                  quotation.quotationNumber,
+                  quotation.id,
                   icon: Icons.description,
                 ),
                 _buildDetailRow(
@@ -1164,11 +1164,11 @@ class _QuotationDetailsScreenState extends State<QuotationDetailsScreen> {
           _buildSectionTitle('Części i Usługi'),
           _buildAddPartForm(),
           const SizedBox(height: 16),
-          _buildPartsTable(quotation.parts),
+          _buildPartsTable(quotation.parts.cast<QuotationPart>()),
           
           // Cost summary
           const SizedBox(height: 16),
-          _buildCostSummaryCard(quotation.parts),
+          _buildCostSummaryCard(quotation.parts.cast<QuotationPart>()),
         ],
       ),
     );
@@ -1300,7 +1300,7 @@ class _AppBarBuilder extends StatelessWidget implements PreferredSizeWidget {
   Widget _buildTitle() {
     if (quotation != null) {
       return Text(
-        'Wycena ${quotation!.quotationNumber} - ${quotation!.vehicle.make} ${quotation!.vehicle.model}',
+        'Wycena ${quotation!.id} - ${quotation!.vehicle.make} ${quotation!.vehicle.model}',
       );
     }
     return const Text('Szczegóły wyceny');

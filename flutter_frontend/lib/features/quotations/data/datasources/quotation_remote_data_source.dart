@@ -1,31 +1,31 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_frontend/core/utils/constants.dart' as api_constants;
-import 'package:flutter_frontend/models/quotation.dart';
-import 'package:flutter_frontend/models/quotation_part.dart';
 import 'package:flutter_frontend/core/errors/dio_error_handler.dart';
+import 'package:flutter_frontend/features/quotations/domain/entities/quotation.dart';
+import 'package:flutter_frontend/features/quotations/domain/entities/quotation_part.dart';
+import 'package:flutter_frontend/features/quotations/data/models/quotation_model.dart';
+import 'package:flutter_frontend/features/quotations/data/models/quotation_part_model.dart';
 
 class QuotationRemoteDataSource {
   final Dio dio;
 
   QuotationRemoteDataSource({required this.dio});
-
   Future<List<Quotation>> getQuotations(String workshopId) async {
     try {
       final response = await dio.get('${api_constants.baseUrl}/workshops/$workshopId/quotations/');
-      return (response.data as List).map((json) => Quotation.fromJson(json)).toList();
+      return (response.data as List).map((json) => QuotationModel.fromJson(json)).toList();
     } on DioException catch (e) {
       throw DioErrorHandler.handle(e);
     }
   }
-
   Future<Quotation> getQuotationDetails(String workshopId, String quotationId) async {
     try {
       final response = await dio.get('${api_constants.baseUrl}/workshops/$workshopId/quotations/$quotationId/');
-      return Quotation.fromJson(response.data);
+      return QuotationModel.fromJson(response.data);
     } on DioException catch (e) {
       throw DioErrorHandler.handle(e);
     }
-  }  Future<String> addQuotation({
+  }Future<String> addQuotation({
     required String workshopId,
     required String clientId,
     required String vehicleId,
@@ -93,7 +93,6 @@ class QuotationRemoteDataSource {
       throw DioErrorHandler.handle(e);
     }
   }
-
   Future<List<QuotationPart>> getQuotationParts({
     required String workshopId,
     required String quotationId,
@@ -102,12 +101,11 @@ class QuotationRemoteDataSource {
       final response = await dio.get(
         '${api_constants.baseUrl}/workshops/$workshopId/quotations/$quotationId/parts/',
       );
-      return (response.data as List).map((json) => QuotationPart.fromJson(json)).toList();
+      return (response.data as List).map((json) => QuotationPartModel.fromJson(json)).toList();
     } on DioException catch (e) {
       throw DioErrorHandler.handle(e);
     }
   }
-
   Future<QuotationPart> addQuotationPart({
     required String workshopId,
     required String quotationId,
@@ -131,12 +129,11 @@ class QuotationRemoteDataSource {
           'buy_cost_part': buyCostPart.toString(),
         },
       );
-      return QuotationPart.fromJson(response.data);
+      return QuotationPartModel.fromJson(response.data);
     } on DioException catch (e) {
       throw DioErrorHandler.handle(e);
     }
   }
-
   Future<QuotationPart> updateQuotationPart({
     required String workshopId,
     required String quotationId,
@@ -160,7 +157,7 @@ class QuotationRemoteDataSource {
           'buy_cost_part': buyCostPart.toString(),
         },
       );
-      return QuotationPart.fromJson(response.data);
+      return QuotationPartModel.fromJson(response.data);
     } on DioException catch (e) {
       throw DioErrorHandler.handle(e);
     }

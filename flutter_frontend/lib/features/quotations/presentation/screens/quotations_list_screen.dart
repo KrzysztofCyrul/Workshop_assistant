@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_frontend/features/quotations/domain/entities/quotation.dart';
 import 'package:flutter_frontend/features/quotations/presentation/screens/quotation_details_screen.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_frontend/features/quotations/presentation/bloc/quotation_bloc.dart';
-import 'package:flutter_frontend/models/quotation.dart';
 import 'package:flutter_frontend/features/quotations/presentation/screens/add_quotation_screen.dart';
 
 class QuotationsListScreen extends StatefulWidget {
@@ -162,7 +162,7 @@ class _QuotationsListScreenState extends State<QuotationsListScreen> {  @overrid
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Wycena: ${quotation.quotationNumber}',
+                            'Wycena: ${quotation.id}',
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 16,

@@ -1,9 +1,9 @@
 import 'package:dartz/dartz.dart';
 import 'package:flutter_frontend/core/errors/failure.dart';
 import 'package:flutter_frontend/features/quotations/data/datasources/quotation_remote_data_source.dart';
+import 'package:flutter_frontend/features/quotations/domain/entities/quotation.dart';
+import 'package:flutter_frontend/features/quotations/domain/entities/quotation_part.dart';
 import 'package:flutter_frontend/features/quotations/domain/repositories/quotation_repository.dart';
-import 'package:flutter_frontend/models/quotation.dart';
-import 'package:flutter_frontend/models/quotation_part.dart';
 
 class QuotationRepositoryImpl implements QuotationRepository {
   final QuotationRemoteDataSource remoteDataSource;

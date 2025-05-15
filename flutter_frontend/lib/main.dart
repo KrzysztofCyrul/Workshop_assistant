@@ -4,18 +4,9 @@ import 'core/di/injector_container.dart';
 import 'features/appointments/domain/usecases/update_appointment_status.dart';
 import 'features/auth/presentation/screens/login_screen.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'providers/vehicle_provider.dart';
 import 'package:provider/provider.dart';
-import 'providers/service_record_provider.dart';
-import 'providers/auth_provider.dart';
-// import 'providers/workshop_provider.dart';
-import 'providers/client_provider.dart';
-import 'providers/email_provider.dart';
 import 'routes/app_routes.dart';
-import 'providers/employee_provider.dart';
 import 'core/utils/colors.dart';
-import 'providers/temporary_code_provider.dart';
-import 'providers/generate_code_provider.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'features/vehicles/presentation/bloc/vehicle_bloc.dart';
@@ -83,7 +74,6 @@ Future<void> main() async {
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => AuthProvider()),
         BlocProvider(
           create: (_) => AuthBloc(
             loginUseCase: getIt<LoginUseCase>(),
@@ -91,14 +81,6 @@ Future<void> main() async {
             logoutUseCase: getIt<LogoutUseCase>(),
           ),
         ),
-        // ChangeNotifierProvider(create: (_) => WorkshopProvider()),
-        ChangeNotifierProvider(create: (_) => ClientProvider()),
-        ChangeNotifierProvider(create: (_) => EmployeeProvider()),
-        ChangeNotifierProvider(create: (_) => VehicleProvider()),
-        ChangeNotifierProvider(create: (_) => ServiceRecordProvider()),
-        ChangeNotifierProvider(create: (_) => EmailProvider()),
-        ChangeNotifierProvider(create: (_) => TemporaryCodeProvider()),
-        ChangeNotifierProvider(create: (_) => GenerateCodeProvider()),
         BlocProvider(
           create: (_) => VehicleBloc(
             authBloc: getIt<AuthBloc>(),

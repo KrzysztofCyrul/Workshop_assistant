@@ -1,4 +1,4 @@
-import 'package:flutter_frontend/models/employee.dart';
+import 'package:flutter_frontend/features/workshop/domain/entities/employee.dart';
 
 class User {
   final String id;

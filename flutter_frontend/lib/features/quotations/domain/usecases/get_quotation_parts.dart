@@ -1,7 +1,7 @@
 import 'package:dartz/dartz.dart';
 import 'package:flutter_frontend/core/errors/failure.dart';
+import 'package:flutter_frontend/features/quotations/domain/entities/quotation_part.dart';
 import '../../domain/repositories/quotation_repository.dart';
-import 'package:flutter_frontend/models/quotation_part.dart';
 
 class GetQuotationParts {
   final QuotationRepository repository;

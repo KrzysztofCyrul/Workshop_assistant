@@ -1,5 +1,5 @@
+import 'package:flutter_frontend/features/workshop/data/models/employee_model.dart';
 import '../../domain/entities/user.dart';
-import '../../../../models/employee.dart';
 
 class UserModel extends User {
   UserModel({
@@ -19,7 +19,7 @@ class UserModel extends User {
       lastName: json['last_name'] ?? '',
       roles: List<String>.from(json['roles'] ?? []),
       employeeProfiles: (json['employee_profiles'] as List<dynamic>?)
-          ?.map((e) => Employee.fromJson(e))
+          ?.map((e) => EmployeeModel.fromJson(e))
           .toList() ?? [],
     );
   }

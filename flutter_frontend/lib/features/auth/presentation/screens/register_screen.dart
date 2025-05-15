@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/auth_bloc.dart';
-import '../../../../widgets/custom_text_field.dart';
+import '../../../../core/widgets/login_text_field.dart';
 import '../../../../core/utils/validators.dart';
 
 class RegisterScreen extends StatelessWidget {

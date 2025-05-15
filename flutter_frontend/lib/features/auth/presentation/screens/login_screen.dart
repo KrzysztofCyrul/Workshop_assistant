@@ -4,7 +4,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../bloc/auth_bloc.dart';
 import '../../../../core/utils/validators.dart';
 import '../../../../screens/home/home_screen.dart';
-import '../../../../widgets/custom_text_field.dart';
+import '../../../../core/widgets/login_text_field.dart';
 
 class LoginScreen extends StatefulWidget {
   static const routeName = '/login';

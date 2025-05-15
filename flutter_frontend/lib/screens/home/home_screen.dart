@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_frontend/features/workshop/presentation/screens/add_workshop_screen.dart';
 import 'package:flutter_frontend/features/workshop/presentation/screens/get_temporary_code_screen.dart';
-import '../settings/settings_screen.dart';
+// import '../settings/settings_screen.dart';
 // Zakomentowane importy będą potrzebne w przyszłości, gdy funkcjonalność zostanie dodana
 // import '../relationships/client_statistics_screen.dart';
 // import '../relationships/send_email_screen.dart';
@@ -44,10 +44,10 @@ class HomeScreen extends StatelessWidget {
           final workshopId = employeeProfiles.first.workshopId;
           final employeeId = employeeProfiles.first.id;          return Scaffold(
             appBar: AppBar(
-              leading: IconButton(
-                icon: const Icon(Icons.settings),
-                onPressed: () => _navigateToSettings(context),
-              ),
+              // leading: IconButton(
+              //   icon: const Icon(Icons.settings),
+              //   onPressed: () => _navigateToSettings(context),
+              // ),
               title: const Text(
                 'Panel Główny',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
@@ -503,7 +503,7 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  void _navigateToSettings(BuildContext context) {
-    Navigator.of(context).pushNamed(SettingsScreen.routeName);
-  }
+  // void _navigateToSettings(BuildContext context) {
+  //   Navigator.of(context).pushNamed(SettingsScreen.routeName);
+  // }
 }

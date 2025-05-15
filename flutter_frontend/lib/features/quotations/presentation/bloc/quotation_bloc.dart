@@ -1,3 +1,5 @@
+// ignore_for_file: unused_local_variable
+
 import 'dart:async';
 
 import 'package:bloc/bloc.dart';
@@ -11,8 +13,8 @@ import 'package:flutter_frontend/features/quotations/domain/usecases/get_quotati
 import 'package:flutter_frontend/features/quotations/domain/usecases/create_quotation_part.dart';
 import 'package:flutter_frontend/features/quotations/domain/usecases/update_quotation_part.dart';
 import 'package:flutter_frontend/features/quotations/domain/usecases/delete_quotation_part.dart';
-import 'package:flutter_frontend/models/quotation.dart';
-import 'package:flutter_frontend/models/quotation_part.dart';
+import 'package:flutter_frontend/features/quotations/domain/entities/quotation.dart';
+import 'package:flutter_frontend/features/quotations/domain/entities/quotation_part.dart';
 
 part 'quotation_event.dart';
 part 'quotation_state.dart';

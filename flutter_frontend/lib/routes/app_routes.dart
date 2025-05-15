@@ -39,12 +39,6 @@ import 'package:flutter_frontend/features/workshop/presentation/screens/use_code
 
 // Other screens
 import '../screens/home/home_screen.dart';
-import '../screens/settings/settings_screen.dart';
-import '../screens/employee/employee_details_screen.dart';
-import '../screens/service_records/X_service_history_screen.dart';
-import '../screens/relationships/client_statistics_screen.dart';
-import '../screens/settings/email_settings_screen.dart';
-import '../screens/relationships/send_email_screen.dart';
 // import '../screens/employee/use_code_screen.dart';
 
 // BLoC-based quotation screens
@@ -97,7 +91,6 @@ class AppRoutes {
 
     // Main routes
     HomeScreen.routeName: (context) => const HomeScreen(),
-    SettingsScreen.routeName: (context) => const SettingsScreen(),
 
     // Appointment routes
     AppointmentsListScreen.routeName: (context) {
@@ -227,12 +220,6 @@ class AppRoutes {
         vehicleId: args['vehicleId']! as String,
       );
     },
-    VehicleServiceHistoryScreen.routeName: (context) {
-      final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
-      final workshopId = args['workshopId']!;
-      final vehicleId = args['vehicleId']!;
-      return VehicleServiceHistoryScreen(workshopId: workshopId, vehicleId: vehicleId);
-    },
 
     // Workshop routes
     AddWorkshopScreen.routeName: (context) => const AddWorkshopScreen(),
@@ -245,19 +232,6 @@ class AppRoutes {
     },
 
     UseCodeScreen.routeName: (context) => const UseCodeScreen(),
-
-
-
-    // Employee routes
-    EmployeeDetailsScreen.routeName: (context) {
-      final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
-      if (args == null || args['workshopId'] == null || args['employeeId'] == null) {
-        return _buildErrorScreen('Brak wymaganych parametrów dla EmployeeDetailsScreen');
-      }
-      return EmployeeDetailsScreen(
-        workshopId: args['workshopId']! as String,
-        employeeId: args['employeeId']! as String,
-      );    },
     
     // Quotation routes
     AddQuotationScreen.routeName: (context) {
@@ -293,11 +267,6 @@ class AppRoutes {
         child: QuotationsListScreen(workshopId: args['workshopId']! as String),
       );
     },
-
-    // Other routes
-    ClientsStatisticsScreen.routeName: (context) => const ClientsStatisticsScreen(),
-    EmailSettingsScreen.routeName: (context) => const EmailSettingsScreen(),
-    SendEmailScreen.routeName: (context) => const SendEmailScreen(),
   };
   static Widget _buildErrorScreen(String message) {
     // Use the safer navigation method that happens after the build phase is complete
