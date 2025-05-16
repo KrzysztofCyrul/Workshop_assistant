@@ -13,19 +13,22 @@ class ClientModel extends Client{
     required super.createdAt,
     required super.updatedAt,
   });
-
   factory ClientModel.fromJson(Map<String, dynamic> json) {
     return ClientModel(
-      id: json['id'],
-      workshopId: json['workshop'],
+      id: json['id'] ?? '',
+      workshopId: json['workshop'] ?? json['workshop_id'] ?? '',
       firstName: json['first_name'] ?? '',
       lastName: json['last_name'] ?? '',
       email: json['email'] ?? '',
       phone: json['phone'] ?? '',
       address: json['address'] ?? '',
       segment: json['segment'] ?? '',
-      createdAt: DateTime.parse(json['created_at']),
-      updatedAt: DateTime.parse(json['updated_at']),
+      createdAt: json['created_at'] != null 
+          ? DateTime.parse(json['created_at']) 
+          : DateTime.now(),
+      updatedAt: json['updated_at'] != null 
+          ? DateTime.parse(json['updated_at']) 
+          : DateTime.now(),
     );
   }
 

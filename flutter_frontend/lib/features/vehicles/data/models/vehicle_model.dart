@@ -13,11 +13,10 @@ class VehicleModel extends Vehicle {
     required super.createdAt,
     required super.updatedAt,
   });
-
   factory VehicleModel.fromJson(Map<String, dynamic> json) {
     return VehicleModel(
       id: json['id'],
-      clientId: json['client'],
+      clientId: json['client'] is Map ? json['client']['id'] : (json['client_id'] ?? json['client'] ?? ''),
       make: json['make'] ?? '',
       model: json['model'] ?? '',
       year: json['year'] ?? 0,

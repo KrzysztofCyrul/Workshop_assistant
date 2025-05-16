@@ -4,79 +4,76 @@ import 'package:flutter_frontend/features/quotations/domain/entities/quotation.d
 import 'package:flutter_frontend/features/vehicles/data/models/vehicle_model.dart';
 
 class QuotationModel extends Quotation {
-  const QuotationModel({
-    required String id,
-    required ClientModel client,
-    required VehicleModel vehicle,
-    required String workshopId,
-    required DateTime createdAt,
-    required DateTime updatedAt,
-    required double? totalCost,
-    required String? notes,
-    required List<QuotationPartModel> parts,
-  }) : super(
-          id: id,
-          client: client,
-          vehicle: vehicle,
-          workshopId: workshopId,
-          createdAt: createdAt,
-          updatedAt: updatedAt,
-          totalCost: totalCost,
-          notes: notes,
-          parts: parts,
-        );
-
+  QuotationModel({
+    required super.id,
+    required super.quotationNumber,
+    required super.client,
+    required super.vehicle,
+    required super.workshopId,
+    required super.createdAt,
+    required super.updatedAt,
+    super.totalCost,
+    super.notes,
+    super.parts = const [],
+  });
   factory QuotationModel.fromJson(Map<String, dynamic> json) {
     return QuotationModel(
-      id: json['id'],
-      client: ClientModel.fromJson(json['client']),
-      vehicle: VehicleModel.fromJson(json['vehicle']),
-      workshopId: json['workshop_id'],
-      createdAt: DateTime.parse(json['created_at']),
-      updatedAt: DateTime.parse(json['updated_at']),
-      totalCost: json['total_cost'] != null ? (json['total_cost'] as num).toDouble() : null,
-      notes: json['notes'],
-      parts: json['parts'] != null
-          ? (json['parts'] as List).map((part) => QuotationPartModel.fromJson(part)).toList()
-          : [],
+      id: json['id'] as String? ?? '',
+      quotationNumber: json['quotation_number'] as String? ?? '',
+      client: ClientModel.fromJson(json['client'] as Map<String, dynamic>),
+      vehicle: VehicleModel.fromJson(json['vehicle'] as Map<String, dynamic>),
+      workshopId: json['workshop'] as String? ?? '',
+      createdAt: DateTime.parse(json['created_at'] as String),
+      updatedAt: DateTime.parse(json['updated_at'] as String),
+      totalCost: double.tryParse(json['total_cost']?.toString() ?? '0.0'),
+      notes: json['notes'] as String?,
+      parts: (json['quotation_parts'] as List<dynamic>?)
+              ?.map((item) => QuotationPartModel.fromJson(item as Map<String, dynamic>))
+              .toList() ?? [],
     );
   }
-
   Map<String, dynamic> toJson() {
     return {
       'id': id,
+      'quotation_number': quotationNumber,
       'client': (client as ClientModel).toJson(),
       'vehicle': (vehicle as VehicleModel).toJson(),
-      'workshop_id': workshopId,
+      'workshop': workshopId,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
       'total_cost': totalCost,
       'notes': notes,
-      'parts': parts.map((part) => (part as QuotationPartModel).toJson()).toList(),
+      'quotation_parts': parts.map((item) => (item as QuotationPartModel).toJson()).toList(),
     };
   }
 
-  QuotationModel copyWith({
-    String? id,
-    ClientModel? client,
-    VehicleModel? vehicle,
-    String? workshopId,
-    DateTime? createdAt,
-    DateTime? updatedAt,
-    double? totalCost,
-    String? notes,
-    List<QuotationPartModel>? parts,
-  }) {
+  Quotation toEntity() {
+    return Quotation(
+      id: id,
+      quotationNumber: quotationNumber,
+      client: client,
+      vehicle: vehicle,
+      workshopId: workshopId,
+      createdAt: createdAt,
+      updatedAt: updatedAt,
+      totalCost: totalCost,
+      notes: notes,
+      parts: parts,
+    );
+  }
+
+  static QuotationModel fromEntity(Quotation quotation) {
     return QuotationModel(
-      id: id ?? this.id,
-      client: client ?? (this.client as ClientModel),
-      vehicle: vehicle ?? (this.vehicle as VehicleModel),
-      workshopId: workshopId ?? this.workshopId,
-      createdAt: createdAt ?? this.createdAt,
-      updatedAt: updatedAt ?? this.updatedAt,
-      totalCost: totalCost ?? this.totalCost,
-      notes: notes ?? this.notes,
-      parts: parts ?? (this.parts as List<QuotationPartModel>),
+      id: quotation.id,
+      quotationNumber: quotation.quotationNumber,
+      client: ClientModel.fromEntity(quotation.client),
+      vehicle: VehicleModel.fromEntity(quotation.vehicle),
+      workshopId: quotation.workshopId,
+      createdAt: quotation.createdAt,
+      updatedAt: quotation.updatedAt,
+      totalCost: quotation.totalCost,
+      notes: quotation.notes,
+      parts: quotation.parts.map((part) => QuotationPartModel.fromEntity(part)).toList(),
     );
   }
 }

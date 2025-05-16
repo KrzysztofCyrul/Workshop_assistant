@@ -126,120 +126,140 @@ class _QuotationsListScreenState extends State<QuotationsListScreen> {  @overrid
         );
       },
     );
-  }
-  Widget _buildQuotationItem(Quotation quotation) {
-    return Card(
-      elevation: 2,
-      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Colors.grey.shade200),
-      ),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: () => _navigateToQuotationDetails(quotation.id),
-        onLongPress: () => _confirmDeleteQuotation(quotation.id),
-        child: Padding(
-          padding: const EdgeInsets.all(12.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: Colors.blue.shade100,
-                          borderRadius: BorderRadius.circular(8),
+  }  Widget _buildQuotationItem(Quotation quotation) {
+    // Dodaj debugowanie, aby zidentyfikować problematyczne pola
+    debugPrint('Rendering quotation: ${quotation.id}');
+    debugPrint('  - quotationNumber: ${quotation.quotationNumber}');
+    debugPrint('  - createdAt: ${quotation.createdAt}');
+    debugPrint('  - client: ${quotation.client}');
+    debugPrint('  - vehicle: ${quotation.vehicle}'); 
+    
+    // Wrap the whole function in try-catch to catch any null errors
+    try {
+      return Card(
+        elevation: 2,
+        margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(color: Colors.grey.shade200),
+        ),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: () => _navigateToQuotationDetails(quotation.id),
+          onLongPress: () => _confirmDeleteQuotation(quotation.id),
+          child: Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: Colors.blue.shade100,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Icon(Icons.description, size: 24, color: Colors.blue.shade700),
                         ),
-                        child: Icon(Icons.description, size: 24, color: Colors.blue.shade700),
-                      ),
-                      const SizedBox(width: 12),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Wycena: ${quotation.id}',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
+                        const SizedBox(width: 12),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [                          
+                            Text(
+                              'Wycena: ${quotation.quotationNumber}',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            DateFormat('dd.MM.yyyy, HH:mm').format(quotation.createdAt.toLocal()),
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: Colors.grey.shade600,
+                            const SizedBox(height: 2),                            Text(
+                              DateFormat('dd.MM.yyyy, HH:mm').format(quotation.createdAt.toLocal()),
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Colors.grey.shade600,
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  Icon(
-                    Icons.arrow_forward_ios, 
-                    size: 16,
-                    color: Colors.blue.shade700,
-                  ),
-                ],
-              ),
-              const Divider(height: 24),
-              Row(
-                children: [
-                  const Icon(Icons.person, size: 16, color: Colors.grey),
-                  const SizedBox(width: 8),
-                  Text(
-                    '${quotation.client.firstName} ${quotation.client.lastName}',
-                    style: const TextStyle(fontSize: 14),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 6),
-              Row(
-                children: [
-                  const Icon(Icons.directions_car, size: 16, color: Colors.grey),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      '${quotation.vehicle.make} ${quotation.vehicle.model} (${quotation.vehicle.licensePlate})',
-                      style: const TextStyle(fontSize: 14),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                          ],
+                        ),
+                      ],
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Text(
-                    'Koszt: ',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.grey.shade700,
-                    ),
-                  ),
-                  Text(
-                    '${quotation.totalCost?.toStringAsFixed(2) ?? '0.00'} zł',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
+                    Icon(
+                      Icons.arrow_forward_ios, 
+                      size: 16,
                       color: Colors.blue.shade700,
                     ),
-                  ),
-                ],
-              ),
-            ],
+                  ],
+                ),
+                const Divider(height: 24),
+                Row(
+                  children: [
+                    const Icon(Icons.person, size: 16, color: Colors.grey),
+                    const SizedBox(width: 8),                    Text(
+                      '${quotation.client.firstName} ${quotation.client.lastName}',
+                      style: const TextStyle(fontSize: 14),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Row(
+                  children: [
+                    const Icon(Icons.directions_car, size: 16, color: Colors.grey),
+                    const SizedBox(width: 8),                    Expanded(
+                      child: Text(
+                        '${quotation.vehicle.make} ${quotation.vehicle.model} (${quotation.vehicle.licensePlate})',
+                        style: const TextStyle(fontSize: 14),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Text(
+                      'Koszt: ',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.grey.shade700,
+                      ),
+                    ),
+                    Text(
+                      '${quotation.totalCost?.toStringAsFixed(2) ?? '0.00'} zł',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue.shade700,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
-      ),
-    );
+      );
+    } catch (e) {
+      // If an error occurs, return a fallback card
+      print('Error rendering quotation: $e');
+      return Card(
+        margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
+        color: Colors.red.shade50,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Text(
+            'Błąd wyświetlania wyceny: ${quotation.id}',
+            style: TextStyle(color: Colors.red.shade800),
+          ),
+        ),
+      );
+    }
   }
   Widget _buildEmptyState() {
     return Center(

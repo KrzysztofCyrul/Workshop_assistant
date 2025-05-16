@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_frontend/features/clients/domain/entities/client.dart';
 import 'package:flutter_frontend/features/quotations/domain/entities/quotation.dart';
 import 'package:flutter_frontend/features/quotations/domain/entities/quotation_part.dart';
+import 'package:flutter_frontend/features/shared/presentation/widgets/part_form_widget.dart';
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:printing/printing.dart';
@@ -97,15 +98,13 @@ class _QuotationDetailsScreenState extends State<QuotationDetailsScreen> {
     final quantity = int.tryParse(quantityController.text) ?? 1;
     final costPart = double.tryParse(partCostController.text) ?? 0.0;
     final costService = double.tryParse(serviceCostController.text) ?? 0.0;
-    final buyCostPart = double.tryParse(buyCostPartController.text) ?? 0.0;
-
-    // Add part via BLoC
+    final buyCostPart = double.tryParse(buyCostPartController.text) ?? 0.0;    // Add part via BLoC
     context.read<QuotationBloc>().add(
       AddQuotationPartEvent(
         workshopId: widget.workshopId,
         quotationId: widget.quotationId,
         name: partNameController.text.trim(),
-        description: '',
+        description: null,
         quantity: quantity,
         costPart: costPart,
         costService: costService,
@@ -138,16 +137,14 @@ class _QuotationDetailsScreenState extends State<QuotationDetailsScreen> {
     final quantity = field == 'quantity' ? newValue as int : part.quantity;
     final costPart = field == 'costPart' ? newValue as double : part.costPart;
     final costService = field == 'costService' ? newValue as double : part.costService;
-    final buyCostPart = field == 'buyCostPart' ? newValue as double : part.buyCostPart;
-
-    // Update part via BLoC
+    final buyCostPart = field == 'buyCostPart' ? newValue as double : part.buyCostPart;    // Update part via BLoC
     context.read<QuotationBloc>().add(
       UpdateQuotationPartEvent(
         workshopId: widget.workshopId,
         quotationId: widget.quotationId,
         partId: partId,
         name: name,
-        description: '',
+        description: null,
         quantity: quantity,
         costPart: costPart,
         costService: costService,
@@ -228,8 +225,7 @@ class _QuotationDetailsScreenState extends State<QuotationDetailsScreen> {
         build: (pw.Context context) {
           return pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.center,
-            children: [
-              pw.Text('WYCENA nr ${quotation.id}',
+            children: [              pw.Text('WYCENA nr ${quotation.quotationNumber}',
                   style: pw.TextStyle(font: boldTtf, fontSize: 20)),
               pw.Text(
                   'Data: ${DateFormat('dd.MM.yyyy').format(quotation.createdAt)}',
@@ -417,10 +413,8 @@ class _QuotationDetailsScreenState extends State<QuotationDetailsScreen> {
           );
         },
       ),
-    );
-
-    // Generate file name based on quotation information
-    final fileName = 'Wycena_${quotation.id}_${DateFormat('ddMMyyyy').format(quotation.createdAt.toLocal())}.pdf';
+    );    // Generate file name based on quotation information
+    final fileName = 'Wycena_${quotation.quotationNumber}_${DateFormat('ddMMyyyy').format(quotation.createdAt.toLocal())}.pdf';
     
     // Print the PDF
     await Printing.layoutPdf(
@@ -469,154 +463,15 @@ class _QuotationDetailsScreenState extends State<QuotationDetailsScreen> {
         ),
       ),
     );
-  }
-  Widget _buildAddPartForm() {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  flex: 3,
-                  child: Autocomplete<String>(
-                    optionsBuilder: (TextEditingValue textEditingValue) {
-                      if (textEditingValue.text.isEmpty) {
-                        return const Iterable<String>.empty();
-                      }
-                      return partsSuggestions.where((String part) {
-                        return part.toLowerCase().contains(textEditingValue.text.toLowerCase());
-                      });
-                    },
-                    onSelected: (String selection) {
-                      partNameController.text = selection;
-                    },
-                    fieldViewBuilder: (context, textEditingController, focusNode, onFieldSubmitted) {
-                      // Synchronize controllers
-                      partNameController.addListener(() {
-                        if (partNameController.text != textEditingController.text) {
-                          textEditingController.text = partNameController.text;
-                        }
-                      });
-
-                      return TextField(
-                        controller: partNameController,
-                        focusNode: focusNode,
-                        decoration: InputDecoration(
-                          labelText: 'Nazwa części',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8.0),
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
-                        ),
-                        onChanged: (value) {
-                          partNameController.text = value;
-                        },
-                      );
-                    },
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  flex: 1,
-                  child: TextField(
-                    controller: quantityController,
-                    keyboardType: TextInputType.number,
-                    textAlign: TextAlign.center,
-                    decoration: InputDecoration(
-                      labelText: 'Ilość',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8.0),
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  flex: 1,
-                  child: TextField(
-                    controller: buyCostPartController,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    textAlign: TextAlign.right,
-                    decoration: InputDecoration(
-                      labelText: 'Cena Hurtowa',
-                      prefixIcon: const Icon(Icons.money_off),
-                      suffixText: 'PLN',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8.0),
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  flex: 1,
-                  child: TextField(
-                    controller: partCostController,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    textAlign: TextAlign.right,
-                    decoration: InputDecoration(
-                      labelText: 'Cena detaliczna',
-                      prefixIcon: const Icon(Icons.shopping_cart),
-                      suffixText: 'PLN',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8.0),
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  flex: 1,
-                  child: TextField(
-                    controller: serviceCostController,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    textAlign: TextAlign.right,
-                    decoration: InputDecoration(
-                      labelText: 'Koszt usługi',
-                      prefixIcon: const Icon(Icons.build),
-                      suffixText: 'PLN',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8.0),
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                ElevatedButton.icon(
-                  icon: const Icon(Icons.add),
-                  label: const Text('Dodaj część'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green.shade500,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                  ),
-                  onPressed: _addPart,
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
+  }  Widget _buildAddPartForm() {
+    return PartFormWidget(
+      partNameController: partNameController,
+      quantityController: quantityController,
+      partCostController: partCostController,
+      serviceCostController: serviceCostController,
+      buyCostPartController: buyCostPartController,
+      partsSuggestions: partsSuggestions,
+      onAddPart: _addPart,
     );
   }
   Widget _buildPartsTable(List<QuotationPart> parts) {
@@ -921,9 +776,8 @@ class _QuotationDetailsScreenState extends State<QuotationDetailsScreen> {
         title: const Text(
           'Szczegóły Wyceny',
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-        ),
-        subtitle: Text(
-          'Nr: ${quotation.id}',
+        ),        subtitle: Text(
+          'Nr: ${quotation.quotationNumber}',
           style: const TextStyle(color: Colors.blue, fontWeight: FontWeight.w500),
         ),
         children: [
@@ -931,11 +785,6 @@ class _QuotationDetailsScreenState extends State<QuotationDetailsScreen> {
             padding: const EdgeInsets.all(16.0),
             child: Column(
               children: [
-                _buildDetailRow(
-                  'Numer wyceny',
-                  quotation.id,
-                  icon: Icons.description,
-                ),
                 _buildDetailRow(
                   'Data utworzenia',
                   DateFormat('dd-MM-yyyy HH:mm').format(quotation.createdAt.toLocal()),
@@ -1172,9 +1021,35 @@ class _QuotationDetailsScreenState extends State<QuotationDetailsScreen> {
         ],
       ),
     );
-  }
-  @override
+  }  @override
   Widget build(BuildContext context) {
+    return BlocBuilder<QuotationBloc, QuotationState>(
+      buildWhen: (previous, current) {
+        return current is QuotationDetailsLoaded || current is QuotationOperationSuccessWithDetails;
+      },
+      builder: (context, state) {
+        Quotation? quotation;
+        if (state is QuotationDetailsLoaded) {
+          quotation = state.quotation;
+        } else if (state is QuotationOperationSuccessWithDetails) {
+          quotation = state.quotation;
+        }
+        
+        return Scaffold(
+          appBar: _AppBarBuilder(
+            quotation: quotation,
+            onPrintPressed: _onPrintButtonPressed,
+          ),
+          body: _buildBody(),
+        );
+      }
+    );
+  }
+    void _onPrintButtonPressed(Quotation quotation) {
+    _generatePdf(quotation);
+    }
+  
+  Widget _buildBody() {
     return BlocConsumer<QuotationBloc, QuotationState>(
       listener: (context, state) {
         if (state is QuotationError) {
@@ -1192,79 +1067,66 @@ class _QuotationDetailsScreenState extends State<QuotationDetailsScreen> {
         }
       },
       builder: (context, state) {
-        Quotation? quotation;
         if (state is QuotationDetailsLoaded) {
-          quotation = state.quotation;
         } else if (state is QuotationOperationSuccessWithDetails) {
-          quotation = state.quotation;
         }
         
-        return Scaffold(
-          appBar: _AppBarBuilder(
-            quotation: quotation,
-            onPrintPressed: (quotation) => _generatePdf(quotation),
-          ),
-          body: _buildBody(state),
-        );
+        if (state is QuotationLoading) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (state is QuotationError) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.error_outline,
+                    size: 80,
+                    color: Colors.red.shade300,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Wystąpił błąd',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.red.shade700,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    state.message,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.grey.shade700,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton.icon(
+                    onPressed: _loadInitialData,
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Odśwież'),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        } else if (state is QuotationDetailsLoaded || state is QuotationOperationSuccessWithDetails) {
+          final quotation = state is QuotationDetailsLoaded 
+              ? state.quotation 
+              : (state as QuotationOperationSuccessWithDetails).quotation;
+          
+          return _buildContent(context, quotation);
+        } else {
+          return const Center(child: Text('Nie znaleziono wyceny'));
+        }
       },
     );
-  }
-  
-  Widget _buildBody(QuotationState state) {
-    if (state is QuotationLoading) {
-      return const Center(child: CircularProgressIndicator());
-    } else if (state is QuotationError) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.error_outline,
-                size: 80,
-                color: Colors.red.shade300,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Wystąpił błąd',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.red.shade700,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                state.message,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey.shade700,
-                ),
-              ),
-              const SizedBox(height: 24),
-              ElevatedButton.icon(
-                onPressed: _loadInitialData,
-                icon: const Icon(Icons.refresh),
-                label: const Text('Odśwież'),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    } else if (state is QuotationDetailsLoaded || state is QuotationOperationSuccessWithDetails) {
-      final quotation = state is QuotationDetailsLoaded 
-          ? state.quotation 
-          : (state as QuotationOperationSuccessWithDetails).quotation;
-      
-      return _buildContent(context, quotation);
-    } else {
-      return const Center(child: Text('Nie znaleziono wyceny'));
-    }
   }
 
   @override
@@ -1290,30 +1152,44 @@ class _AppBarBuilder extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      title: _buildTitle(),
-      backgroundColor: Colors.blue.shade700,
-      elevation: 2,
+      title: BlocBuilder<QuotationBloc, QuotationState>(
+        buildWhen: (previous, current) {
+          return current is QuotationDetailsLoaded || current is QuotationOperationSuccessWithDetails;
+        },        builder: (context, state) {
+          if (state is QuotationDetailsLoaded) {
+            final quotation = state.quotation;
+            return Text('Wycena ${quotation.quotationNumber} - ${quotation.vehicle.make} ${quotation.vehicle.model}');
+          } else if (state is QuotationOperationSuccessWithDetails) {
+            final quotation = state.quotation;
+            return Text('Wycena ${quotation.quotationNumber} - ${quotation.vehicle.make} ${quotation.vehicle.model}');
+          }
+          return const Text('Ładowanie...');
+        },
+      ),
       actions: _buildAppBarActions(context),
     );
   }
-
-  Widget _buildTitle() {
-    if (quotation != null) {
-      return Text(
-        'Wycena ${quotation!.id} - ${quotation!.vehicle.make} ${quotation!.vehicle.model}',
-      );
-    }
-    return const Text('Szczegóły wyceny');
-  }
-
   List<Widget> _buildAppBarActions(BuildContext context) {
     return [
-      if (quotation != null)
-        IconButton(
-          icon: const Icon(Icons.print, color: Colors.white),
-          tooltip: 'Drukuj wycenę',
-          onPressed: () => onPrintPressed(quotation!),
-        ),
+      BlocBuilder<QuotationBloc, QuotationState>(
+        builder: (context, state) {
+          // Only show print button when we have a valid quotation state
+          if (state is! QuotationDetailsLoaded && state is! QuotationOperationSuccessWithDetails) {
+            return const SizedBox.shrink();
+          }
+          
+          final quotation = state is QuotationDetailsLoaded 
+              ? state.quotation 
+              : (state as QuotationOperationSuccessWithDetails).quotation;
+          
+          // Use the quotation from the state, not the nullable one passed to the constructor
+          return IconButton(
+            icon: const Icon(Icons.print),
+            tooltip: 'Drukuj wycenę',
+            onPressed: () => onPrintPressed(quotation),
+          );
+        },
+      ),
     ];
   }
 

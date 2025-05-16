@@ -1,10 +1,9 @@
-import 'package:equatable/equatable.dart';
 import 'package:flutter_frontend/features/clients/domain/entities/client.dart';
 import 'package:flutter_frontend/features/quotations/domain/entities/quotation_part.dart';
 import 'package:flutter_frontend/features/vehicles/domain/entities/vehicle.dart';
 
-class Quotation extends Equatable {
-  final String id;
+class Quotation {  final String id;
+  final String quotationNumber; // Quotation number is now non-nullable in backend
   final Client client;
   final Vehicle vehicle;
   final String workshopId;
@@ -13,9 +12,9 @@ class Quotation extends Equatable {
   final double? totalCost;
   final String? notes;
   final List<QuotationPart> parts;
-
-  const Quotation({
+  Quotation({
     required this.id,
+    required this.quotationNumber, // No longer optional
     required this.client,
     required this.vehicle,
     required this.workshopId,
@@ -26,16 +25,29 @@ class Quotation extends Equatable {
     this.parts = const [],
   });
 
-  @override
-  List<Object?> get props => [
-        id,
-        client,
-        vehicle,
-        workshopId,
-        createdAt,
-        updatedAt,
-        totalCost,
-        notes,
-        parts,
-      ];
+  Quotation copyWith({
+    String? id,
+    String? quotationNumber,
+    Client? client,
+    Vehicle? vehicle,
+    String? workshopId,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    double? totalCost,
+    String? notes,
+    List<QuotationPart>? parts,
+  }) {
+    return Quotation(
+      id: id ?? this.id,
+      quotationNumber: quotationNumber ?? this.quotationNumber,
+      client: client ?? this.client,
+      vehicle: vehicle ?? this.vehicle,
+      workshopId: workshopId ?? this.workshopId,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      totalCost: totalCost ?? this.totalCost,
+      notes: notes ?? this.notes,
+      parts: parts ?? this.parts,
+    );
+  }
 }

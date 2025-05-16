@@ -22,23 +22,21 @@ abstract class QuotationRepository {
   Future<Either<Failure, List<QuotationPart>>> getQuotationParts({
     required String workshopId,
     required String quotationId,
-  });
-  Future<Either<Failure, QuotationPart>> addQuotationPart({
+  });  Future<Either<Failure, QuotationPart>> addQuotationPart({
     required String workshopId,
     required String quotationId,
     required String name,
-    required String description,
+    required String? description,
     required int quantity,
     required double costPart,
     required double costService,
     required double buyCostPart,
-  });
-  Future<Either<Failure, QuotationPart>> updateQuotationPart({
+  });Future<Either<Failure, QuotationPart>> updateQuotationPart({
     required String workshopId,
     required String quotationId,
     required String partId,
     required String name,
-    required String description,
+    required String? description,
     required int quantity,
     required double costPart,
     required double costService,

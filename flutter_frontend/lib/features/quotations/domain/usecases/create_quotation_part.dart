@@ -6,12 +6,11 @@ class CreateQuotationPart {
   final QuotationRepository repository;
 
   CreateQuotationPart(this.repository);
-
   Future<Either<Failure, QuotationPart>> execute({
     required String workshopId,
     required String quotationId,
     required String name,
-    required String description,
+    required String? description,
     required int quantity,
     required double costPart,
     required double costService,

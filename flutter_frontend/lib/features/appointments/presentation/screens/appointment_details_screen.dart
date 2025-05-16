@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'dart:convert';
+import 'package:flutter/services.dart';
 import '../bloc/appointment_bloc.dart';
-import '../widgets/parts_suggestion_field.dart';
 import '../../domain/entities/appointment.dart';
 import '../../domain/entities/part.dart';
 import '../../domain/entities/repair_item.dart';
@@ -11,6 +12,7 @@ import '../../domain/services/appointment_pdf_generator.dart';
 import 'package:flutter_frontend/features/vehicles/presentation/screens/service_history_screen.dart';
 import 'package:flutter_frontend/features/vehicles/domain/entities/vehicle.dart';
 import 'package:flutter_frontend/features/clients/domain/entities/client.dart';
+import 'package:flutter_frontend/features/shared/presentation/widgets/part_form_widget.dart';
 
 // Constants
 class AppointmentStatus {
@@ -119,7 +121,10 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
   final _buyCostPartController = TextEditingController(text: '0.0');
   final _repairDescriptionController = TextEditingController();
   final _notesController = TextEditingController();
-
+    // Parts suggestions for autocomplete
+  List<String> _partsSuggestions = [];
+  bool _isSuggestionsLoaded = false;
+  
   // Pomocnicze metody
   String _getInitials(String firstName, String lastName) {
     String initials = '';
@@ -144,6 +149,22 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
             appointmentId: widget.appointmentId,
           ),
         );
+    _loadPartsSuggestions();
+  }
+  
+  Future<void> _loadPartsSuggestions() async {
+    if (!_isSuggestionsLoaded) {
+      try {
+        final String response = await rootBundle.loadString('assets/parts.json');
+        final List<dynamic> data = json.decode(response);
+        setState(() {
+          _partsSuggestions = List<String>.from(data);
+          _isSuggestionsLoaded = true;
+        });
+      } catch (e) {
+        debugPrint('Error loading parts suggestions: $e');
+      }
+    }
   }
 
   @override
@@ -1343,160 +1364,50 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
         _buildPartsTable(context, appointment),
       ],
     );
-  }
-
-  Widget _buildAddPartForm(BuildContext context, Appointment appointment) {
+  }  Widget _buildAddPartForm(BuildContext context, Appointment appointment) {
     final TextEditingController partNameController = TextEditingController();
     final TextEditingController quantityController = TextEditingController(text: '1');
     final TextEditingController partCostController = TextEditingController(text: '0.0');
     final TextEditingController serviceCostController = TextEditingController(text: '0.0');
     final TextEditingController buyCostPartController = TextEditingController(text: '0.0');
-
+    
     return BlocBuilder<AppointmentBloc, AppointmentState>(
-      builder: (context, state) {
-        return Card(
-          elevation: 2,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      flex: 3,
-                      child: PartsSuggestionField(
-                          controller: partNameController,
-                          label: 'Nazwa części',
-                          onChanged: (value) {
-                            partNameController.text = value;
-                          }),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      flex: 1,
-                      child: TextField(
-                        controller: quantityController,
-                        keyboardType: TextInputType.number,
-                        textAlign: TextAlign.center,
-                        decoration: InputDecoration(
-                          labelText: 'Ilość',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8.0),
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
-                        ),
-                      ),
-                    ),
-                  ],
+      builder: (context, state) {        return PartFormWidget(
+          partNameController: partNameController,
+          quantityController: quantityController,
+          partCostController: partCostController,
+          serviceCostController: serviceCostController,
+          buyCostPartController: buyCostPartController,
+          partsSuggestions: _partsSuggestions,
+          addButtonLabel: 'Dodaj część',
+          onAddPart: () {
+            if (partNameController.text.isEmpty) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Wprowadź nazwę części'),
+                  behavior: SnackBarBehavior.floating,
                 ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      flex: 1,
-                      child: TextField(
-                        controller: buyCostPartController,
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                        textAlign: TextAlign.right,
-                        decoration: InputDecoration(
-                          labelText: 'Cena Hurtowa',
-                          prefixIcon: const Icon(Icons.money_off),
-                          suffixText: 'PLN',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8.0),
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      flex: 1,
-                      child: TextField(
-                        controller: partCostController,
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                        textAlign: TextAlign.right,
-                        decoration: InputDecoration(
-                          labelText: 'Cena detaliczna',
-                          prefixIcon: const Icon(Icons.shopping_cart),
-                          suffixText: 'PLN',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8.0),
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      flex: 1,
-                      child: TextField(
-                        controller: serviceCostController,
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                        textAlign: TextAlign.right,
-                        decoration: InputDecoration(
-                          labelText: 'Koszt usługi',
-                          prefixIcon: const Icon(Icons.build),
-                          suffixText: 'PLN',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8.0),
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    ElevatedButton.icon(
-                      icon: const Icon(Icons.add),
-                      label: const Text('Dodaj część'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green.shade500,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8.0),
-                        ),
-                      ),
-                      onPressed: () {
-                        if (partNameController.text.isEmpty) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Wprowadź nazwę części'),
-                              behavior: SnackBarBehavior.floating,
-                            ),
-                          );
-                          return;
-                        }
+              );
+              return;
+            }
 
-                        context.read<AppointmentBloc>().add(AddPartEvent(
-                              workshopId: appointment.workshopId,
-                              appointmentId: appointment.id,
-                              name: partNameController.text,
-                              description: '',
-                              quantity: int.tryParse(quantityController.text) ?? 1,
-                              costPart: double.tryParse(partCostController.text) ?? 0.0,
-                              costService: double.tryParse(serviceCostController.text) ?? 0.0,
-                              buyCostPart: double.tryParse(buyCostPartController.text) ?? 0.0,
-                            ));
+            context.read<AppointmentBloc>().add(AddPartEvent(
+                  workshopId: appointment.workshopId,
+                  appointmentId: appointment.id,
+                  name: partNameController.text,
+                  description: '',
+                  quantity: int.tryParse(quantityController.text) ?? 1,
+                  costPart: double.tryParse(partCostController.text) ?? 0.0,
+                  costService: double.tryParse(serviceCostController.text) ?? 0.0,
+                  buyCostPart: double.tryParse(buyCostPartController.text) ?? 0.0,
+                ));
 
-                        partNameController.clear();
-                        quantityController.text = '1';
-                        partCostController.text = '0.0';
-                        serviceCostController.text = '0.0';
-                        buyCostPartController.text = '0.0';
-                      },
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
+            partNameController.clear();
+            quantityController.text = '1';
+            partCostController.text = '0.0';
+            serviceCostController.text = '0.0';
+            buyCostPartController.text = '0.0';
+          },
         );
       },
     );

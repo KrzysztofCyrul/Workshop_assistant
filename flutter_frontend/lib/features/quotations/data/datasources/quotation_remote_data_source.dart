@@ -105,24 +105,22 @@ class QuotationRemoteDataSource {
     } on DioException catch (e) {
       throw DioErrorHandler.handle(e);
     }
-  }
-  Future<QuotationPart> addQuotationPart({
+  }  Future<QuotationPart> addQuotationPart({
     required String workshopId,
     required String quotationId,
     required String name,
-    required String description,
+    required String? description,
     required int quantity,
     required double costPart,
     required double costService,
     required double buyCostPart,
   }) async {
-    try {
-      final response = await dio.post(
+    try {      final response = await dio.post(
         '${api_constants.baseUrl}/workshops/$workshopId/quotations/$quotationId/parts/',
         data: {
           'quotation': quotationId,
           'name': name,
-          'description': description,
+          'description': description ?? "", // Add empty string fallback when description is null
           'quantity': quantity,
           'cost_part': costPart.toString(),
           'cost_service': costService.toString(),
@@ -133,24 +131,22 @@ class QuotationRemoteDataSource {
     } on DioException catch (e) {
       throw DioErrorHandler.handle(e);
     }
-  }
-  Future<QuotationPart> updateQuotationPart({
+  }  Future<QuotationPart> updateQuotationPart({
     required String workshopId,
     required String quotationId,
     required String partId,
     required String name,
-    required String description,
+    required String? description,
     required int quantity,
     required double costPart,
     required double costService,
     required double buyCostPart,
   }) async {
-    try {
-      final response = await dio.patch(
+    try {      final response = await dio.patch(
         '${api_constants.baseUrl}/workshops/$workshopId/quotations/$quotationId/parts/$partId/',
         data: {
           'name': name,
-          'description': description,
+          'description': description ?? "", // Add empty string fallback when description is null
           'quantity': quantity,
           'cost_part': costPart.toString(),
           'cost_service': costService.toString(),

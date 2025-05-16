@@ -74,7 +74,7 @@ class AddQuotationPartEvent extends QuotationEvent {
   final String workshopId;
   final String quotationId;
   final String name;
-  final String description;
+  final String? description;
   final int quantity;
   final double costPart;
   final double costService;
@@ -97,7 +97,7 @@ class UpdateQuotationPartEvent extends QuotationEvent {
   final String quotationId;
   final String partId;
   final String name;
-  final String description;
+  final String? description;
   final int quantity;
   final double costPart;
   final double costService;
