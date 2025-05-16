@@ -10,6 +10,7 @@ import 'package:printing/printing.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:flutter/services.dart';
 import 'dart:convert';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_frontend/features/quotations/presentation/bloc/quotation_bloc.dart';
 import 'package:flutter_frontend/features/vehicles/domain/entities/vehicle.dart';
 
@@ -29,17 +30,48 @@ class QuotationDetailsScreen extends StatefulWidget {
   State<QuotationDetailsScreen> createState() => _QuotationDetailsScreenState();
 }
 
-class _QuotationDetailsScreenState extends State<QuotationDetailsScreen> {
+// Form validation mixin - consistent with AppointmentDetailsScreen
+mixin FormValidatorMixin {
+  String? validateNotEmpty(String? value, String fieldName) {
+    if (value == null || value.isEmpty) {
+      return '$fieldName nie może być puste';
+    }
+    return null;
+  }
+
+  String? validateNumber(String? value, String fieldName) {
+    if (value == null || value.isEmpty) {
+      return '$fieldName nie może być puste';
+    }
+    if (double.tryParse(value) == null) {
+      return '$fieldName musi być liczbą';
+    }
+    return null;
+  }
+
+  String? validatePositiveNumber(String? value, String fieldName) {
+    final numberError = validateNumber(value, fieldName);
+    if (numberError != null) {
+      return numberError;
+    }
+    if (double.parse(value!) <= 0) {
+      return '$fieldName musi być większe od zera';
+    }
+    return null;
+  }
+}
+
+class _QuotationDetailsScreenState extends State<QuotationDetailsScreen> with FormValidatorMixin {
   // Controllers for form inputs
-  final partNameController = TextEditingController();
-  final quantityController = TextEditingController(text: '1');
-  final partCostController = TextEditingController(text: '0.0');
-  final serviceCostController = TextEditingController(text: '0.0');
-  final buyCostPartController = TextEditingController(text: '0.0');
+  final _partNameController = TextEditingController();
+  final _quantityController = TextEditingController(text: '1');
+  final _partCostController = TextEditingController(text: '0.0');
+  final _serviceCostController = TextEditingController(text: '0.0');
+  final _buyCostPartController = TextEditingController(text: '0.0');
 
   // Parts suggestions for autocomplete
-  List<String> partsSuggestions = [];
-  bool isSuggestionsLoaded = false;
+  List<String> _partsSuggestions = [];
+  bool _isSuggestionsLoaded = false;
 
   // Calculate totals
   double getTotalPartCost(List<QuotationPart> parts) => 
@@ -53,6 +85,18 @@ class _QuotationDetailsScreenState extends State<QuotationDetailsScreen> {
   
   double getTotalMargin(List<QuotationPart> parts) => 
     getTotalPartCost(parts) - getTotalBuyCostPart(parts);
+  
+  // Helper method for getting initials (like in AppointmentDetailsScreen)
+  String _getInitials(String firstName, String lastName) {
+    String initials = '';
+    if (firstName.isNotEmpty) {
+      initials += firstName[0];
+    }
+    if (lastName.isNotEmpty) {
+      initials += lastName[0];
+    }
+    return initials.isNotEmpty ? initials.toUpperCase() : '?';
+  }
 
   @override
   void initState() {
@@ -72,13 +116,13 @@ class _QuotationDetailsScreenState extends State<QuotationDetailsScreen> {
   }
 
   Future<void> _loadPartsSuggestions() async {
-    if (!isSuggestionsLoaded) {
+    if (!_isSuggestionsLoaded) {
       try {
         final String response = await rootBundle.loadString('assets/parts.json');
         final List<dynamic> data = json.decode(response);
         setState(() {
-          partsSuggestions = List<String>.from(data);
-          isSuggestionsLoaded = true;
+          _partsSuggestions = List<String>.from(data);
+          _isSuggestionsLoaded = true;
         });
       } catch (e) {
         debugPrint('Error loading parts suggestions: $e');
@@ -87,7 +131,7 @@ class _QuotationDetailsScreenState extends State<QuotationDetailsScreen> {
   }
 
   void _addPart() {
-    if (partNameController.text.isEmpty) {
+    if (_partNameController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Proszę wprowadzić nazwę części')),
       );
@@ -95,15 +139,17 @@ class _QuotationDetailsScreenState extends State<QuotationDetailsScreen> {
     }
 
     // Parse values with fallbacks for empty fields
-    final quantity = int.tryParse(quantityController.text) ?? 1;
-    final costPart = double.tryParse(partCostController.text) ?? 0.0;
-    final costService = double.tryParse(serviceCostController.text) ?? 0.0;
-    final buyCostPart = double.tryParse(buyCostPartController.text) ?? 0.0;    // Add part via BLoC
+    final quantity = int.tryParse(_quantityController.text) ?? 1;
+    final costPart = double.tryParse(_partCostController.text) ?? 0.0;
+    final costService = double.tryParse(_serviceCostController.text) ?? 0.0;
+    final buyCostPart = double.tryParse(_buyCostPartController.text) ?? 0.0;
+    
+    // Add part via BLoC
     context.read<QuotationBloc>().add(
       AddQuotationPartEvent(
         workshopId: widget.workshopId,
         quotationId: widget.quotationId,
-        name: partNameController.text.trim(),
+        name: _partNameController.text.trim(),
         description: null,
         quantity: quantity,
         costPart: costPart,
@@ -113,11 +159,11 @@ class _QuotationDetailsScreenState extends State<QuotationDetailsScreen> {
     );
 
     // Clear input fields
-    partNameController.clear();
-    quantityController.text = '1';
-    partCostController.text = '0.0';
-    serviceCostController.text = '0.0';
-    buyCostPartController.text = '0.0';
+    _partNameController.clear();
+    _quantityController.text = '1';
+    _partCostController.text = '0.0';
+    _serviceCostController.text = '0.0';
+    _buyCostPartController.text = '0.0';
   }
 
   void _editPartValue(String partId, String field, dynamic newValue) {
@@ -137,7 +183,9 @@ class _QuotationDetailsScreenState extends State<QuotationDetailsScreen> {
     final quantity = field == 'quantity' ? newValue as int : part.quantity;
     final costPart = field == 'costPart' ? newValue as double : part.costPart;
     final costService = field == 'costService' ? newValue as double : part.costService;
-    final buyCostPart = field == 'buyCostPart' ? newValue as double : part.buyCostPart;    // Update part via BLoC
+    final buyCostPart = field == 'buyCostPart' ? newValue as double : part.buyCostPart;
+    
+    // Update part via BLoC
     context.read<QuotationBloc>().add(
       UpdateQuotationPartEvent(
         workshopId: widget.workshopId,
@@ -152,46 +200,45 @@ class _QuotationDetailsScreenState extends State<QuotationDetailsScreen> {
       ),
     );
   }
-  void _confirmDeletePart(String partId) {
-    showDialog(
+
+  Future<void> _confirmDeletePart(String partId) async {
+    // Display confirmation dialog like in AppointmentDetailsScreen
+    final shouldDelete = await showDialog<bool>(
       context: context,
-      builder: (BuildContext context) {
+      builder: (context) {
         return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.0)),
-          title: const Text(
-            'Usuwanie części',
-            style: TextStyle(fontWeight: FontWeight.bold),
+          title: const Text('Potwierdzenie usunięcia'),
+          content: const Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Czy na pewno chcesz usunąć tę część?'),
+            ],
           ),
-          content: const Text('Czy na pewno chcesz usunąć tę część z wyceny?'),
-          actions: <Widget>[
+          actions: [
             TextButton(
-              style: TextButton.styleFrom(
-                foregroundColor: Colors.grey.shade700,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              ),
-              child: const Text('Anuluj', style: TextStyle(fontWeight: FontWeight.bold)),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Anuluj'),
             ),
-            ElevatedButton.icon(
+            ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.red,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
               ),
-              icon: const Icon(Icons.delete, size: 18),
-              label: const Text('Usuń', style: TextStyle(fontWeight: FontWeight.bold)),
-              onPressed: () {
-                Navigator.of(context).pop();
-                _deletePart(partId);
-              },
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Usuń'),
             ),
           ],
         );
       },
     );
+
+    // If user confirmed deletion
+    if (shouldDelete == true) {
+      if (!mounted) return;
+
+      _deletePart(partId);
+    }
   }
 
   void _deletePart(String partId) {
@@ -225,7 +272,8 @@ class _QuotationDetailsScreenState extends State<QuotationDetailsScreen> {
         build: (pw.Context context) {
           return pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.center,
-            children: [              pw.Text('WYCENA nr ${quotation.quotationNumber}',
+            children: [
+              pw.Text('WYCENA nr ${quotation.quotationNumber}',
                   style: pw.TextStyle(font: boldTtf, fontSize: 20)),
               pw.Text(
                   'Data: ${DateFormat('dd.MM.yyyy').format(quotation.createdAt)}',
@@ -244,26 +292,12 @@ class _QuotationDetailsScreenState extends State<QuotationDetailsScreen> {
                     children: [
                       pw.Padding(
                         padding: const pw.EdgeInsets.all(6.0),
-                        child: pw.Text('Klient:', style: pw.TextStyle(font: ttf)),
-                      ),
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(6.0),
-                        child: pw.Text(
-                            '${quotation.client.firstName} ${quotation.client.lastName}',
-                            style: pw.TextStyle(font: ttf)),
-                      ),
-                    ],
-                  ),
-                  pw.TableRow(
-                    children: [
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(6.0),
                         child: pw.Text('Pojazd:', style: pw.TextStyle(font: ttf)),
                       ),
                       pw.Padding(
                         padding: const pw.EdgeInsets.all(6.0),
                         child: pw.Text(
-                            '${quotation.vehicle.licensePlate} ${quotation.vehicle.make} ${quotation.vehicle.model}',
+                            '${quotation.vehicle.make} ${quotation.vehicle.model} ${quotation.vehicle.licensePlate}',
                             style: pw.TextStyle(font: ttf)),
                       ),
                     ],
@@ -272,12 +306,12 @@ class _QuotationDetailsScreenState extends State<QuotationDetailsScreen> {
                     children: [
                       pw.Padding(
                         padding: const pw.EdgeInsets.all(6.0),
-                        child: pw.Text('Telefon:', style: pw.TextStyle(font: ttf)),
+                        child: pw.Text('VIN::', style: pw.TextStyle(font: ttf)),
                       ),
                       pw.Padding(
                         padding: const pw.EdgeInsets.all(6.0),
                         child: pw.Text(
-                            quotation.client.phone ?? "Brak",
+                            quotation.vehicle.vin,
                             style: pw.TextStyle(font: ttf)),
                       ),
                     ],
@@ -413,7 +447,9 @@ class _QuotationDetailsScreenState extends State<QuotationDetailsScreen> {
           );
         },
       ),
-    );    // Generate file name based on quotation information
+    );
+    
+    // Generate file name based on quotation information
     final fileName = 'Wycena_${quotation.quotationNumber}_${DateFormat('ddMMyyyy').format(quotation.createdAt.toLocal())}.pdf';
     
     // Print the PDF
@@ -423,28 +459,37 @@ class _QuotationDetailsScreenState extends State<QuotationDetailsScreen> {
     );
   }
 
-  Widget _buildDetailRow(String label, String value, {IconData? icon}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
+  Widget _buildDetailRow(String label, String value, {IconData? icon, Color? iconColor}) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8.0),
+      padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade50,
+        borderRadius: BorderRadius.circular(8.0),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
       child: Row(
         children: [
           if (icon != null)
-            Padding(
-              padding: const EdgeInsets.only(right: 8.0),
-              child: Icon(icon, size: 20, color: Theme.of(context).primaryColor),
+            Container(
+              padding: const EdgeInsets.all(8.0),
+              margin: const EdgeInsets.only(right: 12.0),
+              decoration: BoxDecoration(
+                color: (iconColor ?? Colors.blue).withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8.0),
+              ),
+              child: Icon(icon, size: 20, color: iconColor ?? Colors.blue),
             ),
           Expanded(
-            flex: 2,
             child: Text(
               label,
-              style: const TextStyle(fontWeight: FontWeight.w600),
+              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
             ),
           ),
           Expanded(
-            flex: 3,
             child: Text(
               value,
-              style: TextStyle(color: Colors.grey.shade700),
+              style: TextStyle(color: Colors.grey.shade700, fontSize: 15),
             ),
           ),
         ],
@@ -463,17 +508,20 @@ class _QuotationDetailsScreenState extends State<QuotationDetailsScreen> {
         ),
       ),
     );
-  }  Widget _buildAddPartForm() {
+  }
+
+  Widget _buildAddPartForm() {
     return PartFormWidget(
-      partNameController: partNameController,
-      quantityController: quantityController,
-      partCostController: partCostController,
-      serviceCostController: serviceCostController,
-      buyCostPartController: buyCostPartController,
-      partsSuggestions: partsSuggestions,
+      partNameController: _partNameController,
+      quantityController: _quantityController,
+      partCostController: _partCostController,
+      serviceCostController: _serviceCostController,
+      buyCostPartController: _buyCostPartController,
+      partsSuggestions: _partsSuggestions,
       onAddPart: _addPart,
     );
   }
+
   Widget _buildPartsTable(List<QuotationPart> parts) {
     // Helper method for editable cells
     DataCell buildEditableCell(String initialValue, String fieldName, QuotationPart part,
@@ -519,7 +567,7 @@ class _QuotationDetailsScreenState extends State<QuotationDetailsScreen> {
       );
     }
 
-    // Obsługa pustej listy
+    // Handle empty list
     if (parts.isEmpty) {
       return Card(
         margin: const EdgeInsets.only(bottom: 16.0),
@@ -546,209 +594,210 @@ class _QuotationDetailsScreenState extends State<QuotationDetailsScreen> {
         child: LayoutBuilder(
           builder: (context, constraints) {
             return SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    minWidth: constraints.maxWidth, // Ważne: ustawia minimalną szerokość na szerokość ekranu
-                  ),
-                  child: SingleChildScrollView(
-                    child: DataTable(
-                      columnSpacing: 10.0,
-                      horizontalMargin: 16.0,
-                      headingRowHeight: 48.0,
-                      dataRowHeight: 56.0,
-                      // Ustawienie dostosowania szerokości kolumny
-                      border: TableBorder.all(
-                        color: Colors.grey.shade300,
-                        width: 1,
-                        borderRadius: BorderRadius.circular(8.0),
+              scrollDirection: Axis.horizontal,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minWidth: constraints.maxWidth,
+                ),
+                child: SingleChildScrollView(
+                  child: DataTable(
+                    columnSpacing: 10.0,
+                    horizontalMargin: 16.0,
+                    headingRowHeight: 48.0,
+                    dataRowHeight: 56.0,
+                    border: TableBorder.all(
+                      color: Colors.grey.shade300,
+                      width: 1,
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                    headingRowColor: MaterialStateProperty.resolveWith(
+                      (states) => Colors.green.shade100,
+                    ),
+                    dataRowColor: MaterialStateProperty.resolveWith((states) {
+                      if (states.contains(MaterialState.selected)) {
+                        return Colors.green.shade50;
+                      }
+                      return states.any((element) => element == MaterialState.hovered) ? Colors.grey.shade200 : Colors.grey.shade50;
+                    }),
+                    columns: const [
+                      DataColumn(
+                        label: Expanded(
+                          child: Center(
+                            child: Text(
+                              'Część',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ),
                       ),
-                      headingRowColor: MaterialStateProperty.resolveWith(
-                        (states) => Colors.green.shade100,
+                      DataColumn(
+                        label: Expanded(
+                          child: Center(
+                            child: Text(
+                              'Ilość',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ),
                       ),
-                      dataRowColor: MaterialStateProperty.resolveWith((states) {
-                        if (states.contains(MaterialState.selected)) {
-                          return Colors.green.shade50;
-                        }
-                        return states.any((element) => element == MaterialState.hovered) ? Colors.grey.shade200 : Colors.grey.shade50;
-                      }),
-                      columns: const [
-                        DataColumn(
-                          label: Expanded(
-                            child: Center(
-                              child: Text(
-                                'Część',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 15,
-                                ),
-                                textAlign: TextAlign.center,
+                      DataColumn(
+                        label: Expanded(
+                          child: Center(
+                            child: Text(
+                              'Hurtowa',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15,
                               ),
+                              textAlign: TextAlign.center,
                             ),
                           ),
                         ),
-                        DataColumn(
-                          label: Expanded(
-                            child: Center(
-                              child: Text(
-                                'Ilość',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 15,
-                                ),
-                                textAlign: TextAlign.center,
+                      ),
+                      DataColumn(
+                        label: Expanded(
+                          child: Center(
+                            child: Text(
+                              'Części',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15,
                               ),
+                              textAlign: TextAlign.center,
                             ),
                           ),
                         ),
-                        DataColumn(
-                          label: Expanded(
-                            child: Center(
-                              child: Text(
-                                'Hurtowa',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 15,
-                                ),
-                                textAlign: TextAlign.center,
+                      ),
+                      DataColumn(
+                        label: Expanded(
+                          child: Center(
+                            child: Text(
+                              'Suma',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15,
                               ),
+                              textAlign: TextAlign.center,
                             ),
                           ),
                         ),
-                        DataColumn(
-                          label: Expanded(
-                            child: Center(
-                              child: Text(
-                                'Części',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 15,
-                                ),
-                                textAlign: TextAlign.center,
+                      ),
+                      DataColumn(
+                        label: Expanded(
+                          child: Center(
+                            child: Text(
+                              'Usługa',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15,
                               ),
+                              textAlign: TextAlign.center,
                             ),
                           ),
                         ),
-                        DataColumn(
-                          label: Expanded(
-                            child: Center(
-                              child: Text(
-                                'Suma',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 15,
-                                ),
-                                textAlign: TextAlign.center,
+                      ),
+                      DataColumn(
+                        label: Expanded(
+                          child: Center(
+                            child: Text(
+                              'Akcje',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15,
                               ),
+                              textAlign: TextAlign.center,
                             ),
                           ),
                         ),
-                        DataColumn(
-                          label: Expanded(
-                            child: Center(
-                              child: Text(
-                                'Usługa',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 15,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
+                      ),
+                    ],
+                    rows: parts.map((part) {
+                      return DataRow(
+                        cells: [
+                          // Part name
+                          buildEditableCell(part.name, 'name', part),
+                          // Quantity
+                          buildEditableCell(
+                            part.quantity.toString(), 
+                            'quantity', 
+                            part,
+                            keyboardType: TextInputType.number, 
+                            isNumber: true,
+                            alignCenter: true,
                           ),
-                        ),
-                        DataColumn(
-                          label: Expanded(
-                            child: Center(
-                              child: Text(
-                                'Akcje',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 15,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
+                          // Buy cost
+                          buildEditableCell(
+                            part.buyCostPart.toStringAsFixed(2), 
+                            'buyCostPart',
+                            part, 
+                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                            isNumber: true,
+                            alignCenter: true,
                           ),
-                        ),
-                      ],
-                      rows: parts.map((part) {
-                        return DataRow(
-                          cells: [
-                            // Part name
-                            buildEditableCell(part.name, 'name', part),
-                            // Quantity
-                            buildEditableCell(
-                              part.quantity.toString(), 
-                              'quantity', 
-                              part,
-                              keyboardType: TextInputType.number, 
-                              isNumber: true,
-                              alignCenter: true,
-                            ),
-                            // Buy cost
-                            buildEditableCell(
-                              part.buyCostPart.toStringAsFixed(2), 
-                              'buyCostPart',
-                              part, 
-                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                              isNumber: true,
-                              alignCenter: true,
-                            ),
-                            // Part cost
-                            buildEditableCell(
-                              part.costPart.toStringAsFixed(2), 
-                              'costPart', 
-                              part,
-                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                              isNumber: true,
-                              alignCenter: true,
-                            ),
-                            // Total cost (calculated)
-                            DataCell(
-                              Center(
+                          // Part cost
+                          buildEditableCell(
+                            part.costPart.toStringAsFixed(2), 
+                            'costPart', 
+                            part,
+                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                            isNumber: true,
+                            alignCenter: true,
+                          ),
+                          // Total cost (calculated)
+                          DataCell(
+                            Center(
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                                decoration: BoxDecoration(
+                                  color: Colors.green.shade50,
+                                  borderRadius: BorderRadius.circular(8.0),
+                                  border: Border.all(color: Colors.green.shade200),
+                                ),
                                 child: Text(
                                   (part.costPart * part.quantity).toStringAsFixed(2),
                                   style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
                                     fontSize: 14,
+                                    fontWeight: FontWeight.w500,
                                   ),
                                 ),
                               ),
                             ),
-                            // Service cost
-                            buildEditableCell(
-                              part.costService.toStringAsFixed(2), 
-                              'costService', 
-                              part,
-                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                              isNumber: true,
-                              alignCenter: true,
-                            ),
-                            // Actions
-                            DataCell(
-                              Center(
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    IconButton(
-                                      icon: const Icon(Icons.delete, color: Colors.red),
-                                      onPressed: () => _confirmDeletePart(part.id),
-                                      tooltip: 'Usuń część',
-                                      padding: const EdgeInsets.all(8.0),
-                                      constraints: const BoxConstraints(),
-                                    ),
-                                  ],
-                                ),
+                          ),
+                          // Service cost
+                          buildEditableCell(
+                            part.costService.toStringAsFixed(2), 
+                            'costService', 
+                            part,
+                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                            isNumber: true,
+                            alignCenter: true,
+                          ),
+                          // Actions
+                          DataCell(
+                            Center(
+                              child: IconButton(
+                                icon: const Icon(Icons.delete, color: Colors.red, size: 20),
+                                onPressed: () => _confirmDeletePart(part.id),
+                                tooltip: 'Usuń część',
+                                splashRadius: 20,
                               ),
                             ),
-                          ],
-                        );
-                      }).toList(),
-                    ),
+                          ),
+                        ],
+                      );
+                    }).toList(),
                   ),
                 ),
-              );
+              ),
+            );
           },
         ),
       ),
@@ -761,7 +810,7 @@ class _QuotationDetailsScreenState extends State<QuotationDetailsScreen> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       margin: const EdgeInsets.symmetric(vertical: 4.0),
       child: ExpansionTile(
-        initiallyExpanded: true,
+        initiallyExpanded: false,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         collapsedShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         tilePadding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
@@ -776,24 +825,34 @@ class _QuotationDetailsScreenState extends State<QuotationDetailsScreen> {
         title: const Text(
           'Szczegóły Wyceny',
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-        ),        subtitle: Text(
+        ),
+        subtitle: Text(
           'Nr: ${quotation.quotationNumber}',
-          style: const TextStyle(color: Colors.blue, fontWeight: FontWeight.w500),
+          style: TextStyle(color: Colors.blue.shade700, fontWeight: FontWeight.w500),
         ),
         children: [
-          Padding(
+          Container(
             padding: const EdgeInsets.all(16.0),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: const BorderRadius.only(
+                bottomLeft: Radius.circular(12),
+                bottomRight: Radius.circular(12),
+              ),
+            ),
             child: Column(
               children: [
                 _buildDetailRow(
                   'Data utworzenia',
                   DateFormat('dd-MM-yyyy HH:mm').format(quotation.createdAt.toLocal()),
                   icon: Icons.calendar_today,
+                  iconColor: Colors.blue,
                 ),
                 _buildDetailRow(
                   'Koszt całkowity',
                   '${quotation.totalCost?.toStringAsFixed(2) ?? '0.00'} PLN',
                   icon: Icons.attach_money,
+                  iconColor: Colors.green,
                 ),
               ],
             ),
@@ -804,6 +863,33 @@ class _QuotationDetailsScreenState extends State<QuotationDetailsScreen> {
   }
 
   Widget _buildClientDetailsCard(Client client) {
+    Widget buildContactButton({
+      required IconData icon,
+      required String label,
+      required String value,
+      required Color color,
+      required VoidCallback onPressed,
+    }) {
+      return Container(
+        margin: const EdgeInsets.only(right: 8.0),
+        child: ElevatedButton.icon(
+          icon: Icon(icon, size: 16),
+          label: Text(label),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: color.withOpacity(0.1),
+            foregroundColor: color,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8.0),
+              side: BorderSide(color: color.withOpacity(0.2)),
+            ),
+          ),
+          onPressed: onPressed,
+        ),
+      );
+    }
+
     return Card(
       elevation: 3,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -816,45 +902,174 @@ class _QuotationDetailsScreenState extends State<QuotationDetailsScreen> {
         leading: Container(
           padding: const EdgeInsets.all(8.0),
           decoration: BoxDecoration(
-            color: Colors.purple.shade50,
+            color: Colors.purple.shade100,
             borderRadius: BorderRadius.circular(8.0),
           ),
           child: const Icon(Icons.person, color: Colors.purple),
         ),
         title: const Text(
-          'Dane Klienta',
+          'Szczegóły Klienta',
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
         ),
         subtitle: Text(
           '${client.firstName} ${client.lastName}',
-          style: const TextStyle(color: Colors.purple, fontWeight: FontWeight.w500),
+          style: TextStyle(color: Colors.purple.shade700, fontWeight: FontWeight.w500),
+        ),
+        trailing: Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: Colors.grey.shade200,
+            shape: BoxShape.circle,
+          ),
+          child: Center(
+            child: Text(
+              _getInitials(client.firstName, client.lastName),
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
+            ),
+          ),
         ),
         children: [
-          Padding(
+          Container(
             padding: const EdgeInsets.all(16.0),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: const BorderRadius.only(
+                bottomLeft: Radius.circular(12),
+                bottomRight: Radius.circular(12),
+              ),
+            ),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildDetailRow(
-                  'Imię i nazwisko',
-                  '${client.firstName} ${client.lastName}',
-                  icon: Icons.person,
-                ),
-                if (client.phone != null)
-                  _buildDetailRow(
-                    'Telefon',
-                    client.phone ?? '',
-                    icon: Icons.phone,
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16.0),
+                  margin: const EdgeInsets.only(bottom: 16.0),
+                  decoration: BoxDecoration(
+                    color: Colors.purple.shade50,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.purple.shade100),
                   ),
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            width: 60,
+                            height: 60,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.purple, width: 2),
+                            ),
+                            child: Center(
+                              child: Text(
+                                _getInitials(client.firstName, client.lastName),
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 24,
+                                  color: Colors.purple.shade700,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  '${client.firstName} ${client.lastName}',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18,
+                                    color: Colors.purple.shade900,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                if (client.phone != null)
+                                  Text(
+                                    client.phone!,
+                                    style: TextStyle(
+                                      color: Colors.purple.shade700,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          if (client.phone != null && client.phone!.isNotEmpty)
+                            buildContactButton(
+                              icon: Icons.phone,
+                              label: 'Zadzwoń',
+                              value: client.phone!,
+                              color: Colors.green,
+                              onPressed: () {
+                                try {
+                                  final uri = Uri.parse('tel:${client.phone}');
+                                  launchUrl(uri);
+                                } catch (e) {
+                                  debugPrint('Nie można wykonać połączenia: $e');
+                                }
+                              },
+                            ),
+                          if (client.email.isNotEmpty)
+                            buildContactButton(
+                              icon: Icons.email,
+                              label: 'Email',
+                              value: client.email,
+                              color: Colors.orange,
+                              onPressed: () {
+                                try {
+                                  final uri = Uri.parse('mailto:${client.email}');
+                                  launchUrl(uri);
+                                } catch (e) {
+                                  debugPrint('Nie można wysłać email: $e');
+                                }
+                              },
+                            ),
+                          if (client.address != null && client.address!.isNotEmpty)
+                            buildContactButton(
+                              icon: Icons.map,
+                              label: 'Mapa',
+                              value: client.address!,
+                              color: Colors.blue,
+                              onPressed: () {
+                                try {
+                                  final encodedAddress = Uri.encodeComponent(client.address!);
+                                  final uri = Uri.parse('https://maps.google.com/?q=$encodedAddress');
+                                  launchUrl(uri, mode: LaunchMode.externalApplication);
+                                } catch (e) {
+                                  debugPrint('Nie można otworzyć mapy: $e');
+                                }
+                              },
+                            ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
                 _buildDetailRow(
                   'Email',
                   client.email,
                   icon: Icons.email,
+                  iconColor: Colors.orange,
                 ),
                 if (client.address != null)
                   _buildDetailRow(
                     'Adres',
                     client.address ?? '',
                     icon: Icons.home,
+                    iconColor: Colors.blue,
                   ),
               ],
             ),
@@ -888,37 +1103,95 @@ class _QuotationDetailsScreenState extends State<QuotationDetailsScreen> {
         ),
         subtitle: Text(
           '${vehicle.make} ${vehicle.model}',
-          style: const TextStyle(color: Colors.teal, fontWeight: FontWeight.w500),
+          style: TextStyle(color: Colors.teal.shade700, fontWeight: FontWeight.w500),
         ),
         children: [
-          Padding(
+          Container(
             padding: const EdgeInsets.all(16.0),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: const BorderRadius.only(
+                bottomLeft: Radius.circular(12),
+                bottomRight: Radius.circular(12),
+              ),
+            ),
             child: Column(
               children: [
-                _buildDetailRow(
-                  'Marka i model',
-                  '${vehicle.make} ${vehicle.model}',
-                  icon: Icons.directions_car,
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16.0),
+                  margin: const EdgeInsets.only(bottom: 16.0),
+                  decoration: BoxDecoration(
+                    color: Colors.teal.shade50,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.teal.shade100),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.teal, width: 2),
+                        ),
+                        child: Icon(
+                          Icons.directions_car,
+                          size: 40,
+                          color: Colors.teal.shade700,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '${vehicle.make} ${vehicle.model}',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 18,
+                                color: Colors.teal.shade900,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              vehicle.licensePlate,
+                              style: TextStyle(
+                                color: Colors.teal.shade700,
+                                fontWeight: FontWeight.w500,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
                 _buildDetailRow(
                   'Nr. rejestracyjny',
                   vehicle.licensePlate,
-                  icon: Icons.app_registration,
+                  icon: Icons.confirmation_number,
+                  iconColor: Colors.amber,
                 ),
                 _buildDetailRow(
                   'VIN',
                   vehicle.vin,
                   icon: Icons.pin,
+                  iconColor: Colors.indigo,
                 ),
                 _buildDetailRow(
                   'Rok produkcji',
                   vehicle.year.toString(),
                   icon: Icons.date_range,
+                  iconColor: Colors.green,
                 ),
                 _buildDetailRow(
                   'Przebieg',
                   '${vehicle.mileage} km',
                   icon: Icons.speed,
+                  iconColor: Colors.red,
                 ),
               ],
             ),
@@ -927,6 +1200,7 @@ class _QuotationDetailsScreenState extends State<QuotationDetailsScreen> {
       ),
     );
   }
+
   Widget _buildCostSummaryCard(List<QuotationPart> parts) {
     final totalPartsCost = getTotalPartCost(parts);
     final totalServiceCost = getTotalServiceCost(parts);
@@ -1003,74 +1277,76 @@ class _QuotationDetailsScreenState extends State<QuotationDetailsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Information cards
           _buildQuotationDetailsCard(context, quotation),
-          const SizedBox(height: 8.0),
+          const SizedBox(height: 16.0),
+          _buildVehicleDetailsCard(quotation.vehicle),
+          const SizedBox(height: 16.0),
           _buildClientDetailsCard(quotation.client),
-          const SizedBox(height: 8.0),
-          _buildVehicleDetailsCard(quotation.vehicle),          // Parts section
-          const SizedBox(height: 16),
+          const SizedBox(height: 16.0),
           _buildSectionTitle('Części i Usługi'),
           _buildAddPartForm(),
           const SizedBox(height: 16),
           _buildPartsTable(quotation.parts.cast<QuotationPart>()),
-          
-          // Cost summary
           const SizedBox(height: 16),
           _buildCostSummaryCard(quotation.parts.cast<QuotationPart>()),
         ],
       ),
     );
-  }  @override
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return BlocBuilder<QuotationBloc, QuotationState>(
-      buildWhen: (previous, current) {
-        return current is QuotationDetailsLoaded || current is QuotationOperationSuccessWithDetails;
-      },
-      builder: (context, state) {
-        Quotation? quotation;
-        if (state is QuotationDetailsLoaded) {
-          quotation = state.quotation;
-        } else if (state is QuotationOperationSuccessWithDetails) {
-          quotation = state.quotation;
-        }
-        
-        return Scaffold(
-          appBar: _AppBarBuilder(
-            quotation: quotation,
-            onPrintPressed: _onPrintButtonPressed,
-          ),
-          body: _buildBody(),
-        );
-      }
+    return Scaffold(
+      appBar: _AppBarBuilder(
+        appointment: null,
+        onPrintPressed: _onPrintButtonPressed,
+      ),
+      body: _buildBody(),
     );
   }
-    void _onPrintButtonPressed(Quotation quotation) {
+  
+  void _onPrintButtonPressed(Quotation quotation) {
     _generatePdf(quotation);
-    }
+  }
   
   Widget _buildBody() {
     return BlocConsumer<QuotationBloc, QuotationState>(
       listener: (context, state) {
         if (state is QuotationError) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.message)),
+            SnackBar(
+              content: Text(state.message),
+              backgroundColor: Colors.red,
+            ),
           );
-        }
-        if (state is QuotationOperationSuccess) {
+        } else if (state is QuotationOperationSuccess || state is QuotationOperationSuccessWithDetails) {
+          // Obsługa obu typów stanów sukcesu
+          final message = state is QuotationOperationSuccess 
+              ? state.message 
+              : (state as QuotationOperationSuccessWithDetails).message;
+              
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.message)),
+            SnackBar(
+              content: Text(message),
+              backgroundColor: Colors.green,
+            ),
           );
-        }
-        if (state is QuotationUnauthenticated) {
+        } else if (state is QuotationUnauthenticated) {
           Navigator.of(context).pushReplacementNamed('/login');
         }
       },
-      builder: (context, state) {
-        if (state is QuotationDetailsLoaded) {
-        } else if (state is QuotationOperationSuccessWithDetails) {
+      buildWhen: (previous, current) {
+        // Avoid rebuilding for operation success states that don't carry details
+        if (previous is QuotationDetailsLoaded && current is QuotationOperationSuccess) {
+          return false;
         }
-        
+        // Only rebuild for states that affect the UI
+        return current is QuotationLoading || 
+               current is QuotationDetailsLoaded || 
+               current is QuotationOperationSuccessWithDetails || 
+               current is QuotationError;
+      },
+      builder: (context, state) {
         if (state is QuotationLoading) {
           return const Center(child: CircularProgressIndicator());
         } else if (state is QuotationError) {
@@ -1131,21 +1407,21 @@ class _QuotationDetailsScreenState extends State<QuotationDetailsScreen> {
 
   @override
   void dispose() {
-    partNameController.dispose();
-    quantityController.dispose();
-    partCostController.dispose();
-    serviceCostController.dispose();
-    buyCostPartController.dispose();
+    _partNameController.dispose();
+    _quantityController.dispose();
+    _partCostController.dispose();
+    _serviceCostController.dispose();
+    _buyCostPartController.dispose();
     super.dispose();
   }
 }
 
 class _AppBarBuilder extends StatelessWidget implements PreferredSizeWidget {
-  final Quotation? quotation;
+  final dynamic appointment; // Could be Quotation? but keeping consistent with AppointmentDetailsScreen interface
   final Function(Quotation) onPrintPressed;
 
   const _AppBarBuilder({
-    required this.quotation,
+    required this.appointment,
     required this.onPrintPressed,
   });
   
@@ -1154,8 +1430,12 @@ class _AppBarBuilder extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       title: BlocBuilder<QuotationBloc, QuotationState>(
         buildWhen: (previous, current) {
-          return current is QuotationDetailsLoaded || current is QuotationOperationSuccessWithDetails;
-        },        builder: (context, state) {
+          if (previous is QuotationLoading && current is QuotationLoading) {
+            return false;
+          }
+          return true;
+        },
+        builder: (context, state) {
           if (state is QuotationDetailsLoaded) {
             final quotation = state.quotation;
             return Text('Wycena ${quotation.quotationNumber} - ${quotation.vehicle.make} ${quotation.vehicle.model}');
@@ -1169,11 +1449,11 @@ class _AppBarBuilder extends StatelessWidget implements PreferredSizeWidget {
       actions: _buildAppBarActions(context),
     );
   }
+  
   List<Widget> _buildAppBarActions(BuildContext context) {
     return [
       BlocBuilder<QuotationBloc, QuotationState>(
         builder: (context, state) {
-          // Only show print button when we have a valid quotation state
           if (state is! QuotationDetailsLoaded && state is! QuotationOperationSuccessWithDetails) {
             return const SizedBox.shrink();
           }
@@ -1182,7 +1462,6 @@ class _AppBarBuilder extends StatelessWidget implements PreferredSizeWidget {
               ? state.quotation 
               : (state as QuotationOperationSuccessWithDetails).quotation;
           
-          // Use the quotation from the state, not the nullable one passed to the constructor
           return IconButton(
             icon: const Icon(Icons.print),
             tooltip: 'Drukuj wycenę',

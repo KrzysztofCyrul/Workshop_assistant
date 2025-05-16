@@ -207,35 +207,32 @@ class AppointmentBloc extends Bloc<AppointmentEvent, AppointmentState> {
     } catch (e) {
       emit(AppointmentError(message: 'Failed to update appointment status: ${e.toString()}'));
     }
-  }  Future<void> _onEditNotesValue(
+  }
+
+  Future<void> _onEditNotesValue(
     EditNotesValueEvent event,
     Emitter<AppointmentState> emit,
   ) async {
     final currentState = state;
-    if (currentState is AppointmentDetailsLoaded || 
-        currentState is AppointmentOperationSuccessWithDetails) {
-      final currentAppointment = currentState is AppointmentDetailsLoaded 
-          ? currentState.appointment 
-          : (currentState as AppointmentOperationSuccessWithDetails).appointment;
-      
+    if (currentState is AppointmentDetailsLoaded || currentState is AppointmentOperationSuccessWithDetails) {
+      final currentAppointment = currentState is AppointmentDetailsLoaded ? currentState.appointment : (currentState as AppointmentOperationSuccessWithDetails).appointment;
+
       try {
         // Keep current state while processing
-        emit(AppointmentDetailsLoaded(
-          appointment: currentAppointment.copyWith(notes: event.newNotes)
-        ));
+        emit(AppointmentDetailsLoaded(appointment: currentAppointment.copyWith(notes: event.newNotes)));
 
         await editNotesValue.execute(
           workshopId: event.workshopId,
           appointmentId: event.appointmentId,
           newNotes: event.newNotes,
         );
-        
+
         // Get updated appointment details
         final updatedAppointment = await getAppointmentDetails.execute(
           event.workshopId,
           event.appointmentId,
         );
-        
+
         emit(AppointmentOperationSuccessWithDetails(
           message: 'Notatki zaktualizowane',
           appointment: updatedAppointment,
@@ -267,13 +264,13 @@ class AppointmentBloc extends Bloc<AppointmentEvent, AppointmentState> {
       emit(AppointmentError(message: e.toString()));
     }
   }
+
   Future<void> _onAddPart(
     AddPartEvent event,
     Emitter<AppointmentState> emit,
   ) async {
     final currentState = state;
-    if (currentState is AppointmentDetailsLoaded || 
-        currentState is AppointmentOperationSuccessWithDetails) {
+    if (currentState is AppointmentDetailsLoaded || currentState is AppointmentOperationSuccessWithDetails) {
       try {
         await addPart.execute(
           workshopId: event.workshopId,
@@ -291,7 +288,7 @@ class AppointmentBloc extends Bloc<AppointmentEvent, AppointmentState> {
           event.workshopId,
           event.appointmentId,
         );
-        
+
         emit(AppointmentOperationSuccessWithDetails(
           message: 'Część dodana pomyślnie',
           appointment: updatedAppointment,
@@ -302,17 +299,16 @@ class AppointmentBloc extends Bloc<AppointmentEvent, AppointmentState> {
         emit(AppointmentError(message: 'Błąd dodawania części: ${e.toString()}'));
       }
     }
-  }  Future<void> _onUpdatePart(
+  }
+
+  Future<void> _onUpdatePart(
     UpdatePartEvent event,
     Emitter<AppointmentState> emit,
   ) async {
     final currentState = state;
-    if (currentState is AppointmentDetailsLoaded || 
-        currentState is AppointmentOperationSuccessWithDetails) {
-      final currentAppointment = currentState is AppointmentDetailsLoaded 
-          ? currentState.appointment 
-          : (currentState as AppointmentOperationSuccessWithDetails).appointment;
-      
+    if (currentState is AppointmentDetailsLoaded || currentState is AppointmentOperationSuccessWithDetails) {
+      final currentAppointment = currentState is AppointmentDetailsLoaded ? currentState.appointment : (currentState as AppointmentOperationSuccessWithDetails).appointment;
+
       try {
         // Update the part in the current state immediately
         final updatedParts = currentAppointment.parts.map((part) {
@@ -330,11 +326,9 @@ class AppointmentBloc extends Bloc<AppointmentEvent, AppointmentState> {
           }
           return part;
         }).toList();
-        
+
         // Emit intermediate state with locally updated data
-        emit(AppointmentDetailsLoaded(
-          appointment: currentAppointment.copyWith(parts: updatedParts)
-        ));
+        emit(AppointmentDetailsLoaded(appointment: currentAppointment.copyWith(parts: updatedParts)));
 
         await updatePart.execute(
           workshopId: event.workshopId,
@@ -353,7 +347,7 @@ class AppointmentBloc extends Bloc<AppointmentEvent, AppointmentState> {
           event.workshopId,
           event.appointmentId,
         );
-        
+
         emit(AppointmentOperationSuccessWithDetails(
           message: 'Część zaktualizowana pomyślnie',
           appointment: updatedAppointment,
@@ -367,23 +361,19 @@ class AppointmentBloc extends Bloc<AppointmentEvent, AppointmentState> {
       }
     }
   }
+
   Future<void> _onDeletePart(
     DeletePartEvent event,
     Emitter<AppointmentState> emit,
   ) async {
     final currentState = state;
-    if (currentState is AppointmentDetailsLoaded || 
-        currentState is AppointmentOperationSuccessWithDetails) {
-      final currentAppointment = currentState is AppointmentDetailsLoaded 
-          ? currentState.appointment 
-          : (currentState as AppointmentOperationSuccessWithDetails).appointment;
-      
+    if (currentState is AppointmentDetailsLoaded || currentState is AppointmentOperationSuccessWithDetails) {
+      final currentAppointment = currentState is AppointmentDetailsLoaded ? currentState.appointment : (currentState as AppointmentOperationSuccessWithDetails).appointment;
+
       try {
         // Update state immediately by removing the part
         final updatedParts = currentAppointment.parts.where((part) => part.id != event.partId).toList();
-        emit(AppointmentDetailsLoaded(
-          appointment: currentAppointment.copyWith(parts: updatedParts)
-        ));
+        emit(AppointmentDetailsLoaded(appointment: currentAppointment.copyWith(parts: updatedParts)));
 
         await deletePart.execute(
           workshopId: event.workshopId,
@@ -396,7 +386,7 @@ class AppointmentBloc extends Bloc<AppointmentEvent, AppointmentState> {
           event.workshopId,
           event.appointmentId,
         );
-        
+
         emit(AppointmentOperationSuccessWithDetails(
           message: 'Część usunięta pomyślnie',
           appointment: updatedAppointment,
@@ -428,17 +418,15 @@ class AppointmentBloc extends Bloc<AppointmentEvent, AppointmentState> {
       emit(AppointmentError(message: e.toString()));
     }
   }
+
   Future<void> _onAddRepairItem(
     AddRepairItemEvent event,
     Emitter<AppointmentState> emit,
   ) async {
     final currentState = state;
-    if (currentState is AppointmentDetailsLoaded || 
-        currentState is AppointmentOperationSuccessWithDetails) {
-      final currentAppointment = currentState is AppointmentDetailsLoaded 
-          ? currentState.appointment 
-          : (currentState as AppointmentOperationSuccessWithDetails).appointment;
-      
+    if (currentState is AppointmentDetailsLoaded || currentState is AppointmentOperationSuccessWithDetails) {
+      final currentAppointment = currentState is AppointmentDetailsLoaded ? currentState.appointment : (currentState as AppointmentOperationSuccessWithDetails).appointment;
+
       try {
         // Create temporary repair item
         final now = DateTime.now();
@@ -454,11 +442,7 @@ class AppointmentBloc extends Bloc<AppointmentEvent, AppointmentState> {
         );
 
         // Emit intermediate state with locally updated data
-        emit(AppointmentDetailsLoaded(
-          appointment: currentAppointment.copyWith(
-            repairItems: [...currentAppointment.repairItems, tempRepairItem]
-          )
-        ));
+        emit(AppointmentDetailsLoaded(appointment: currentAppointment.copyWith(repairItems: [...currentAppointment.repairItems, tempRepairItem])));
 
         await addRepairItem.execute(
           workshopId: event.workshopId,
@@ -473,7 +457,7 @@ class AppointmentBloc extends Bloc<AppointmentEvent, AppointmentState> {
           event.workshopId,
           event.appointmentId,
         );
-        
+
         emit(AppointmentOperationSuccessWithDetails(
           message: 'Element naprawy dodany',
           appointment: updatedAppointment,
@@ -487,17 +471,15 @@ class AppointmentBloc extends Bloc<AppointmentEvent, AppointmentState> {
       }
     }
   }
+
   Future<void> _onUpdateRepairItem(
     UpdateRepairItemEvent event,
     Emitter<AppointmentState> emit,
   ) async {
     final currentState = state;
-    if (currentState is AppointmentDetailsLoaded || 
-        currentState is AppointmentOperationSuccessWithDetails) {
-      final currentAppointment = currentState is AppointmentDetailsLoaded 
-          ? currentState.appointment 
-          : (currentState as AppointmentOperationSuccessWithDetails).appointment;
-      
+    if (currentState is AppointmentDetailsLoaded || currentState is AppointmentOperationSuccessWithDetails) {
+      final currentAppointment = currentState is AppointmentDetailsLoaded ? currentState.appointment : (currentState as AppointmentOperationSuccessWithDetails).appointment;
+
       try {
         // Update repair item in the current state immediately
         final updatedRepairItems = currentAppointment.repairItems.map((item) {
@@ -515,11 +497,9 @@ class AppointmentBloc extends Bloc<AppointmentEvent, AppointmentState> {
           }
           return item;
         }).toList();
-        
+
         // Emit intermediate state with locally updated data
-        emit(AppointmentDetailsLoaded(
-          appointment: currentAppointment.copyWith(repairItems: updatedRepairItems)
-        ));
+        emit(AppointmentDetailsLoaded(appointment: currentAppointment.copyWith(repairItems: updatedRepairItems)));
 
         await updateRepairItem.execute(
           workshopId: event.workshopId,
@@ -536,7 +516,7 @@ class AppointmentBloc extends Bloc<AppointmentEvent, AppointmentState> {
           event.workshopId,
           event.appointmentId,
         );
-        
+
         emit(AppointmentOperationSuccessWithDetails(
           message: 'Element naprawy zaktualizowany',
           appointment: updatedAppointment,
@@ -550,27 +530,21 @@ class AppointmentBloc extends Bloc<AppointmentEvent, AppointmentState> {
       }
     }
   }
+
   Future<void> _onDeleteRepairItem(
     DeleteRepairItemEvent event,
     Emitter<AppointmentState> emit,
   ) async {
     final currentState = state;
-    if (currentState is AppointmentDetailsLoaded || 
-        currentState is AppointmentOperationSuccessWithDetails) {
-      final currentAppointment = currentState is AppointmentDetailsLoaded 
-          ? currentState.appointment 
-          : (currentState as AppointmentOperationSuccessWithDetails).appointment;
-      
+    if (currentState is AppointmentDetailsLoaded || currentState is AppointmentOperationSuccessWithDetails) {
+      final currentAppointment = currentState is AppointmentDetailsLoaded ? currentState.appointment : (currentState as AppointmentOperationSuccessWithDetails).appointment;
+
       try {
         // Update state immediately by removing the repair item
-        final updatedRepairItems = currentAppointment.repairItems
-            .where((item) => item.id != event.repairItemId)
-            .toList();
+        final updatedRepairItems = currentAppointment.repairItems.where((item) => item.id != event.repairItemId).toList();
 
         // Emit intermediate state with locally updated data
-        emit(AppointmentDetailsLoaded(
-          appointment: currentAppointment.copyWith(repairItems: updatedRepairItems)
-        ));
+        emit(AppointmentDetailsLoaded(appointment: currentAppointment.copyWith(repairItems: updatedRepairItems)));
 
         await deleteRepairItem.execute(
           workshopId: event.workshopId,
@@ -583,7 +557,7 @@ class AppointmentBloc extends Bloc<AppointmentEvent, AppointmentState> {
           event.workshopId,
           event.appointmentId,
         );
-        
+
         emit(AppointmentOperationSuccessWithDetails(
           message: 'Element naprawy usunięty',
           appointment: updatedAppointment,

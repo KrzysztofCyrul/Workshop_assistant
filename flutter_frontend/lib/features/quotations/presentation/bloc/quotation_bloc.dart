@@ -77,8 +77,7 @@ class QuotationBloc extends Bloc<QuotationEvent, QuotationState> {
       final result = await getQuotations.execute(event.workshopId);
       result.fold(
         (failure) {
-          if (failure.message.contains('unauthorized') || 
-              failure.message.contains('Unauthorized')) {
+          if (failure.message.contains('unauthorized') || failure.message.contains('Unauthorized')) {
             emit(const QuotationUnauthenticated());
           } else {
             emit(QuotationError(message: failure.message));
@@ -105,19 +104,22 @@ class QuotationBloc extends Bloc<QuotationEvent, QuotationState> {
       );
       result.fold(
         (failure) {
-          if (failure.message.contains('unauthorized') || 
-              failure.message.contains('Unauthorized')) {
+          if (failure.message.contains('unauthorized') || failure.message.contains('Unauthorized')) {
             emit(const QuotationUnauthenticated());
           } else {
             emit(QuotationError(message: failure.message));
           }
         },
-        (quotation) => emit(QuotationDetailsLoaded(quotation: quotation)),
+        (quotation) {
+          // Sortuj części według daty utworzenia (rosnąco)
+          final sortedParts = [...quotation.parts];
+          sortedParts.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+          
+          emit(QuotationDetailsLoaded(quotation: quotation.copyWith(parts: sortedParts)));
+        },
       );
-    } on AuthException {
-      emit(const QuotationUnauthenticated());
     } catch (e) {
-      emit(QuotationError(message: e.toString()));
+      // error handling...
     }
   }
 
@@ -126,7 +128,8 @@ class QuotationBloc extends Bloc<QuotationEvent, QuotationState> {
     Emitter<QuotationState> emit,
   ) async {
     emit(QuotationLoading());
-    try {      final result = await createQuotation.execute(
+    try {
+      final result = await createQuotation.execute(
         workshopId: event.workshopId,
         clientId: event.clientId,
         vehicleId: event.vehicleId,
@@ -136,8 +139,7 @@ class QuotationBloc extends Bloc<QuotationEvent, QuotationState> {
       );
       result.fold(
         (failure) {
-          if (failure.message.contains('unauthorized') || 
-              failure.message.contains('Unauthorized')) {
+          if (failure.message.contains('unauthorized') || failure.message.contains('Unauthorized')) {
             emit(const QuotationUnauthenticated());
           } else {
             emit(QuotationError(message: failure.message));
@@ -168,8 +170,7 @@ class QuotationBloc extends Bloc<QuotationEvent, QuotationState> {
       );
       result.fold(
         (failure) {
-          if (failure.message.contains('unauthorized') || 
-              failure.message.contains('Unauthorized')) {
+          if (failure.message.contains('unauthorized') || failure.message.contains('Unauthorized')) {
             emit(const QuotationUnauthenticated());
           } else {
             emit(QuotationError(message: failure.message));
@@ -195,8 +196,7 @@ class QuotationBloc extends Bloc<QuotationEvent, QuotationState> {
       final result = await deleteQuotation.execute(event.workshopId, event.quotationId);
       result.fold(
         (failure) {
-          if (failure.message.contains('unauthorized') || 
-              failure.message.contains('Unauthorized')) {
+          if (failure.message.contains('unauthorized') || failure.message.contains('Unauthorized')) {
             emit(const QuotationUnauthenticated());
           } else {
             emit(QuotationError(message: failure.message));
@@ -225,8 +225,7 @@ class QuotationBloc extends Bloc<QuotationEvent, QuotationState> {
       );
       result.fold(
         (failure) {
-          if (failure.message.contains('unauthorized') || 
-              failure.message.contains('Unauthorized')) {
+          if (failure.message.contains('unauthorized') || failure.message.contains('Unauthorized')) {
             emit(const QuotationUnauthenticated());
           } else {
             emit(QuotationError(message: failure.message));
@@ -246,13 +245,39 @@ class QuotationBloc extends Bloc<QuotationEvent, QuotationState> {
     Emitter<QuotationState> emit,
   ) async {
     final currentState = state;
-    if (currentState is QuotationDetailsLoaded || 
-        currentState is QuotationOperationSuccessWithDetails) {
+    if (currentState is QuotationDetailsLoaded || currentState is QuotationOperationSuccessWithDetails) {
       final currentQuotation = currentState is QuotationDetailsLoaded 
           ? currentState.quotation 
           : (currentState as QuotationOperationSuccessWithDetails).quotation;
-      
+
       try {
+        // Tworzenie tymczasowej części z unikalnym ID
+        final now = DateTime.now();
+        final tempPart = QuotationPart(
+          id: 'temp_${now.millisecondsSinceEpoch}',
+          quotationId: currentQuotation.id,
+          name: event.name,
+          description: event.description ?? '',
+          quantity: event.quantity,
+          costPart: event.costPart,
+          costService: event.costService,
+          buyCostPart: event.buyCostPart,
+          createdAt: now,
+          updatedAt: now,
+        );
+
+        // Dodaj tymczasową część do listy i emituj zaktualizowany stan (optymistyczna aktualizacja)
+        final updatedParts = [...currentQuotation.parts, tempPart];
+        
+        // Sortuj części według daty utworzenia (rosnąco)
+        updatedParts.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+        
+        // Emituj zaktualizowany stan
+        emit(QuotationDetailsLoaded(
+          quotation: currentQuotation.copyWith(parts: updatedParts)
+        ));
+
+        // Wykonaj właściwe żądanie API
         final result = await createQuotationPart.execute(
           workshopId: event.workshopId,
           quotationId: event.quotationId,
@@ -263,35 +288,32 @@ class QuotationBloc extends Bloc<QuotationEvent, QuotationState> {
           costService: event.costService,
           buyCostPart: event.buyCostPart,
         );
+
+        // Obsłuż wynik żądania API
+        if (emit.isDone) return; // Sprawdź, czy można nadal emitować stany
         
         result.fold(
           (failure) {
-            if (failure.message.contains('unauthorized') || 
-                failure.message.contains('Unauthorized')) {
+            if (failure.message.contains('unauthorized') || failure.message.contains('Unauthorized')) {
               emit(const QuotationUnauthenticated());
             } else {
+              // W przypadku błędu - przywróć oryginalny stan
+              emit(QuotationDetailsLoaded(quotation: currentQuotation));
               emit(QuotationError(message: failure.message));
             }
           },
-          (part) async {
-            // Get updated quotation details
-            final detailsResult = await getQuotationDetails.execute(
-              event.workshopId,
-              event.quotationId,
-            );
-            
-            detailsResult.fold(
-              (failure) => emit(QuotationError(message: failure.message)),
-              (updatedQuotation) => emit(QuotationOperationSuccessWithDetails(
-                message: 'Część wyceny dodana pomyślnie',
-                quotation: updatedQuotation,
-              )),
-            );
+          (newPart) {
+            // Po sukcesie pokaż komunikat, ale nie odświeżaj całego ekranu
+            emit(QuotationOperationSuccess(message: 'Część wyceny dodana pomyślnie'));
           },
         );
       } on AuthException {
+        if (emit.isDone) return;
         emit(const QuotationUnauthenticated());
       } catch (e) {
+        if (emit.isDone) return;
+        // W przypadku błędu - przywróć oryginalny stan
+        emit(QuotationDetailsLoaded(quotation: currentQuotation));
         emit(QuotationError(message: 'Błąd dodawania części wyceny: ${e.toString()}'));
       }
     }
@@ -302,14 +324,42 @@ class QuotationBloc extends Bloc<QuotationEvent, QuotationState> {
     Emitter<QuotationState> emit,
   ) async {
     final currentState = state;
-    if (currentState is QuotationDetailsLoaded || 
-        currentState is QuotationOperationSuccessWithDetails) {
-      final currentQuotation = currentState is QuotationDetailsLoaded 
-          ? currentState.quotation 
-          : (currentState as QuotationOperationSuccessWithDetails).quotation;
+    if (currentState is QuotationDetailsLoaded || currentState is QuotationOperationSuccessWithDetails) {
+      final currentQuotation = currentState is QuotationDetailsLoaded ? currentState.quotation : (currentState as QuotationOperationSuccessWithDetails).quotation;
       
       try {
-        final result = await updateQuotationPart.execute(
+        // Zachowujemy oryginalne pozycje części
+        final originalParts = [...currentQuotation.parts];
+        
+        // Update the part in the current state immediately
+        final updatedParts = currentQuotation.parts.map((part) {
+          if (part.id == event.partId) {
+            return QuotationPart(
+              id: part.id,
+              quotationId: currentQuotation.id,
+              name: event.name,
+              description: event.description ?? part.description,
+              quantity: event.quantity,
+              costPart: event.costPart,
+              costService: event.costService,
+              buyCostPart: event.buyCostPart,
+              createdAt: part.createdAt,
+              updatedAt: DateTime.now(),
+            );
+          }
+          return part;
+        }).toList();
+        
+        // Zachowujemy oryginalną kolejność części
+        updatedParts.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+
+        
+        // Emit intermediate state with locally updated data
+        emit(QuotationDetailsLoaded(
+          quotation: currentQuotation.copyWith(parts: updatedParts)
+        ));
+
+        await updateQuotationPart.execute(
           workshopId: event.workshopId,
           quotationId: event.quotationId,
           partId: event.partId,
@@ -320,8 +370,14 @@ class QuotationBloc extends Bloc<QuotationEvent, QuotationState> {
           costService: event.costService,
           buyCostPart: event.buyCostPart,
         );
+
+        // Get updated quotation details
+        final updatedQuotation = await getQuotationDetails.execute(
+          event.workshopId,
+          event.quotationId,
+        );
         
-        result.fold(
+        updatedQuotation.fold(
           (failure) {
             if (failure.message.contains('unauthorized') || 
                 failure.message.contains('Unauthorized')) {
@@ -330,26 +386,30 @@ class QuotationBloc extends Bloc<QuotationEvent, QuotationState> {
               emit(QuotationError(message: failure.message));
             }
           },
-          (updatedPart) async {
-            // Get updated quotation details
-            final detailsResult = await getQuotationDetails.execute(
-              event.workshopId,
-              event.quotationId,
-            );
+          (quotation) {
+            // Posortuj nowo pobrane części zachowując oryginalną kolejność
+            final sortedParts = [...quotation.parts];
+            sortedParts.sort((a, b) {
+              final originalIndexA = originalParts.indexWhere((p) => p.id == a.id);
+              final originalIndexB = originalParts.indexWhere((p) => p.id == b.id);
+              if (originalIndexA == -1) return 1;  // Nowe elementy na koniec
+              if (originalIndexB == -1) return -1; // Nowe elementy na koniec
+              return originalIndexA.compareTo(originalIndexB);
+            });
             
-            detailsResult.fold(
-              (failure) => emit(QuotationError(message: failure.message)),
-              (updatedQuotation) => emit(QuotationOperationSuccessWithDetails(
-                message: 'Część wyceny zaktualizowana pomyślnie',
-                quotation: updatedQuotation,
-              )),
-            );
+            // Emituj stan z posortowanymi częściami
+            emit(QuotationOperationSuccessWithDetails(
+              message: 'Część zaktualizowana pomyślnie',
+              quotation: quotation.copyWith(parts: sortedParts),
+            ));
           },
         );
       } on AuthException {
         emit(const QuotationUnauthenticated());
       } catch (e) {
-        emit(QuotationError(message: 'Błąd aktualizacji części wyceny: ${e.toString()}'));
+        // Revert to original state on error
+        emit(QuotationDetailsLoaded(quotation: currentQuotation));
+        emit(QuotationError(message: 'Błąd aktualizacji części: ${e.toString()}'));
       }
     }
   }
@@ -359,47 +419,57 @@ class QuotationBloc extends Bloc<QuotationEvent, QuotationState> {
     Emitter<QuotationState> emit,
   ) async {
     final currentState = state;
-    if (currentState is QuotationDetailsLoaded || 
-        currentState is QuotationOperationSuccessWithDetails) {
+    if (currentState is QuotationDetailsLoaded || currentState is QuotationOperationSuccessWithDetails) {
       final currentQuotation = currentState is QuotationDetailsLoaded 
           ? currentState.quotation 
           : (currentState as QuotationOperationSuccessWithDetails).quotation;
-      
+
       try {
-        final result = await deleteQuotationPart.execute(
+        // Update state immediately by removing the part (optimistic update)
+        final updatedParts = currentQuotation.parts.where((part) => part.id != event.partId).toList();
+        
+        // Sortuj części według daty utworzenia (rosnąco)
+        updatedParts.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+        
+        emit(QuotationDetailsLoaded(quotation: currentQuotation.copyWith(parts: updatedParts)));
+
+        // Then make API call
+        await deleteQuotationPart.execute(
           workshopId: event.workshopId,
           quotationId: event.quotationId,
           partId: event.partId,
         );
+
+        // Get updated quotation details
+        final updatedQuotation = await getQuotationDetails.execute(
+          event.workshopId,
+          event.quotationId,
+        );
         
-        result.fold(
+        updatedQuotation.fold(
           (failure) {
-            if (failure.message.contains('unauthorized') || 
-                failure.message.contains('Unauthorized')) {
+            if (failure.message.contains('unauthorized') || failure.message.contains('Unauthorized')) {
               emit(const QuotationUnauthenticated());
             } else {
               emit(QuotationError(message: failure.message));
             }
           },
-          (_) async {
-            // Get updated quotation details
-            final detailsResult = await getQuotationDetails.execute(
-              event.workshopId,
-              event.quotationId,
-            );
+          (quotation) {
+            // Sortuj części według daty utworzenia
+            final sortedParts = [...quotation.parts];
+            sortedParts.sort((a, b) => a.createdAt.compareTo(b.createdAt));
             
-            detailsResult.fold(
-              (failure) => emit(QuotationError(message: failure.message)),
-              (updatedQuotation) => emit(QuotationOperationSuccessWithDetails(
-                message: 'Część wyceny usunięta pomyślnie',
-                quotation: updatedQuotation,
-              )),
-            );
+            emit(QuotationOperationSuccessWithDetails(
+              message: 'Część usunięta pomyślnie',
+              quotation: quotation.copyWith(parts: sortedParts),
+            ));
           },
         );
       } on AuthException {
         emit(const QuotationUnauthenticated());
       } catch (e) {
+        // Revert to original state on error
+        emit(QuotationDetailsLoaded(quotation: currentQuotation));
         emit(QuotationError(message: 'Błąd usuwania części wyceny: ${e.toString()}'));
       }
     }
@@ -411,7 +481,7 @@ class QuotationBloc extends Bloc<QuotationEvent, QuotationState> {
   ) async {
     emit(QuotationInitial());
   }
-  
+
   Future<void> _onLogout(
     QuotationLogoutEvent event,
     Emitter<QuotationState> emit,
