@@ -249,7 +249,6 @@ class _QuotationsListScreenState extends State<QuotationsListScreen> {  @overrid
       );
     } catch (e) {
       // If an error occurs, return a fallback card
-      print('Error rendering quotation: $e');
       return Card(
         margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
         color: Colors.red.shade50,

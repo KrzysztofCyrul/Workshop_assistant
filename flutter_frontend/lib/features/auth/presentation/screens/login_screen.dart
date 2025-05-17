@@ -89,7 +89,7 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
         child: BlocConsumer<AuthBloc, AuthState>(
           listener: (context, state) {
-            print('Current state: $state'); // Debug line
+            // Debug line
             
             if (state is Authenticated) {
               // Use pushNamedAndRemoveUntil to clear the navigation stack

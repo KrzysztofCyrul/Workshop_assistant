@@ -6,7 +6,6 @@ import 'features/auth/presentation/screens/login_screen.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
 import 'app_routes.dart';
-import 'core/utils/colors.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'features/vehicles/presentation/bloc/vehicle_bloc.dart';
@@ -66,8 +65,6 @@ Future<void> main() async {
 
   // Inicjalizacja zależności i kolorów
   initDependencies(); // Inicjalizacja DI
-  await SegmentColors.loadColors();
-
   // Inicjalizacja formatowania daty dla polskiej lokalizacji
   await initializeDateFormatting('pl_PL', null);
 

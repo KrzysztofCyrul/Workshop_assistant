@@ -8,11 +8,11 @@ class PartsSuggestionField extends StatefulWidget {
   final Function(String) onChanged;
   
   const PartsSuggestionField({
-    Key? key,
+    super.key,
     required this.controller,
     required this.label,
     required this.onChanged,
-  }) : super(key: key);
+  });
 
   @override
   State<PartsSuggestionField> createState() => _PartsSuggestionFieldState();

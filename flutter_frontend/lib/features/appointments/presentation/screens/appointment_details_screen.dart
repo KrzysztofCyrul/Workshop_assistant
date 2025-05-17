@@ -776,7 +776,7 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
       );
     }
 
-    Future<void> _confirmDeleteRepairItem(RepairItem item) async {
+    Future<void> confirmDeleteRepairItem(RepairItem item) async {
       // Wyświetl dialog z potwierdzeniem usunięcia
       final shouldDelete = await showDialog<bool>(        context: context,
         builder: (context) {
@@ -872,7 +872,7 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
                     if (states.contains(WidgetState.selected)) {
                       return AppTheme.getFeatureColor('appointments').withOpacity(0.1);
                     }
-                    return states.any((element) => element == MaterialState.hovered) ? Colors.grey.shade200 : Colors.grey.shade50;
+                    return states.any((element) => element == WidgetState.hovered) ? Colors.grey.shade200 : Colors.grey.shade50;
                   }),
                   columns: const [
                     DataColumn(
@@ -982,7 +982,7 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
                               children: [
                                 IconButton(
                                   icon: const Icon(Icons.delete, color: Colors.red, size: 20),
-                                  onPressed: () => _confirmDeleteRepairItem(item),
+                                  onPressed: () => confirmDeleteRepairItem(item),
                                   tooltip: 'Usuń element naprawy',
                                   splashRadius: 20,
                                 ),
@@ -1165,14 +1165,14 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
                         width: 1,
                         borderRadius: BorderRadius.circular(8.0),
                       ),
-                      headingRowColor: MaterialStateProperty.resolveWith(
+                      headingRowColor: WidgetStateProperty.resolveWith(
                         (states) => AppTheme.getFeatureColor('appointments').withOpacity(0.2),
                       ),
-                      dataRowColor: MaterialStateProperty.resolveWith((states) {
-                        if (states.contains(MaterialState.selected)) {
+                      dataRowColor: WidgetStateProperty.resolveWith((states) {
+                        if (states.contains(WidgetState.selected)) {
                           return AppTheme.getFeatureColor('appointments').withOpacity(0.1);
                         }
-                        return states.any((element) => element == MaterialState.hovered) ? Colors.grey.shade200 : Colors.grey.shade50;
+                        return states.any((element) => element == WidgetState.hovered) ? Colors.grey.shade200 : Colors.grey.shade50;
                       }),
                       columns: const [
                         DataColumn(

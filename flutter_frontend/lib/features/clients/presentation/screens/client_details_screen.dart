@@ -80,10 +80,10 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Anuluj'),
             style: TextButton.styleFrom(
               foregroundColor: Colors.black54,
             ),
+            child: const Text('Anuluj'),
           ),
           ElevatedButton.icon(
             onPressed: () => Navigator.pop(context, true),

@@ -18,6 +18,7 @@ class QuotationRemoteDataSource {
       throw DioErrorHandler.handle(e);
     }
   }
+
   Future<Quotation> getQuotationDetails(String workshopId, String quotationId) async {
     try {
       final response = await dio.get('${api_constants.baseUrl}/workshops/$workshopId/quotations/$quotationId/');
@@ -25,7 +26,9 @@ class QuotationRemoteDataSource {
     } on DioException catch (e) {
       throw DioErrorHandler.handle(e);
     }
-  }Future<String> addQuotation({
+  }
+
+  Future<String> addQuotation({
     required String workshopId,
     required String clientId,
     required String vehicleId,
@@ -39,32 +42,25 @@ class QuotationRemoteDataSource {
         'client_id': clientId,
         'vehicle_id': vehicleId,
         'total_cost': totalCost,
-        'workshop': workshopId,  // Wymagane pole workshop
+        'workshop': workshopId, // Wymagane pole workshop
       };
-      
+
       // Dodajemy opcjonalne pola tylko gdy nie są null
       if (notes != null && notes.isNotEmpty) {
         data['notes'] = notes;
       }
-      
+
       if (date != null) {
         data['date'] = date.toIso8601String();
       }
-      
-      print('Wysyłanie danych quotation: $data'); // Dodajemy log dla debugowania
-      
+
       final response = await dio.post(
         '${api_constants.baseUrl}/workshops/$workshopId/quotations/',
         data: data,
       );
-        print('Odpowiedź z serwera: ${response.data}');
       return response.data['id'];
     } on DioException catch (e) {
-      print('Błąd podczas dodawania wyceny: ${e.message}');
-      if (e.response != null) {
-        print('Status: ${e.response?.statusCode}');
-        print('Dane odpowiedzi: ${e.response?.data}');
-      }
+      if (e.response != null) {}
       throw DioErrorHandler.handle(e);
     }
   }
@@ -93,6 +89,7 @@ class QuotationRemoteDataSource {
       throw DioErrorHandler.handle(e);
     }
   }
+
   Future<List<QuotationPart>> getQuotationParts({
     required String workshopId,
     required String quotationId,
@@ -105,7 +102,9 @@ class QuotationRemoteDataSource {
     } on DioException catch (e) {
       throw DioErrorHandler.handle(e);
     }
-  }  Future<QuotationPart> addQuotationPart({
+  }
+
+  Future<QuotationPart> addQuotationPart({
     required String workshopId,
     required String quotationId,
     required String name,
@@ -115,7 +114,8 @@ class QuotationRemoteDataSource {
     required double costService,
     required double buyCostPart,
   }) async {
-    try {      final response = await dio.post(
+    try {
+      final response = await dio.post(
         '${api_constants.baseUrl}/workshops/$workshopId/quotations/$quotationId/parts/',
         data: {
           'quotation': quotationId,
@@ -131,7 +131,9 @@ class QuotationRemoteDataSource {
     } on DioException catch (e) {
       throw DioErrorHandler.handle(e);
     }
-  }  Future<QuotationPart> updateQuotationPart({
+  }
+
+  Future<QuotationPart> updateQuotationPart({
     required String workshopId,
     required String quotationId,
     required String partId,
@@ -142,7 +144,8 @@ class QuotationRemoteDataSource {
     required double costService,
     required double buyCostPart,
   }) async {
-    try {      final response = await dio.patch(
+    try {
+      final response = await dio.patch(
         '${api_constants.baseUrl}/workshops/$workshopId/quotations/$quotationId/parts/$partId/',
         data: {
           'name': name,

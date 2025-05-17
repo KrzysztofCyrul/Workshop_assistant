@@ -587,14 +587,14 @@ class _QuotationDetailsScreenState extends State<QuotationDetailsScreen> with Fo
                       width: 1,
                       borderRadius: BorderRadius.circular(8.0),
                     ),
-                    headingRowColor: MaterialStateProperty.resolveWith(
+                    headingRowColor: WidgetStateProperty.resolveWith(
                       (states) => Colors.green.shade100,
                     ),
-                    dataRowColor: MaterialStateProperty.resolveWith((states) {
-                      if (states.contains(MaterialState.selected)) {
+                    dataRowColor: WidgetStateProperty.resolveWith((states) {
+                      if (states.contains(WidgetState.selected)) {
                         return Colors.green.shade50;
                       }
-                      return states.any((element) => element == MaterialState.hovered) ? Colors.grey.shade200 : Colors.grey.shade50;
+                      return states.any((element) => element == WidgetState.hovered) ? Colors.grey.shade200 : Colors.grey.shade50;
                     }),
                     columns: const [
                       DataColumn(
