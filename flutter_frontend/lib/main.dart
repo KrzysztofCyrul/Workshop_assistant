@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_frontend/screens/home/home_screen.dart';
+import 'package:flutter_frontend/home_screen.dart';
 import 'core/di/injector_container.dart';
 import 'features/appointments/domain/usecases/update_appointment_status.dart';
 import 'features/auth/presentation/screens/login_screen.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
-import 'routes/app_routes.dart';
+import 'app_routes.dart';
 import 'core/utils/colors.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 

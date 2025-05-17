@@ -14,7 +14,7 @@ import 'package:flutter_frontend/core/widgets/custom_app_bar.dart';
 import 'package:flutter_frontend/core/theme/app_theme.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../features/auth/presentation/bloc/auth_bloc.dart';
+import 'features/auth/presentation/bloc/auth_bloc.dart';
 
 class HomeScreen extends StatelessWidget {
   static const routeName = '/home';

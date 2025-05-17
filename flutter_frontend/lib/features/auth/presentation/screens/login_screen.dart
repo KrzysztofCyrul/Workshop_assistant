@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../bloc/auth_bloc.dart';
 import '../../../../core/utils/validators.dart';
-import '../../../../screens/home/home_screen.dart';
+import '../../../../home_screen.dart';
 import '../../../../core/widgets/login_text_field.dart';
 
 class LoginScreen extends StatefulWidget {

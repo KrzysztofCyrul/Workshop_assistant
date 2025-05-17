@@ -39,12 +39,12 @@ import 'package:flutter_frontend/features/workshop/presentation/screens/get_temp
 import 'package:flutter_frontend/features/workshop/presentation/screens/use_code_screen.dart';
 
 // Other screens
-import '../screens/home/home_screen.dart';
+import 'home_screen.dart';
 // import '../screens/employee/use_code_screen.dart';
 
 // BLoC-based quotation screens
-import '../features/quotations/presentation/screens/add_quotation_screen.dart';
-import '../features/quotations/presentation/screens/quotations_list_screen.dart';
+import 'features/quotations/presentation/screens/add_quotation_screen.dart';
+import 'features/quotations/presentation/screens/quotations_list_screen.dart';
 
 /// A widget that schedules navigation after the first build is complete
 class _NavigateAfterBuild extends StatefulWidget {
