@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/workshop_bloc.dart';
+import 'package:flutter_frontend/core/widgets/custom_app_bar.dart';
 
 class AddWorkshopScreen extends StatefulWidget {
   static const routeName = '/add-workshop';
@@ -41,9 +42,9 @@ class _AddWorkshopScreenState extends State<AddWorkshopScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Utwórz Warsztat'),
+    return Scaffold(      appBar: CustomAppBar(
+        title: 'Utwórz Warsztat',
+        feature: 'settings',
       ),
       body: BlocConsumer<WorkshopBloc, WorkshopState>(
         listener: (context, state) {

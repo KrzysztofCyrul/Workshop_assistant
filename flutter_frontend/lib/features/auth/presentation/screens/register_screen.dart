@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/auth_bloc.dart';
 import '../../../../core/widgets/login_text_field.dart';
 import '../../../../core/utils/validators.dart';
+import '../../../../core/widgets/custom_app_bar.dart';
 
 class RegisterScreen extends StatelessWidget {
   static const routeName = '/register';
@@ -17,10 +18,11 @@ class RegisterScreen extends StatelessWidget {
     final passwordController = TextEditingController();
     final firstNameController = TextEditingController();
     final lastNameController = TextEditingController();
-    String selectedRole = 'mechanic';
-
-    return Scaffold(
-      appBar: AppBar(title: const Text('Rejestracja')),
+    String selectedRole = 'mechanic';    return Scaffold(
+      appBar: CustomAppBar(
+        title: 'Rejestracja',
+        feature: 'settings',
+      ),
       body: BlocConsumer<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthError) {

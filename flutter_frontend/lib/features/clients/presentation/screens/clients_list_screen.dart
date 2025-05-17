@@ -4,6 +4,8 @@ import 'package:flutter_frontend/features/clients/domain/entities/client.dart';
 import 'package:flutter_frontend/features/clients/presentation/bloc/client_bloc.dart';
 import 'package:flutter_frontend/features/clients/presentation/screens/client_details_screen.dart';
 import 'package:flutter_frontend/features/clients/presentation/screens/add_client_screen.dart';
+import 'package:flutter_frontend/core/widgets/custom_app_bar.dart';
+import 'package:flutter_frontend/core/widgets/add_action_button.dart';
 
 class ClientsListScreen extends StatefulWidget {
   static const routeName = '/clients-list';
@@ -51,20 +53,14 @@ class _ClientsListScreenState extends State<ClientsListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Lista Klientów',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        elevation: 2,
-        backgroundColor: Theme.of(context).colorScheme.surface,
+    return Scaffold(      appBar: CustomAppBar(
+        title: 'Lista Klientów',
+        feature: 'clients',
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: _loadClients,
             tooltip: 'Odśwież listę',
-            color: Theme.of(context).colorScheme.primary,
           ),
           IconButton(
             icon: const Icon(Icons.person_add),
@@ -136,8 +132,7 @@ class _ClientsListScreenState extends State<ClientsListScreen> {
             ),
           );
         },
-      ),
-      floatingActionButton: FloatingActionButton.extended(
+      ),      floatingActionButton: AddActionButton(
         onPressed: () async {
           final result = await Navigator.pushNamed(
             context,
@@ -150,9 +145,10 @@ class _ClientsListScreenState extends State<ClientsListScreen> {
           }
         },
         tooltip: 'Dodaj klienta',
-        icon: const Icon(Icons.person_add),
-        label: const Text('Nowy klient'),
-        backgroundColor: Colors.blue,
+        iconData: Icons.person_add,
+        labelText: 'Nowy klient',
+        isExtended: true,
+        backgroundColor: Theme.of(context).colorScheme.primary,
       ),
     );
   }

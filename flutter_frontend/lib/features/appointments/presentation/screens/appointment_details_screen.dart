@@ -12,7 +12,17 @@ import '../../domain/services/appointment_pdf_generator.dart';
 import 'package:flutter_frontend/features/vehicles/presentation/screens/service_history_screen.dart';
 import 'package:flutter_frontend/features/vehicles/domain/entities/vehicle.dart';
 import 'package:flutter_frontend/features/clients/domain/entities/client.dart';
+import 'package:flutter_frontend/features/shared/presentation/widgets/contact_button_widget.dart';
+import 'package:flutter_frontend/features/shared/presentation/widgets/cost_summary_widget.dart';
+import 'package:flutter_frontend/features/shared/presentation/widgets/detail_row_widget.dart';
+import 'package:flutter_frontend/features/shared/presentation/widgets/details_card_widget.dart';
+import 'package:flutter_frontend/features/shared/presentation/widgets/client_profile_widget.dart';
+import 'package:flutter_frontend/features/shared/presentation/widgets/vehicle_profile_widget.dart';
 import 'package:flutter_frontend/features/shared/presentation/widgets/part_form_widget.dart';
+import 'package:flutter_frontend/features/shared/presentation/widgets/section_title_widget.dart';
+import 'package:flutter_frontend/features/shared/presentation/widgets/status_badge_widget.dart';
+import 'package:flutter_frontend/core/widgets/custom_app_bar.dart';
+import 'package:flutter_frontend/core/theme/app_theme.dart';
 
 // Constants
 class AppointmentStatus {
@@ -201,8 +211,7 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
 
   Future<void> _confirmDeletePartItem(Part part, Appointment appointment) async {
     // Wyświetl dialog z potwierdzeniem usunięcia
-    final shouldDelete = await showDialog<bool>(
-      context: context,
+    final shouldDelete = await showDialog<bool>(      context: context,
       builder: (context) {
         return AlertDialog(
           title: const Text('Potwierdzenie usunięcia'),
@@ -227,7 +236,7 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
+                backgroundColor: AppTheme.errorColor,
                 foregroundColor: Colors.white,
               ),
               onPressed: () => Navigator.of(context).pop(true),
@@ -252,20 +261,19 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
   }
 
   Widget _buildBody() {
-    return BlocConsumer<AppointmentBloc, AppointmentState>(
-      listener: (context, state) {
+    return BlocConsumer<AppointmentBloc, AppointmentState>(      listener: (context, state) {
         if (state is AppointmentError) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(state.message),
-              backgroundColor: Colors.red,
+              backgroundColor: AppTheme.errorColor,
             ),
           );
         } else if (state is AppointmentOperationSuccess) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(state.message),
-              backgroundColor: Colors.green,
+              backgroundColor: AppTheme.getFeatureColor('appointments'),
             ),
           );
           // Reload appointment details after successful operation
@@ -277,7 +285,7 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(state.message),
-              backgroundColor: Colors.green,
+              backgroundColor: AppTheme.getFeatureColor('appointments'),
             ),
           );
         }
@@ -348,607 +356,284 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
       ),
     );
   }
-
   Widget _buildAppointmentDetailsCard(BuildContext context, Appointment appointment) {
-    Widget buildDetailRow(String label, String value, {IconData? icon, Color? iconColor}) {
-      return Container(
-        margin: const EdgeInsets.only(bottom: 8.0),
-        padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0),
-        decoration: BoxDecoration(
-          color: Colors.grey.shade50,
-          borderRadius: BorderRadius.circular(8.0),
-          border: Border.all(color: Colors.grey.shade200),
-        ),
-        child: Row(
-          children: [
-            if (icon != null)
-              Container(
-                padding: const EdgeInsets.all(8.0),
-                margin: const EdgeInsets.only(right: 12.0),
-                decoration: BoxDecoration(
-                  color: (iconColor ?? Colors.blue).withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-                child: Icon(icon, size: 20, color: iconColor ?? Colors.blue),
-              ),
-            Expanded(
-              child: Text(
-                label,
-                style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
-              ),
-            ),
-            Expanded(
-              child: Text(
-                value,
-                style: TextStyle(color: Colors.grey.shade700, fontSize: 15),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
     final statusColor = AppointmentStatus.getColor(appointment.status);
     final statusIcon = AppointmentStatus.getIcon(appointment.status);
-
-    return Card(
-      elevation: 3,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      margin: const EdgeInsets.symmetric(vertical: 4.0),
-      child: ExpansionTile(
-        initiallyExpanded: false,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        collapsedShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        tilePadding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
-        leading: Container(
-          padding: const EdgeInsets.all(8.0),
+    final featureColor = AppTheme.getFeatureColor('appointments');
+    
+    return DetailsCardWidget(
+      title: 'Szczegóły Zlecenia',
+      subtitle: AppointmentStatus.getLabel(appointment.status),
+      icon: Icons.assignment,
+      iconBackgroundColor: featureColor.withOpacity(0.2),
+      iconColor: featureColor,
+      initiallyExpanded: false,
+      children: [
+        // Appointment details
+        DetailRowWidget(
+          label: 'Data',
+          value: DateFormat('dd-MM-yyyy HH:mm').format(appointment.scheduledTime.toLocal()),
+          icon: Icons.calendar_today,
+          iconColor: featureColor,
+        ),
+        DetailRowWidget(
+          label: 'Status',
+          value: AppointmentStatus.getLabel(appointment.status),
+          icon: statusIcon,
+          iconColor: statusColor,
+        ),
+        DetailRowWidget(
+          label: 'Przebieg',
+          value: '${appointment.mileage} km',
+          icon: Icons.speed,
+          iconColor: featureColor,
+        ),
+        const SizedBox(height: 12.0),
+        
+        // Notes section
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(12.0),
           decoration: BoxDecoration(
-            color: Colors.blue.shade100,
+            color: Colors.grey.shade50,
             borderRadius: BorderRadius.circular(8.0),
+            border: Border.all(color: Colors.grey.shade200),
           ),
-          child: const Icon(Icons.assignment, color: Colors.blue),
-        ),
-        title: const Text(
-          'Szczegóły Zlecenia',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-        ),
-        subtitle: Text(
-          AppointmentStatus.getLabel(appointment.status),
-          style: TextStyle(color: statusColor, fontWeight: FontWeight.w500),
-        ),
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16.0),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: const BorderRadius.only(
-                bottomLeft: Radius.circular(12),
-                bottomRight: Radius.circular(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.note, size: 18, color: featureColor),
+                  SizedBox(width: 8),
+                  Text(
+                    'Notatki:',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                  ),
+                ],
               ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                buildDetailRow(
-                  'Data',
-                  DateFormat('dd-MM-yyyy HH:mm').format(appointment.scheduledTime.toLocal()),
-                  icon: Icons.calendar_today,
-                  iconColor: Colors.orange,
-                ),
-                buildDetailRow(
-                  'Status',
-                  AppointmentStatus.getLabel(appointment.status),
-                  icon: statusIcon,
-                  iconColor: statusColor,
-                ),
-                buildDetailRow(
-                  'Przebieg',
-                  '${appointment.mileage} km',
-                  icon: Icons.speed,
-                  iconColor: Colors.green,
-                ),
-                const SizedBox(height: 12.0),
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(12.0),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade50,
-                    borderRadius: BorderRadius.circular(8.0),
-                    border: Border.all(color: Colors.grey.shade200),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          const Icon(Icons.note, size: 18, color: Colors.blue),
-                          const SizedBox(width: 8),
-                          const Text(
-                            'Notatki:',
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-                          ),
-                        ],
+              const SizedBox(height: 8.0),
+              Builder(
+                builder: (context) {
+                  final controller = TextEditingController(text: appointment.notes ?? '');
+                  return TextFormField(
+                    controller: controller,
+                    decoration: InputDecoration(
+                      hintText: 'Dodaj notatki...',
+                      hintStyle: TextStyle(color: Colors.grey.shade400, fontStyle: FontStyle.italic),
+                      filled: true,
+                      fillColor: Colors.white,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8.0),
+                        borderSide: BorderSide(color: Colors.grey.shade300),
                       ),
-                      const SizedBox(height: 8.0),
-                      Builder(
-                        builder: (context) {
-                          final controller = TextEditingController(text: appointment.notes ?? '');
-                          return TextFormField(
-                            controller: controller,
-                            decoration: InputDecoration(
-                              hintText: 'Dodaj notatki...',
-                              hintStyle: TextStyle(color: Colors.grey.shade400, fontStyle: FontStyle.italic),
-                              filled: true,
-                              fillColor: Colors.white,
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8.0),
-                                borderSide: BorderSide(color: Colors.grey.shade300),
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8.0),
-                                borderSide: BorderSide(color: Colors.grey.shade300),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8.0),
-                                borderSide: BorderSide(color: Colors.blue.shade300, width: 2),
-                              ),
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                            ),
-                            maxLines: 3,
-                            style: const TextStyle(fontSize: 14),
-                            onFieldSubmitted: (newValue) {
-                              context.read<AppointmentBloc>().add(EditNotesValueEvent(
-                                    workshopId: appointment.workshopId,
-                                    appointmentId: appointment.id,
-                                    newNotes: newValue,
-                                  ));
-                            },
-                            onTapOutside: (_) {
-                              if (FocusScope.of(context).hasFocus) {
-                                context.read<AppointmentBloc>().add(EditNotesValueEvent(
-                                      workshopId: appointment.workshopId,
-                                      appointmentId: appointment.id,
-                                      newNotes: controller.text,
-                                    ));
-                                FocusManager.instance.primaryFocus?.unfocus();
-                              }
-                            },
-                          );
-                        },
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8.0),
+                        borderSide: BorderSide(color: Colors.grey.shade300),
                       ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8.0),
+                        borderSide: BorderSide(color: featureColor, width: 2),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                    ),
+                    maxLines: 3,
+                    style: const TextStyle(fontSize: 14),
+                    onFieldSubmitted: (newValue) {
+                      context.read<AppointmentBloc>().add(EditNotesValueEvent(
+                            workshopId: appointment.workshopId,
+                            appointmentId: appointment.id,
+                            newNotes: newValue,
+                          ));
+                    },
+                    onTapOutside: (_) {
+                      if (FocusScope.of(context).hasFocus) {
+                        context.read<AppointmentBloc>().add(EditNotesValueEvent(
+                              workshopId: appointment.workshopId,
+                              appointmentId: appointment.id,
+                              newNotes: controller.text,
+                            ));
+                        FocusManager.instance.primaryFocus?.unfocus();
+                      }
+                    },
+                  );
+                },
+              ),
+            ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
-
   Widget _buildVehicleDetailsCard(Vehicle vehicle) {
-    Widget buildDetailRow(String label, String value, {IconData? icon, Color iconColor = Colors.teal}) {
-      return Container(
-        margin: const EdgeInsets.only(bottom: 8.0),
-        padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0),
-        decoration: BoxDecoration(
-          color: Colors.grey.shade50,
-          borderRadius: BorderRadius.circular(8.0),
-          border: Border.all(color: Colors.grey.shade200),
+    final vehicleFeatureColor = AppTheme.getFeatureColor('vehicles');
+    
+    return DetailsCardWidget(
+      title: 'Szczegóły Pojazdu',
+      subtitle: '${vehicle.make} ${vehicle.model}',
+      icon: Icons.directions_car,
+      iconBackgroundColor: vehicleFeatureColor.withOpacity(0.2),
+      iconColor: vehicleFeatureColor,
+      initiallyExpanded: false,
+      children: [
+        // Vehicle profile card
+        VehicleProfileWidget(
+          make: vehicle.make,
+          model: vehicle.model,
+          licensePlate: vehicle.licensePlate,
         ),
-        child: Row(
-          children: [
-            if (icon != null)
-              Container(
-                padding: const EdgeInsets.all(8.0),
-                margin: const EdgeInsets.only(right: 12.0),
-                decoration: BoxDecoration(
-                  color: iconColor.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-                child: Icon(icon, size: 20, color: iconColor),
-              ),
-            Expanded(
-              child: Text(
-                label,
-                style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
-              ),
-            ),
-            Expanded(
-              child: Text(
-                value,
-                style: TextStyle(color: Colors.grey.shade700, fontSize: 15),
-              ),
-            ),
-          ],
+        
+        // Vehicle details
+        DetailRowWidget(
+          label: 'Marka',
+          value: vehicle.make,
+          icon: Icons.category,
+          iconColor: Colors.teal.shade700,
         ),
-      );
-    }
-
-    return Card(
-      elevation: 3,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      margin: const EdgeInsets.symmetric(vertical: 4.0),
-      child: ExpansionTile(
-        initiallyExpanded: false,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        collapsedShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        tilePadding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
-        leading: Container(
-          padding: const EdgeInsets.all(8.0),
-          decoration: BoxDecoration(
-            color: Colors.teal.shade100,
-            borderRadius: BorderRadius.circular(8.0),
-          ),
-          child: const Icon(Icons.directions_car, color: Colors.teal),
+        DetailRowWidget(
+          label: 'Model',
+          value: vehicle.model,
+          icon: Icons.style,
+          iconColor: Colors.teal.shade600,
         ),
-        title: const Text(
-          'Szczegóły Pojazdu',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+        DetailRowWidget(
+          label: 'Rok',
+          value: vehicle.year.toString(),
+          icon: Icons.date_range,
+          iconColor: Colors.teal.shade500,
         ),
-        subtitle: Text(
-          '${vehicle.make} ${vehicle.model}',
-          style: TextStyle(color: Colors.teal.shade700, fontWeight: FontWeight.w500),
+        DetailRowWidget(
+          label: 'VIN',
+          value: vehicle.vin,
+          icon: Icons.tag,
+          iconColor: Colors.teal.shade700,
         ),
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16.0),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: const BorderRadius.only(
-                bottomLeft: Radius.circular(12),
-                bottomRight: Radius.circular(12),
-              ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                buildDetailRow('Marka', vehicle.make, icon: Icons.category, iconColor: Colors.teal.shade700),
-                buildDetailRow('Model', vehicle.model, icon: Icons.style, iconColor: Colors.teal.shade600),
-                buildDetailRow('Rok', vehicle.year.toString(), icon: Icons.date_range, iconColor: Colors.teal.shade500),
-                buildDetailRow('VIN', vehicle.vin, icon: Icons.tag, iconColor: Colors.teal.shade700),
-                buildDetailRow('Rejestracja', vehicle.licensePlate, icon: Icons.badge, iconColor: Colors.teal.shade600),
-                const SizedBox(height: 12.0),
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(16.0),
-                  decoration: BoxDecoration(
-                    color: Colors.teal.shade50,
-                    borderRadius: BorderRadius.circular(8.0),
-                    border: Border.all(color: Colors.teal.shade100),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(12.0),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.grey.shade300,
-                              blurRadius: 4,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: Icon(Icons.directions_car, size: 32, color: Colors.teal.shade700),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              '${vehicle.make} ${vehicle.model} (${vehicle.year})',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 18,
-                                color: Colors.teal.shade900,
-                              ),
-                            ),
-                            Text(
-                              'Nr rejestracyjny: ${vehicle.licensePlate}',
-                              style: const TextStyle(fontStyle: FontStyle.italic, fontSize: 14),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+        DetailRowWidget(
+          label: 'Rejestracja',
+          value: vehicle.licensePlate,
+          icon: Icons.badge,
+          iconColor: Colors.teal.shade600,
+        ),
+      ],
     );
   }
-
   Widget _buildClientDetailsCard(Client client) {
-    Widget buildDetailRow(String label, String value, {IconData? icon, Color iconColor = Colors.purple}) {
-      return Container(
-        margin: const EdgeInsets.only(bottom: 8.0),
-        padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0),
+    final clientFeatureColor = AppTheme.getFeatureColor('clients');
+    
+    return DetailsCardWidget(
+      title: 'Szczegóły Klienta',
+      subtitle: '${client.firstName} ${client.lastName}',
+      icon: Icons.person,
+      iconBackgroundColor: clientFeatureColor.withOpacity(0.2),
+      iconColor: clientFeatureColor,
+      initiallyExpanded: false,
+      trailing: Container(
+        width: 40,
+        height: 40,
         decoration: BoxDecoration(
-          color: Colors.grey.shade50,
-          borderRadius: BorderRadius.circular(8.0),
-          border: Border.all(color: Colors.grey.shade200),
+          color: Colors.grey.shade200,
+          shape: BoxShape.circle,
         ),
-        child: Row(
+        child: Center(
+          child: Text(
+            _getInitials(client.firstName, client.lastName),
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+            ),
+          ),
+        ),
+      ),
+      children: [
+        // Client profile widget
+        ClientProfileWidget(
+          firstName: client.firstName,
+          lastName: client.lastName,
+          phone: client.phone,
+          email: client.email,
+          address: client.address,
+          initials: _getInitials(client.firstName, client.lastName),
+        ),
+        
+        // Contact buttons row
+        Row(
           children: [
-            if (icon != null)
-              Container(
-                padding: const EdgeInsets.all(8.0),
-                margin: const EdgeInsets.only(right: 12.0),
-                decoration: BoxDecoration(
-                  color: iconColor.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-                child: Icon(icon, size: 20, color: iconColor),
+            if (client.phone != null && client.phone!.isNotEmpty)
+              ContactButtonWidget(
+                icon: Icons.phone,
+                label: 'Zadzwoń',
+                color: clientFeatureColor,
+                onPressed: () {
+                  try {
+                    final uri = Uri.parse('tel:${client.phone}');
+                    launchUrl(uri);
+                  } catch (e) {
+                    debugPrint('Nie można wykonać połączenia: $e');
+                  }
+                },
               ),
-            Expanded(
-              child: Text(
-                label,
-                style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+            if (client.email.isNotEmpty)
+              ContactButtonWidget(
+                icon: Icons.email,
+                label: 'Email',
+                color: clientFeatureColor,
+                onPressed: () {
+                  try {
+                    final uri = Uri.parse('mailto:${client.email}');
+                    launchUrl(uri);
+                  } catch (e) {
+                    debugPrint('Nie można wysłać email: $e');
+                  }
+                },
               ),
-            ),
-            Expanded(
-              child: Text(
-                value,
-                style: TextStyle(color: Colors.grey.shade700, fontSize: 15),
+            if (client.address != null && client.address!.isNotEmpty)
+              ContactButtonWidget(
+                icon: Icons.map,
+                label: 'Mapa',
+                color: clientFeatureColor,
+                onPressed: () {
+                  try {
+                    final encodedAddress = Uri.encodeComponent(client.address!);
+                    final uri = Uri.parse('https://maps.google.com/?q=$encodedAddress');
+                    launchUrl(uri, mode: LaunchMode.externalApplication);
+                  } catch (e) {
+                    debugPrint('Nie można otworzyć mapy: $e');
+                  }
+                },
               ),
-            ),
           ],
         ),
-      );
-    }
-
-    Widget buildContactButton({
-      required IconData icon,
-      required String label,
-      required String value,
-      required Color color,
-      required VoidCallback onPressed,
-    }) {
-      return Container(
-        margin: const EdgeInsets.only(right: 8.0),
-        child: ElevatedButton.icon(
-          icon: Icon(icon, size: 16),
-          label: Text(label),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: color.withOpacity(0.1),
-            foregroundColor: color,
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            elevation: 0,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8.0),
-              side: BorderSide(color: color.withOpacity(0.2)),
-            ),
-          ),
-          onPressed: onPressed,
+        
+        // Client details
+        DetailRowWidget(
+          label: 'Email',
+          value: client.email,
+          icon: Icons.email,
+          iconColor: clientFeatureColor,
         ),
-      );
-    }
-
-    return Card(
-      elevation: 3,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      margin: const EdgeInsets.symmetric(vertical: 4.0),
-      child: ExpansionTile(
-        initiallyExpanded: false,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        collapsedShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        tilePadding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
-        leading: Container(
-          padding: const EdgeInsets.all(8.0),
-          decoration: BoxDecoration(
-            color: Colors.purple.shade100,
-            borderRadius: BorderRadius.circular(8.0),
-          ),
-          child: const Icon(Icons.person, color: Colors.purple),
+        DetailRowWidget(
+          label: 'Telefon',
+          value: client.phone ?? 'Brak',
+          icon: Icons.phone,
+          iconColor: clientFeatureColor,
         ),
-        title: const Text(
-          'Szczegóły Klienta',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-        ),
-        subtitle: Text(
-          '${client.firstName} ${client.lastName}',
-          style: TextStyle(color: Colors.purple.shade700, fontWeight: FontWeight.w500),
-        ),
-        trailing: Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-            color: Colors.grey.shade200,
-            shape: BoxShape.circle,
+        if (client.address != null)
+          DetailRowWidget(
+            label: 'Adres',
+            value: client.address!,
+            icon: Icons.home,
+            iconColor: clientFeatureColor,
           ),
-          child: Center(
-            child: Text(
-              _getInitials(client.firstName, client.lastName),
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-              ),
-            ),
-          ),
-        ),
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16.0),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: const BorderRadius.only(
-                bottomLeft: Radius.circular(12),
-                bottomRight: Radius.circular(12),
-              ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(16.0),
-                  margin: const EdgeInsets.only(bottom: 16.0),
-                  decoration: BoxDecoration(
-                    color: Colors.purple.shade50,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.purple.shade100),
-                  ),
-                  child: Column(
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            width: 60,
-                            height: 60,
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              shape: BoxShape.circle,
-                              border: Border.all(color: Colors.purple, width: 2),
-                            ),
-                            child: Center(
-                              child: Text(
-                                _getInitials(client.firstName, client.lastName),
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 24,
-                                  color: Colors.purple.shade700,
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  '${client.firstName} ${client.lastName}',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 18,
-                                    color: Colors.purple.shade900,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                if (client.phone != null)
-                                  Text(
-                                    client.phone!,
-                                    style: TextStyle(
-                                      color: Colors.purple.shade700,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      Row(
-                        children: [
-                          if (client.phone != null && client.phone!.isNotEmpty)
-                            buildContactButton(
-                              icon: Icons.phone,
-                              label: 'Zadzwoń',
-                              value: client.phone!,
-                              color: Colors.green,
-                              onPressed: () {
-                                // Implement call functionality
-                                try {
-                                  final uri = Uri.parse('tel:${client.phone}');
-                                  launchUrl(uri);
-                                } catch (e) {
-                                  // Obsługa błędu
-                                  debugPrint('Nie można wykonać połączenia: $e');
-                                }
-                              },
-                            ),
-                          if (client.email.isNotEmpty)
-                            buildContactButton(
-                              icon: Icons.email,
-                              label: 'Email',
-                              value: client.email,
-                              color: Colors.orange,
-                              onPressed: () {
-                                // Implement email functionality
-                                try {
-                                  final uri = Uri.parse('mailto:${client.email}');
-                                  launchUrl(uri);
-                                } catch (e) {
-                                  // Obsługa błędu
-                                  debugPrint('Nie można wysłać email: $e');
-                                }
-                              },
-                            ),
-                          if (client.address != null && client.address!.isNotEmpty)
-                            buildContactButton(
-                              icon: Icons.map,
-                              label: 'Mapa',
-                              value: client.address!,
-                              color: Colors.blue,
-                              onPressed: () {
-                                // Implement map functionality
-                                try {
-                                  final encodedAddress = Uri.encodeComponent(client.address!);
-                                  final uri = Uri.parse('https://maps.google.com/?q=$encodedAddress');
-                                  launchUrl(uri, mode: LaunchMode.externalApplication);
-                                } catch (e) {
-                                  // Obsługa błędu
-                                  debugPrint('Nie można otworzyć mapy: $e');
-                                }
-                              },
-                            ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                buildDetailRow(
-                  'Imię i nazwisko',
-                  '${client.firstName} ${client.lastName}',
-                  icon: Icons.person,
-                  iconColor: Colors.purple,
-                ),
-                buildDetailRow(
-                  'Email',
-                  client.email,
-                  icon: Icons.email,
-                  iconColor: Colors.orange,
-                ),
-                buildDetailRow(
-                  'Telefon',
-                  client.phone ?? 'Brak',
-                  icon: Icons.phone,
-                  iconColor: Colors.green,
-                ),
-                if (client.address != null)
-                  buildDetailRow(
-                    'Adres',
-                    client.address!,
-                    icon: Icons.home,
-                    iconColor: Colors.blue,
-                  ),
-              ],
-            ),
-          ),
-        ],
-      ),
+      ],
     );
   }
-
   Widget _buildRepairSection(BuildContext context, Appointment appointment) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Do naprawy',
-          style: TextStyle(
-            fontSize: 20.0,
-            fontWeight: FontWeight.bold,
-          ),
+        SectionTitleWidget(
+          title: 'Do naprawy',
+          color: AppTheme.getFeatureColor('appointments'),
         ),
         const SizedBox(height: 8.0),
         _buildAddRepairItemForm(context, appointment),
@@ -960,9 +645,9 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
 
   Widget _buildAddRepairItemForm(BuildContext context, Appointment appointment) {
     final TextEditingController repairDescriptionController = TextEditingController();
+    final featureColor = AppTheme.getFeatureColor('appointments');
 
-    return BlocBuilder<AppointmentBloc, AppointmentState>(
-      builder: (context, state) {
+    return BlocBuilder<AppointmentBloc, AppointmentState>(      builder: (context, state) {
         return Card(
           elevation: 2,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
@@ -983,18 +668,17 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8.0),
-                        borderSide: BorderSide(color: Colors.blue.shade300, width: 2),
+                        borderSide: BorderSide(color: featureColor, width: 2),
                       ),
                       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                     ),
                   ),
                 ),
-                const SizedBox(width: 16),
-                ElevatedButton.icon(
+                const SizedBox(width: 16),                ElevatedButton.icon(
                   icon: const Icon(Icons.add),
                   label: const Text('Dodaj'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue.shade500,
+                    backgroundColor: AppTheme.getFeatureColor('appointments'),
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
                     shape: RoundedRectangleBorder(
@@ -1094,8 +778,7 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
 
     Future<void> _confirmDeleteRepairItem(RepairItem item) async {
       // Wyświetl dialog z potwierdzeniem usunięcia
-      final shouldDelete = await showDialog<bool>(
-        context: context,
+      final shouldDelete = await showDialog<bool>(        context: context,
         builder: (context) {
           return AlertDialog(
             title: const Text('Potwierdzenie usunięcia'),
@@ -1119,7 +802,7 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
               ),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
+                  backgroundColor: AppTheme.errorColor,
                   foregroundColor: Colors.white,
                 ),
                 onPressed: () => Navigator.of(context).pop(true),
@@ -1183,15 +866,15 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
                     borderRadius: BorderRadius.circular(8.0),
                   ),
                   headingRowColor: WidgetStateProperty.resolveWith(
-                    (states) => Colors.blue.shade100,
+                    (states) => AppTheme.getFeatureColor('appointments').withOpacity(0.2),
                   ),
                   dataRowColor: WidgetStateProperty.resolveWith((states) {
                     if (states.contains(WidgetState.selected)) {
-                      return Colors.blue.shade50;
+                      return AppTheme.getFeatureColor('appointments').withOpacity(0.1);
                     }
                     return states.any((element) => element == MaterialState.hovered) ? Colors.grey.shade200 : Colors.grey.shade50;
                   }),
-                  columns: [
+                  columns: const [
                     DataColumn(
                       label: Expanded(
                         child: Center(
@@ -1284,39 +967,11 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
                               },
                             ),
                           ),
-                        ),
-                        DataCell(
+                        ),                        DataCell(
                           Center(
                             child: GestureDetector(
                               onTap: () => showStatusChangeDialog(item),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-                                decoration: BoxDecoration(
-                                  color: AppointmentStatus.getColor(item.status).withOpacity(0.2),
-                                  borderRadius: BorderRadius.circular(12.0),
-                                  border: Border.all(color: AppointmentStatus.getColor(item.status)),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(
-                                      AppointmentStatus.getIcon(item.status),
-                                      color: AppointmentStatus.getColor(item.status),
-                                      size: 16,
-                                    ),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      AppointmentStatus.getLabel(item.status),
-                                      style: TextStyle(
-                                        color: AppointmentStatus.getColor(item.status),
-                                        fontWeight: FontWeight.w500,
-                                        fontSize: 13,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
+                              child: StatusBadgeWidget.fromStatus(item.status),
                             ),
                           ),
                         ),
@@ -1346,17 +1001,13 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
       ),
     );
   }
-
   Widget _buildPartsSection(BuildContext context, Appointment appointment) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Części',
-          style: TextStyle(
-            fontSize: 20.0,
-            fontWeight: FontWeight.bold,
-          ),
+        SectionTitleWidget(
+          title: 'Części',
+          color: AppTheme.getFeatureColor('appointments'),
         ),
         const SizedBox(height: 8.0),
         _buildAddPartForm(context, appointment),
@@ -1371,8 +1022,7 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
     final TextEditingController serviceCostController = TextEditingController(text: '0.0');
     final TextEditingController buyCostPartController = TextEditingController(text: '0.0');
     
-    return BlocBuilder<AppointmentBloc, AppointmentState>(
-      builder: (context, state) {        return PartFormWidget(
+    return BlocBuilder<AppointmentBloc, AppointmentState>(      builder: (context, state) {        return PartFormWidget(
           partNameController: partNameController,
           quantityController: quantityController,
           partCostController: partCostController,
@@ -1516,11 +1166,11 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
                         borderRadius: BorderRadius.circular(8.0),
                       ),
                       headingRowColor: MaterialStateProperty.resolveWith(
-                        (states) => Colors.green.shade100,
+                        (states) => AppTheme.getFeatureColor('appointments').withOpacity(0.2),
                       ),
                       dataRowColor: MaterialStateProperty.resolveWith((states) {
                         if (states.contains(MaterialState.selected)) {
-                          return Colors.green.shade50;
+                          return AppTheme.getFeatureColor('appointments').withOpacity(0.1);
                         }
                         return states.any((element) => element == MaterialState.hovered) ? Colors.grey.shade200 : Colors.grey.shade50;
                       }),
@@ -1675,75 +1325,16 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
       ),
     );
   }
-
   Widget _buildCostSummary(Appointment appointment) {
     double totalBuyCostPart = appointment.parts.fold(0, (sum, item) => sum + (item.buyCostPart * item.quantity));
     double totalPartCost = appointment.parts.fold(0, (sum, item) => sum + (item.costPart * item.quantity));
     double totalServiceCost = appointment.parts.fold(0, (sum, item) => sum + item.costService);
     double totalMargin = totalPartCost - totalBuyCostPart;
-    double totalCost = totalPartCost + totalServiceCost;
 
-    return Card(
-      elevation: 4,
-      margin: const EdgeInsets.symmetric(vertical: 8.0),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Podsumowanie kosztów',
-              style: TextStyle(
-                fontSize: 18.0,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 16.0),
-            _buildCostRow('Suma cen części:', totalPartCost, false),
-            _buildCostRow('Marża:', totalMargin, false),
-            _buildCostRow('Suma cen usług:', totalServiceCost, false),
-            const Divider(thickness: 1.0),
-            _buildCostRow('Łączna cena:', totalCost, true),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCostRow(String label, double value, bool isTotal) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: TextStyle(
-              fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
-              fontSize: isTotal ? 16.0 : 14.0,
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
-            decoration: isTotal
-                ? BoxDecoration(
-                    color: Colors.green.shade50,
-                    borderRadius: BorderRadius.circular(8.0),
-                    border: Border.all(color: Colors.green.shade200),
-                  )
-                : null,
-            child: Text(
-              '${value.toStringAsFixed(2)} PLN',
-              style: TextStyle(
-                fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
-                fontSize: isTotal ? 16.0 : 14.0,
-                color: isTotal ? Colors.green.shade800 : null,
-              ),
-            ),
-          ),
-        ],
-      ),
+    return CostSummaryWidget(
+      totalPartsCost: totalPartCost,
+      totalServiceCost: totalServiceCost,
+      totalMargin: totalMargin,
     );
   }
 }
@@ -1756,11 +1347,13 @@ class _AppBarBuilder extends StatelessWidget implements PreferredSizeWidget {
     required this.appointment,
     required this.onPrintPressed,
   });
+  
   @override
   Widget build(BuildContext context) {
-    return AppBar(
-      title: BlocBuilder<AppointmentBloc, AppointmentState>(
-        buildWhen: (previous, current) {
+    return CustomAppBar(
+      title: 'Szczegóły zlecenia',
+      feature: 'appointments',
+      titleWidget: BlocBuilder<AppointmentBloc, AppointmentState>(        buildWhen: (previous, current) {
           // Only rebuild for initial loading or when appointment data changes
           if (previous is AppointmentLoading && current is AppointmentLoading) {
             return false; // Skip rebuilds between loading states
@@ -1774,9 +1367,13 @@ class _AppBarBuilder extends StatelessWidget implements PreferredSizeWidget {
             return Text(
               '${DateFormat('dd-MM-yyyy').format(appointment.scheduledTime.toLocal())} '
               '- ${appointment.vehicle.make} ${appointment.vehicle.model}',
+              style: AppTheme.appBarTitleStyle,
             );
           }
-          return const Text('Ładowanie...');
+          return const Text(
+            'Ładowanie...', 
+            style: AppTheme.appBarTitleStyle,
+          );
         },
       ),
       actions: _buildAppBarActions(context),
@@ -1785,8 +1382,7 @@ class _AppBarBuilder extends StatelessWidget implements PreferredSizeWidget {
 
   List<Widget> _buildAppBarActions(BuildContext context) {
     return [
-      BlocBuilder<AppointmentBloc, AppointmentState>(
-        builder: (context, state) {
+      BlocBuilder<AppointmentBloc, AppointmentState>(        builder: (context, state) {
           if (state is! AppointmentDetailsLoaded) {
             return const SizedBox.shrink();
           }
@@ -1812,8 +1408,7 @@ class _AppBarBuilder extends StatelessWidget implements PreferredSizeWidget {
           );
         },
       ),
-      BlocBuilder<AppointmentBloc, AppointmentState>(
-        builder: (context, state) {
+      BlocBuilder<AppointmentBloc, AppointmentState>(        builder: (context, state) {
           if (state is! AppointmentDetailsLoaded) {
             return const SizedBox.shrink();
           }

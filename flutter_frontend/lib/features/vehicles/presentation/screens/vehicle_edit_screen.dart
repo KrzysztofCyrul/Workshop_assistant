@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_frontend/features/vehicles/presentation/bloc/vehicle_bloc.dart';
+import 'package:flutter_frontend/core/widgets/custom_app_bar.dart';
 
 class VehicleEditScreen extends StatefulWidget {
   static const routeName = '/vehicle-edit';
@@ -79,9 +80,9 @@ class _VehicleEditScreenState extends State<VehicleEditScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Edit Vehicle'),
+    return Scaffold(      appBar: CustomAppBar(
+        title: 'Edit Vehicle',
+        feature: 'vehicles',
         actions: [
           IconButton(
             icon: const Icon(Icons.save),

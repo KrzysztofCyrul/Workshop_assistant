@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import '../bloc/vehicle_bloc.dart';
 import '../../domain/entities/service_record.dart';
+import 'package:flutter_frontend/core/widgets/custom_app_bar.dart';
 
 class VehicleServiceHistoryScreen extends StatefulWidget {
   static const routeName = '/vehicle-service-history';
@@ -97,9 +98,9 @@ class _VehicleServiceHistoryScreenState extends State<VehicleServiceHistoryScree
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Historia Serwisowa Pojazdu'),
+    return Scaffold(      appBar: CustomAppBar(
+        title: 'Historia Serwisowa Pojazdu',
+        feature: 'vehicles',
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),

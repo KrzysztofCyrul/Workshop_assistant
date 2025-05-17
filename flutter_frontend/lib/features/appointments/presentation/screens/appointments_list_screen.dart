@@ -4,7 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 // import 'package:flutter_frontend/screens/appointments/appointment_details_screen.dart';
 import 'package:flutter_frontend/features/appointments/presentation/screens/appointment_details_screen.dart';
 import 'package:flutter_frontend/features/appointments/presentation/screens/add_appointment_screen.dart';
-
+import 'package:flutter_frontend/core/widgets/add_action_button.dart';
+import 'package:flutter_frontend/core/widgets/custom_app_bar.dart';
 
 import 'package:intl/intl.dart';
 import '../bloc/appointment_bloc.dart';
@@ -117,14 +118,9 @@ class _AppointmentsListScreenState extends State<AppointmentsListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          _getAppBarTitle(),
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
-        elevation: 2,
-        backgroundColor: Theme.of(context).colorScheme.surface,
+    return Scaffold(      appBar: CustomAppBar(
+        title: _getAppBarTitle(),
+        feature: 'appointments',
         actions: _buildAppBarActions(),
       ),
       body: BlocConsumer<AppointmentBloc, AppointmentState>(
@@ -146,13 +142,12 @@ class _AppointmentsListScreenState extends State<AppointmentsListScreen> {
         builder: (context, state) {
           return _buildBody(state);
         },
-      ),
-      floatingActionButton: FloatingActionButton.extended(
+      ),      floatingActionButton: AddActionButton(
         onPressed: _navigateToAddAppointment,
         tooltip: 'Dodaj zlecenie',
-        icon: const Icon(Icons.add),
-        label: const Text('Nowe zlecenie'),
-        backgroundColor: Colors.blue,
+        labelText: 'Nowe zlecenie',
+        isExtended: true,
+        backgroundColor: Colors.blue.shade700,
       ),
     );
   }

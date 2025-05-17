@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_frontend/features/clients/presentation/bloc/client_bloc.dart';
 import 'package:flutter_frontend/features/clients/presentation/widgets/add_client_form_widget.dart';
+import 'package:flutter_frontend/core/widgets/custom_app_bar.dart';
 
 class AddClientScreen extends StatefulWidget {
   static const routeName = '/add-client';
@@ -56,9 +57,9 @@ class _AddClientScreenState extends State<AddClientScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Dodaj Klienta'),
+    return Scaffold(      appBar: CustomAppBar(
+        title: 'Dodaj Klienta',
+        feature: 'clients',
       ),
       body: BlocListener<ClientBloc, ClientState>(
         listener: (context, state) {
@@ -66,16 +67,38 @@ class _AddClientScreenState extends State<AddClientScreen> {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(state.message)),
             );
-            setState(() => _isSubmitting = false);
-          } else if (state is ClientOperationSuccess) {
+            setState(() => _isSubmitting = false);          } else if (state is ClientOperationSuccess) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(state.message)),
             );
+            
+            // Po pomyślnym dodaniu klienta, wczytaj listę klientów
             context.read<ClientBloc>().add(LoadClientsEvent(
               workshopId: widget.workshopId,
             ));
-            Navigator.of(context).pop(true);
-          } else if (state is ClientUnauthenticated) {
+            
+            // Ustaw flagę, żeby wiedzieć, że czekamy na załadowanie clienta
+            setState(() => _isSubmitting = true);
+            // Nie zamykamy ekranu tutaj - zrobimy to po otrzymaniu ClientsLoaded
+          } else if (state is ClientsLoaded && _isSubmitting) {
+            // Ustaw flagę, żeby uniknąć wielokrotnej nawigacji
+            setState(() => _isSubmitting = false);
+            
+            try {
+              // Znajdź ostatnio dodanego klienta po jego imieniu i nazwisku
+              final addedClient = state.clients.firstWhere(
+                (client) => 
+                  client.firstName == _firstNameController.text.trim() && 
+                  client.lastName == _lastNameController.text.trim(),
+              );
+              
+              // Zwróć klienta do poprzedniego ekranu
+              Navigator.of(context).pop({'client': addedClient});
+            } catch (e) {
+              // W przypadku błędu zwróć true jako sygnał, że dodanie powiodło się
+              Navigator.of(context).pop(true);
+            }
+          }else if (state is ClientUnauthenticated) {
             Navigator.of(context).pushReplacementNamed('/login');
           }
         },

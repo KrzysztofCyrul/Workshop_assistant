@@ -6,6 +6,7 @@ import 'package:flutter_frontend/features/vehicles/domain/entities/vehicle.dart'
 import 'package:flutter_frontend/features/clients/presentation/bloc/client_bloc.dart';
 import 'package:flutter_frontend/features/vehicles/presentation/bloc/vehicle_bloc.dart';
 import 'package:flutter_frontend/features/quotations/presentation/bloc/quotation_bloc.dart';
+import 'package:flutter_frontend/core/widgets/custom_app_bar.dart';
 
 class AddQuotationScreen extends StatefulWidget {
   static const routeName = '/add-quotation';
@@ -100,8 +101,7 @@ class _AddQuotationScreenState extends State<AddQuotationScreen> {
       context.read<ClientBloc>().add(LoadClientsEvent(workshopId: widget.workshopId));
     });
   }
-  
-  void _navigateToAddVehicleScreen() {
+    void _navigateToAddVehicleScreen() {
     if (_selectedClient == null) {
       _showValidationError('Proszę najpierw wybrać klienta');
       return;
@@ -113,11 +113,16 @@ class _AddQuotationScreenState extends State<AddQuotationScreen> {
       '/add-vehicle',
       arguments: {
         'workshopId': widget.workshopId,
-        'clientId': _selectedClient!.id,
+        'selectedClient': _selectedClient,
       },
-    ).then((_) {
-      // Reload vehicles after returning
-      if (_selectedClient != null) {
+    ).then((result) {
+      // Reload clients and vehicles after returning
+      context.read<ClientBloc>().add(
+        LoadClientsEvent(workshopId: widget.workshopId)
+      );
+      
+      // Reload vehicles after returning if successful
+      if (result == true && _selectedClient != null) {
         context.read<VehicleBloc>().add(
           LoadVehiclesForClientEvent(
             workshopId: widget.workshopId,
@@ -176,11 +181,9 @@ class _AddQuotationScreenState extends State<AddQuotationScreen> {
   }
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Dodaj nową wycenę'),
-        backgroundColor: Colors.blue.shade700,
-        foregroundColor: Colors.white,
+    return Scaffold(      appBar: CustomAppBar(
+        title: 'Dodaj nową wycenę',
+        feature: 'quotations',
         actions: [
           IconButton(
             icon: const Icon(Icons.check),
@@ -223,13 +226,29 @@ class _AddQuotationScreenState extends State<AddQuotationScreen> {
                 Navigator.of(context).pushReplacementNamed('/login');
               }
             },
-          ),
-          BlocListener<ClientBloc, ClientState>(
+          ),          BlocListener<ClientBloc, ClientState>(
             listener: (context, state) {
               if (state is ClientsLoaded) {
                 setState(() {
                   _isLoadingClients = false;
                 });
+              } else if (state is ClientLoading) {
+                setState(() {
+                  _isLoadingClients = true;
+                });
+              } else if (state is ClientError) {
+                setState(() {
+                  _isLoadingClients = false;
+                });
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Błąd ładowania klientów: ${state.message}'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              } else if (state is ClientInitial) {
+                // Załaduj klientów w stanie początkowym
+                context.read<ClientBloc>().add(LoadClientsEvent(workshopId: widget.workshopId));
               } else if (state is ClientUnauthenticated) {
                 Navigator.of(context).pushReplacementNamed('/login');
               }
@@ -487,9 +506,28 @@ class _AddQuotationScreenState extends State<AddQuotationScreen> {
               style: const TextStyle(color: Colors.red),
             ),
           );
-        } else {
-          return const Center(
-            child: Text('Nie udało się załadować klientów'),
+        } else {          return Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  'Nie udało się załadować klientów',
+                  style: TextStyle(fontSize: 16, color: Colors.grey),
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    // Ponownie załaduj klientów
+                    setState(() {
+                      _isLoadingClients = true;
+                    });
+                    context.read<ClientBloc>().add(LoadClientsEvent(workshopId: widget.workshopId));
+                  },
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Odśwież'),
+                ),
+              ],
+            ),
           );
         }
       },

@@ -5,6 +5,8 @@ import 'package:flutter_frontend/features/quotations/presentation/screens/quotat
 import 'package:intl/intl.dart';
 import 'package:flutter_frontend/features/quotations/presentation/bloc/quotation_bloc.dart';
 import 'package:flutter_frontend/features/quotations/presentation/screens/add_quotation_screen.dart';
+import 'package:flutter_frontend/core/widgets/add_action_button.dart';
+import 'package:flutter_frontend/core/widgets/custom_app_bar.dart';
 
 class QuotationsListScreen extends StatefulWidget {
   static const routeName = '/quotations';
@@ -296,8 +298,7 @@ class _QuotationsListScreenState extends State<QuotationsListScreen> {  @overrid
               style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
             ),
           ),
-          const SizedBox(height: 32),
-          ElevatedButton.icon(
+          const SizedBox(height: 32),          ElevatedButton.icon(
             onPressed: _navigateToAddQuotation,
             icon: const Icon(Icons.add),
             label: const Text('Dodaj pierwszą wycenę'),
@@ -306,9 +307,9 @@ class _QuotationsListScreenState extends State<QuotationsListScreen> {  @overrid
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(16),
               ),
-              elevation: 2,
+              elevation: 3,
             ),
           ),
         ],
@@ -317,21 +318,9 @@ class _QuotationsListScreenState extends State<QuotationsListScreen> {  @overrid
   }
   @override
   Widget build(BuildContext context) {    
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Wyceny',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-        ),
-        backgroundColor: Colors.blue.shade700,
-        foregroundColor: Colors.white,
-        elevation: 3,
-        centerTitle: false,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(
-            bottom: Radius.circular(16),
-          ),
-        ),
+    return Scaffold(      appBar: CustomAppBar(
+        title: 'Wyceny',
+        feature: 'quotations',
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
@@ -355,33 +344,39 @@ class _QuotationsListScreenState extends State<QuotationsListScreen> {  @overrid
                 behavior: SnackBarBehavior.floating,
               ),
             );
-          }
-          if (state is QuotationOperationSuccess) {
+          }          if (state is QuotationOperationSuccess) {
             final isDeleteSuccess = state.message.contains('usunięta');
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Row(
-                  children: [
-                    Icon(
-                      isDeleteSuccess ? Icons.delete_forever : Icons.check_circle,
-                      color: Colors.white,
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(child: Text(state.message)),
-                  ],
+            
+            // First refresh the quotations list
+            _loadQuotations();
+            
+            // Then show the success message
+            Future.delayed(const Duration(milliseconds: 100), () {
+              if (!context.mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Row(
+                    children: [
+                      Icon(
+                        isDeleteSuccess ? Icons.delete_forever : Icons.check_circle,
+                        color: Colors.white,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(child: Text(state.message)),
+                    ],
+                  ),
+                  backgroundColor: isDeleteSuccess ? Colors.red.shade600 : Colors.green.shade600,
+                  behavior: SnackBarBehavior.floating,
+                  duration: const Duration(seconds: 3),
+                  margin: EdgeInsets.only(
+                    bottom: MediaQuery.of(context).size.height * 0.08,
+                    left: 16,
+                    right: 16,
+                  ),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                 ),
-                backgroundColor: isDeleteSuccess ? Colors.red.shade600 : Colors.green.shade600,
-                behavior: SnackBarBehavior.floating,
-                duration: const Duration(seconds: 3),
-                margin: EdgeInsets.only(
-                  bottom: MediaQuery.of(context).size.height * 0.08,
-                  left: 16,
-                  right: 16,
-                ),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-              ),
-            );
-            _loadQuotations(); // Reload after successful operation
+              );
+            });
           }
           if (state is QuotationUnauthenticated) {
             Navigator.of(context).pushReplacementNamed('/login');
@@ -453,11 +448,12 @@ class _QuotationsListScreenState extends State<QuotationsListScreen> {  @overrid
             return const Center(child: CircularProgressIndicator());
           }
         },
-      ),
-      floatingActionButton: FloatingActionButton(
+      ),      floatingActionButton: AddActionButton(
         onPressed: _navigateToAddQuotation,
         tooltip: 'Dodaj wycenę',
-        child: const Icon(Icons.add),
+        labelText: 'Dodaj wycenę',
+        isExtended: true,
+        backgroundColor: Colors.blue.shade700,
       ),
     );
   }

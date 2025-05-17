@@ -76,8 +76,7 @@ class ClientBloc extends Bloc<ClientEvent, ClientState> {
     } catch (e) {
       emit(ClientError(message: e.toString()));
     }
-  }
-  Future<void> _onAddClient(
+  }  Future<void> _onAddClient(
     AddClientEvent event,
     Emitter<ClientState> emit,
   ) async {
@@ -92,11 +91,15 @@ class ClientBloc extends Bloc<ClientEvent, ClientState> {
         address: event.address,
         segment: event.segment,
       );
-      emit(const ClientOperationSuccess(message: 'Client added successfully'));
+      
+      // Emituj sukces po dodaniu klienta
+      emit(const ClientOperationSuccess(
+        message: 'Klient dodany pomyślnie',
+      ));
     } on AuthException {
       emit(const ClientUnauthenticated());
     } catch (e) {
-      emit(ClientError(message: 'Failed to add client: ${e.toString()}'));
+      emit(ClientError(message: 'Błąd podczas dodawania klienta: ${e.toString()}'));
     }
   }
 

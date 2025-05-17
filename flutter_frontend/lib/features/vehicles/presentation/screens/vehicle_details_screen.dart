@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_frontend/features/vehicles/domain/entities/service_record.dart';
 import 'package:flutter_frontend/features/vehicles/presentation/bloc/vehicle_bloc.dart';
 import 'package:flutter_frontend/features/vehicles/presentation/screens/vehicle_edit_screen.dart';
+import 'package:flutter_frontend/core/widgets/custom_app_bar.dart';
 
 import 'package:intl/intl.dart';
 
@@ -436,14 +437,9 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Szczegóły Pojazdu',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        elevation: 2,
-        backgroundColor: Theme.of(context).colorScheme.surface,
+    return Scaffold(      appBar: CustomAppBar(
+        title: 'Szczegóły Pojazdu',
+        feature: 'vehicles',
         actions: [
           IconButton(
             icon: const Icon(Icons.edit),

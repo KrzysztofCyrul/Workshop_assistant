@@ -5,17 +5,20 @@ import 'package:flutter_frontend/features/clients/presentation/bloc/client_bloc.
 import 'package:flutter_frontend/features/vehicles/presentation/models/vehicle_form_model.dart';
 import 'package:flutter_frontend/features/clients/domain/entities/client.dart';
 import 'package:flutter_frontend/features/clients/presentation/screens/add_client_screen.dart';
+import 'package:flutter_frontend/core/widgets/custom_app_bar.dart';
 
 class AddVehicleScreen extends StatefulWidget {
   static const routeName = '/add-vehicle';
 
   final String workshopId;
   final Client? selectedClient;
+  final String? clientId;
 
   const AddVehicleScreen({
     super.key,
     required this.workshopId,
     this.selectedClient,
+    this.clientId,
   });
 
   @override
@@ -34,21 +37,45 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
   Client? _selectedClient;
   bool _isSubmitting = false;
   String _clientSearchQuery = '';
-  bool _isSearchingClients = false;
-
-  @override
+  bool _isSearchingClients = false;  @override
   void initState() {
     super.initState();
     _selectedClient = widget.selectedClient;
     
     // Load clients when screen initializes
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<ClientBloc>().add(
-            LoadClientsEvent(workshopId: widget.workshopId),
-          );
+      // Jeśli mamy ID klienta, ale nie mamy obiektu klienta
+      if (widget.clientId != null && _selectedClient == null) {
+        // Nie wchodź od razu w tryb wyszukiwania - czekamy na załadowanie klienta
+        setState(() {
+          _isSearchingClients = false;
+        });
+        
+        // Załaduj szczegóły klienta
+        context.read<ClientBloc>().add(
+          LoadClientDetailsEvent(
+            workshopId: widget.workshopId,
+            clientId: widget.clientId!,
+          ),
+        );
+      } else if (_selectedClient != null) {
+        // Jeśli już mamy wybranego klienta, upewnij się, że UI nie pokazuje ładowania
+        setState(() {
+          _isSearchingClients = false;
+        });
+        
+        // Mimo to załaduj listę wszystkich klientów w tle na później
+        context.read<ClientBloc>().add(
+          LoadClientsEvent(workshopId: widget.workshopId),
+        );
+      } else {
+        // Załaduj listę wszystkich klientów w tle
+        context.read<ClientBloc>().add(
+          LoadClientsEvent(workshopId: widget.workshopId),
+        );
+      }
     });
   }
-
   void _submitForm() {
     if (!_formKey.currentState!.validate()) return;
     if (_selectedClient == null) {
@@ -80,6 +107,8 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
       licensePlate: vehicle.licensePlate,
       mileage: int.tryParse(vehicle.mileage ?? '') ?? 0,
     ));
+    
+    // Sukces będzie obsłużony przez BlocListener, który zamknie ekran z wartością true
   }
 
   void _onClientSelected(Client client) {
@@ -89,7 +118,6 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
       _clientSearchQuery = '';
     });
   }
-
   void _navigateToAddClientScreen() async {
     final result = await Navigator.pushNamed(
       context,
@@ -97,7 +125,14 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
       arguments: {'workshopId': widget.workshopId},
     );
     
-    if (result == true) {
+    if (result is Map<String, dynamic> && result.containsKey('client')) {
+      // Jeśli dostaliśmy klienta w wyniku, ustaw go jako wybranego
+      setState(() {
+        _selectedClient = result['client'] as Client;
+        _isSearchingClients = false;
+      });
+    } else if (result == true) {
+      // Odśwież listę klientów, jeśli dodano nowego
       context.read<ClientBloc>().add(
         LoadClientsEvent(workshopId: widget.workshopId),
       );
@@ -111,11 +146,64 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
     if (lastName.isNotEmpty) initials += lastName[0];
     return initials.toUpperCase();
   }
-
   Widget _buildClientSelector() {
+    // Jeśli mamy już wybranego klienta i nie szukamy, nie wyświetlaj listy klientów
+    if (_selectedClient != null && !_isSearchingClients) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ListTile(
+            dense: true,
+            leading: CircleAvatar(
+              radius: 18,
+              backgroundColor: Theme.of(context).primaryColor,
+              child: Text(
+                _getInitials(_selectedClient!.firstName, _selectedClient!.lastName),
+                style: const TextStyle(color: Colors.white, fontSize: 12),
+              ),
+            ),
+            title: Text(
+              '${_selectedClient!.firstName} ${_selectedClient!.lastName}',
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+            ),
+            subtitle: _selectedClient!.phone != null && _selectedClient!.phone!.isNotEmpty
+              ? Text(
+                  _selectedClient!.phone!,
+                  style: const TextStyle(fontSize: 12),
+                )
+              : null,
+            trailing: IconButton(
+              icon: const Icon(Icons.close, size: 18),
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+              onPressed: () {
+                setState(() {
+                  _selectedClient = null;
+                });
+              },
+            ),
+          ),
+        ],
+      );
+    }
+
     return BlocBuilder<ClientBloc, ClientState>(
       builder: (context, state) {
-        if (state is ClientsLoaded) {
+        // Obsługa stanu ładowania klienta
+        if (state is ClientLoading && widget.clientId != null) {
+          return const Padding(
+            padding: EdgeInsets.all(16.0),
+            child: Center(
+              child: Column(
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 16),
+                  Text('Ładowanie danych klienta...'),
+                ],
+              ),
+            ),
+          );
+        } else if (state is ClientsLoaded) {
           final allClients = state.clients;
           
           // Filter clients based on search query
@@ -332,24 +420,57 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Dodaj Pojazd'),
-      ),
-      body: BlocListener<VehicleBloc, VehicleState>(
-        listener: (context, state) {
-          if (state is VehicleError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message)),
-            );
-            setState(() => _isSubmitting = false);
-          } else if (state is VehicleOperationSuccess) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message)),
-            );
-            Navigator.of(context).pop(true);
-          }
-        },
+    return Scaffold(      appBar: CustomAppBar(
+        title: 'Dodaj Pojazd',
+        feature: 'vehicles',
+      ),body: MultiBlocListener(
+        listeners: [
+          BlocListener<VehicleBloc, VehicleState>(
+            listener: (context, state) {
+              if (state is VehicleError) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(state.message)),
+                );
+                setState(() => _isSubmitting = false);
+              } else if (state is VehicleOperationSuccess) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(state.message)),
+                );
+                Navigator.of(context).pop(true);
+              }
+            },
+          ),          BlocListener<ClientBloc, ClientState>(
+            listener: (context, state) {
+              if (state is ClientDetailsLoaded && widget.clientId != null) {
+                setState(() {
+                  _selectedClient = state.client;
+                  _isSearchingClients = false;
+                });
+              } else if (state is ClientLoading) {
+                // Only show loading state if we don't already have a selected client
+                setState(() {
+                  if (_selectedClient == null) {
+                    _isSearchingClients = false;
+                  }
+                });
+              } else if (state is ClientError) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Błąd: ${state.message}')),
+                );
+                // Ensure we're not stuck in loading state
+                setState(() {
+                  _isSearchingClients = false;
+                });              } else if (state is ClientsLoaded) {
+                // Only update state if we're in loading state without a selected client
+                if (_isSearchingClients && _selectedClient == null) {
+                  setState(() {
+                    _isSearchingClients = false;
+                  });
+                }
+              }
+            },
+          ),
+        ],
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16.0),
           child: Form(

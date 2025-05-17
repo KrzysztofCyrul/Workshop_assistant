@@ -7,6 +7,7 @@ import '../../../vehicles/domain/entities/vehicle.dart';
 import '../../../clients/presentation/bloc/client_bloc.dart';
 import '../../../vehicles/presentation/bloc/vehicle_bloc.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
+import 'package:flutter_frontend/core/widgets/custom_app_bar.dart';
 
 // Constants for appointment status
 class AppointmentStatus {
@@ -98,6 +99,9 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
     _loadData();
   }  void _loadData() {
     // Load clients for this workshop
+    setState(() {
+      _isLoadingClients = true;
+    });
     context.read<ClientBloc>().add(LoadClientsEvent(workshopId: widget.workshopId));
     
     // Current user should be automatically selected
@@ -254,23 +258,26 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
       context.read<ClientBloc>().add(LoadClientsEvent(workshopId: widget.workshopId));
     });
   }
-  
-  void _navigateToAddVehicleScreen() {
+    void _navigateToAddVehicleScreen() {
     if (_selectedClient == null) {
       _showValidationError('Proszę najpierw wybrać klienta');
       return;
     }
-    
-    // Navigate to add vehicle screen
+      // Navigate to add vehicle screen with the full client object
     Navigator.pushNamed(
       context,
       '/add-vehicle',
       arguments: {
         'workshopId': widget.workshopId,
-        'clientId': _selectedClient!.id,
-      },    ).then((_) {
-      // Reload vehicles after returning
-      if (_selectedClient != null) {
+        'selectedClient': _selectedClient,
+      },    ).then((result) {
+      // Reload clients and vehicles after returning
+      context.read<ClientBloc>().add(
+        LoadClientsEvent(workshopId: widget.workshopId)
+      );
+      
+      // Reload vehicles after returning if successful
+      if (result == true && _selectedClient != null) {
         context.read<VehicleBloc>().add(
           LoadVehiclesForClientEvent(
             workshopId: widget.workshopId,
@@ -291,9 +298,9 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Dodaj nową wizytę'),
+    return Scaffold(      appBar: CustomAppBar(
+        title: 'Dodaj nową wizytę',
+        feature: 'appointments',
         actions: [
           IconButton(
             icon: const Icon(Icons.check),
@@ -301,7 +308,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
             tooltip: 'Zapisz wizytę',
           ),
         ],
-      ),      body: MultiBlocListener(
+      ),body: MultiBlocListener(
         listeners: [
           BlocListener<AppointmentBloc, AppointmentState>(
             listener: (context, state) {
@@ -323,13 +330,29 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                 );
               }
             },
-          ),
-          BlocListener<ClientBloc, ClientState>(
+          ),          BlocListener<ClientBloc, ClientState>(
             listener: (context, state) {
               if (state is ClientsLoaded) {
                 setState(() {
                   _isLoadingClients = false;
                 });
+              } else if (state is ClientLoading) {
+                setState(() {
+                  _isLoadingClients = true;
+                });
+              } else if (state is ClientError) {
+                setState(() {
+                  _isLoadingClients = false;
+                });
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Błąd ładowania klientów: ${state.message}'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              } else if (state is ClientInitial) {
+                // Załaduj klientów w stanie początkowym
+                context.read<ClientBloc>().add(LoadClientsEvent(workshopId: widget.workshopId));
               }
             },
           ),
@@ -606,10 +629,29 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
               'Błąd: ${state.message}',
               style: const TextStyle(color: Colors.red),
             ),
-          );
-        } else {
-          return const Center(
-            child: Text('Nie udało się załadować klientów'),
+          );        } else {
+          return Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  'Nie udało się załadować klientów',
+                  style: TextStyle(fontSize: 16, color: Colors.grey),
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    // Ponownie załaduj klientów
+                    setState(() {
+                      _isLoadingClients = true;
+                    });
+                    context.read<ClientBloc>().add(LoadClientsEvent(workshopId: widget.workshopId));
+                  },
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Odśwież'),
+                ),
+              ],
+            ),
           );
         }
       },

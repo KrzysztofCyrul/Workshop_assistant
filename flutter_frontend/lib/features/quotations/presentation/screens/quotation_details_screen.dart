@@ -3,7 +3,14 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_frontend/features/clients/domain/entities/client.dart';
 import 'package:flutter_frontend/features/quotations/domain/entities/quotation.dart';
 import 'package:flutter_frontend/features/quotations/domain/entities/quotation_part.dart';
+import 'package:flutter_frontend/features/shared/presentation/widgets/contact_button_widget.dart';
+import 'package:flutter_frontend/features/shared/presentation/widgets/cost_summary_widget.dart';
+import 'package:flutter_frontend/features/shared/presentation/widgets/detail_row_widget.dart';
+import 'package:flutter_frontend/features/shared/presentation/widgets/details_card_widget.dart';
+import 'package:flutter_frontend/features/shared/presentation/widgets/client_profile_widget.dart';
+import 'package:flutter_frontend/features/shared/presentation/widgets/vehicle_profile_widget.dart';
 import 'package:flutter_frontend/features/shared/presentation/widgets/part_form_widget.dart';
+import 'package:flutter_frontend/core/widgets/custom_app_bar.dart';
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:printing/printing.dart';
@@ -458,42 +465,12 @@ class _QuotationDetailsScreenState extends State<QuotationDetailsScreen> with Fo
       name: fileName,
     );
   }
-
   Widget _buildDetailRow(String label, String value, {IconData? icon, Color? iconColor}) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8.0),
-      padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade50,
-        borderRadius: BorderRadius.circular(8.0),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
-      child: Row(
-        children: [
-          if (icon != null)
-            Container(
-              padding: const EdgeInsets.all(8.0),
-              margin: const EdgeInsets.only(right: 12.0),
-              decoration: BoxDecoration(
-                color: (iconColor ?? Colors.blue).withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8.0),
-              ),
-              child: Icon(icon, size: 20, color: iconColor ?? Colors.blue),
-            ),
-          Expanded(
-            child: Text(
-              label,
-              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
-            ),
-          ),
-          Expanded(
-            child: Text(
-              value,
-              style: TextStyle(color: Colors.grey.shade700, fontSize: 15),
-            ),
-          ),
-        ],
-      ),
+    return DetailRowWidget(
+      label: label,
+      value: value,
+      icon: icon,
+      iconColor: iconColor ?? Colors.blue,
     );
   }
 
@@ -803,471 +780,178 @@ class _QuotationDetailsScreenState extends State<QuotationDetailsScreen> with Fo
       ),
     );
   }
-
   Widget _buildQuotationDetailsCard(BuildContext context, Quotation quotation) {
-    return Card(
-      elevation: 3,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      margin: const EdgeInsets.symmetric(vertical: 4.0),
-      child: ExpansionTile(
-        initiallyExpanded: false,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        collapsedShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        tilePadding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
-        leading: Container(
-          padding: const EdgeInsets.all(8.0),
-          decoration: BoxDecoration(
-            color: Colors.blue.shade50,
-            borderRadius: BorderRadius.circular(8.0),
-          ),
-          child: const Icon(Icons.description, color: Colors.blue),
+    return DetailsCardWidget(
+      title: 'Szczegóły Wyceny',
+      subtitle: 'Nr: ${quotation.quotationNumber}',
+      icon: Icons.description,
+      iconBackgroundColor: Colors.blue.shade50,
+      iconColor: Colors.blue,
+      initiallyExpanded: false,
+      children: [
+        _buildDetailRow(
+          'Data utworzenia',
+          DateFormat('dd-MM-yyyy HH:mm').format(quotation.createdAt.toLocal()),
+          icon: Icons.calendar_today,
+          iconColor: Colors.blue,
         ),
-        title: const Text(
-          'Szczegóły Wyceny',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+        _buildDetailRow(
+          'Koszt całkowity',
+          '${quotation.totalCost?.toStringAsFixed(2) ?? '0.00'} PLN',
+          icon: Icons.attach_money,
+          iconColor: Colors.green,
         ),
-        subtitle: Text(
-          'Nr: ${quotation.quotationNumber}',
-          style: TextStyle(color: Colors.blue.shade700, fontWeight: FontWeight.w500),
-        ),
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16.0),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: const BorderRadius.only(
-                bottomLeft: Radius.circular(12),
-                bottomRight: Radius.circular(12),
-              ),
-            ),
-            child: Column(
-              children: [
-                _buildDetailRow(
-                  'Data utworzenia',
-                  DateFormat('dd-MM-yyyy HH:mm').format(quotation.createdAt.toLocal()),
-                  icon: Icons.calendar_today,
-                  iconColor: Colors.blue,
-                ),
-                _buildDetailRow(
-                  'Koszt całkowity',
-                  '${quotation.totalCost?.toStringAsFixed(2) ?? '0.00'} PLN',
-                  icon: Icons.attach_money,
-                  iconColor: Colors.green,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+      ],
     );
   }
-
   Widget _buildClientDetailsCard(Client client) {
-    Widget buildContactButton({
-      required IconData icon,
-      required String label,
-      required String value,
-      required Color color,
-      required VoidCallback onPressed,
-    }) {
-      return Container(
-        margin: const EdgeInsets.only(right: 8.0),
-        child: ElevatedButton.icon(
-          icon: Icon(icon, size: 16),
-          label: Text(label),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: color.withOpacity(0.1),
-            foregroundColor: color,
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            elevation: 0,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8.0),
-              side: BorderSide(color: color.withOpacity(0.2)),
-            ),
-          ),
-          onPressed: onPressed,
+    return DetailsCardWidget(
+      title: 'Szczegóły Klienta',
+      subtitle: '${client.firstName} ${client.lastName}',
+      icon: Icons.person,
+      iconBackgroundColor: Colors.purple.shade100,
+      iconColor: Colors.purple,
+      trailing: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: Colors.grey.shade200,
+          shape: BoxShape.circle,
         ),
-      );
-    }
-
-    return Card(
-      elevation: 3,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      margin: const EdgeInsets.symmetric(vertical: 4.0),
-      child: ExpansionTile(
-        initiallyExpanded: false,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        collapsedShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        tilePadding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
-        leading: Container(
-          padding: const EdgeInsets.all(8.0),
-          decoration: BoxDecoration(
-            color: Colors.purple.shade100,
-            borderRadius: BorderRadius.circular(8.0),
-          ),
-          child: const Icon(Icons.person, color: Colors.purple),
-        ),
-        title: const Text(
-          'Szczegóły Klienta',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-        ),
-        subtitle: Text(
-          '${client.firstName} ${client.lastName}',
-          style: TextStyle(color: Colors.purple.shade700, fontWeight: FontWeight.w500),
-        ),
-        trailing: Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-            color: Colors.grey.shade200,
-            shape: BoxShape.circle,
-          ),
-          child: Center(
-            child: Text(
-              _getInitials(client.firstName, client.lastName),
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-              ),
+        child: Center(
+          child: Text(
+            _getInitials(client.firstName, client.lastName),
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
             ),
           ),
         ),
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16.0),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: const BorderRadius.only(
-                bottomLeft: Radius.circular(12),
-                bottomRight: Radius.circular(12),
-              ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(16.0),
-                  margin: const EdgeInsets.only(bottom: 16.0),
-                  decoration: BoxDecoration(
-                    color: Colors.purple.shade50,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.purple.shade100),
-                  ),
-                  child: Column(
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            width: 60,
-                            height: 60,
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              shape: BoxShape.circle,
-                              border: Border.all(color: Colors.purple, width: 2),
-                            ),
-                            child: Center(
-                              child: Text(
-                                _getInitials(client.firstName, client.lastName),
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 24,
-                                  color: Colors.purple.shade700,
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  '${client.firstName} ${client.lastName}',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 18,
-                                    color: Colors.purple.shade900,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                if (client.phone != null)
-                                  Text(
-                                    client.phone!,
-                                    style: TextStyle(
-                                      color: Colors.purple.shade700,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      Row(
-                        children: [
-                          if (client.phone != null && client.phone!.isNotEmpty)
-                            buildContactButton(
-                              icon: Icons.phone,
-                              label: 'Zadzwoń',
-                              value: client.phone!,
-                              color: Colors.green,
-                              onPressed: () {
-                                try {
-                                  final uri = Uri.parse('tel:${client.phone}');
-                                  launchUrl(uri);
-                                } catch (e) {
-                                  debugPrint('Nie można wykonać połączenia: $e');
-                                }
-                              },
-                            ),
-                          if (client.email.isNotEmpty)
-                            buildContactButton(
-                              icon: Icons.email,
-                              label: 'Email',
-                              value: client.email,
-                              color: Colors.orange,
-                              onPressed: () {
-                                try {
-                                  final uri = Uri.parse('mailto:${client.email}');
-                                  launchUrl(uri);
-                                } catch (e) {
-                                  debugPrint('Nie można wysłać email: $e');
-                                }
-                              },
-                            ),
-                          if (client.address != null && client.address!.isNotEmpty)
-                            buildContactButton(
-                              icon: Icons.map,
-                              label: 'Mapa',
-                              value: client.address!,
-                              color: Colors.blue,
-                              onPressed: () {
-                                try {
-                                  final encodedAddress = Uri.encodeComponent(client.address!);
-                                  final uri = Uri.parse('https://maps.google.com/?q=$encodedAddress');
-                                  launchUrl(uri, mode: LaunchMode.externalApplication);
-                                } catch (e) {
-                                  debugPrint('Nie można otworzyć mapy: $e');
-                                }
-                              },
-                            ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                _buildDetailRow(
-                  'Email',
-                  client.email,
-                  icon: Icons.email,
-                  iconColor: Colors.orange,
-                ),
-                if (client.address != null)
-                  _buildDetailRow(
-                    'Adres',
-                    client.address ?? '',
-                    icon: Icons.home,
-                    iconColor: Colors.blue,
-                  ),
-              ],
-            ),
-          ),
-        ],
       ),
+      children: [
+        ClientProfileWidget(
+          firstName: client.firstName,
+          lastName: client.lastName,
+          phone: client.phone,
+          email: client.email,
+          address: client.address,
+          initials: _getInitials(client.firstName, client.lastName),
+        ),
+        
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            if (client.phone != null && client.phone!.isNotEmpty)
+              ContactButtonWidget(
+                icon: Icons.phone,
+                label: 'Zadzwoń',
+                color: Colors.green,
+                onPressed: () {
+                  try {
+                    final uri = Uri.parse('tel:${client.phone}');
+                    launchUrl(uri);
+                  } catch (e) {
+                    debugPrint('Nie można wykonać połączenia: $e');
+                  }
+                },
+              ),
+            if (client.email.isNotEmpty)
+              ContactButtonWidget(
+                icon: Icons.email,
+                label: 'Email',
+                color: Colors.orange,
+                onPressed: () {
+                  try {
+                    final uri = Uri.parse('mailto:${client.email}');
+                    launchUrl(uri);
+                  } catch (e) {
+                    debugPrint('Nie można wysłać email: $e');
+                  }
+                },
+              ),
+            if (client.address != null && client.address!.isNotEmpty)
+              ContactButtonWidget(
+                icon: Icons.map,
+                label: 'Mapa',
+                color: Colors.blue,
+                onPressed: () {
+                  try {
+                    final encodedAddress = Uri.encodeComponent(client.address!);
+                    final uri = Uri.parse('https://maps.google.com/?q=$encodedAddress');
+                    launchUrl(uri, mode: LaunchMode.externalApplication);
+                  } catch (e) {
+                    debugPrint('Nie można otworzyć mapy: $e');
+                  }
+                },
+              ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        _buildDetailRow(
+          'Email',
+          client.email,
+          icon: Icons.email,
+          iconColor: Colors.orange,
+        ),
+        if (client.address != null)
+          _buildDetailRow(
+            'Adres',
+            client.address ?? '',
+            icon: Icons.home,
+            iconColor: Colors.blue,
+          ),
+      ],
     );
   }
-
   Widget _buildVehicleDetailsCard(Vehicle vehicle) {
-    return Card(
-      elevation: 3,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      margin: const EdgeInsets.symmetric(vertical: 4.0),
-      child: ExpansionTile(
-        initiallyExpanded: false,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        collapsedShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        tilePadding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
-        leading: Container(
-          padding: const EdgeInsets.all(8.0),
-          decoration: BoxDecoration(
-            color: Colors.teal.shade50,
-            borderRadius: BorderRadius.circular(8.0),
-          ),
-          child: const Icon(Icons.directions_car, color: Colors.teal),
+    return DetailsCardWidget(
+      title: 'Dane Pojazdu',
+      subtitle: '${vehicle.make} ${vehicle.model}',
+      icon: Icons.directions_car,
+      iconBackgroundColor: Colors.teal.shade50,
+      iconColor: Colors.teal,
+      children: [
+        VehicleProfileWidget(
+          make: vehicle.make,
+          model: vehicle.model,
+          licensePlate: vehicle.licensePlate,
         ),
-        title: const Text(
-          'Dane Pojazdu',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+        _buildDetailRow(
+          'Nr. rejestracyjny',
+          vehicle.licensePlate,
+          icon: Icons.confirmation_number,
+          iconColor: Colors.amber,
         ),
-        subtitle: Text(
-          '${vehicle.make} ${vehicle.model}',
-          style: TextStyle(color: Colors.teal.shade700, fontWeight: FontWeight.w500),
+        _buildDetailRow(
+          'VIN',
+          vehicle.vin,
+          icon: Icons.pin,
+          iconColor: Colors.indigo,
         ),
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16.0),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: const BorderRadius.only(
-                bottomLeft: Radius.circular(12),
-                bottomRight: Radius.circular(12),
-              ),
-            ),
-            child: Column(
-              children: [
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(16.0),
-                  margin: const EdgeInsets.only(bottom: 16.0),
-                  decoration: BoxDecoration(
-                    color: Colors.teal.shade50,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.teal.shade100),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.teal, width: 2),
-                        ),
-                        child: Icon(
-                          Icons.directions_car,
-                          size: 40,
-                          color: Colors.teal.shade700,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              '${vehicle.make} ${vehicle.model}',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 18,
-                                color: Colors.teal.shade900,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              vehicle.licensePlate,
-                              style: TextStyle(
-                                color: Colors.teal.shade700,
-                                fontWeight: FontWeight.w500,
-                                fontSize: 16,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                _buildDetailRow(
-                  'Nr. rejestracyjny',
-                  vehicle.licensePlate,
-                  icon: Icons.confirmation_number,
-                  iconColor: Colors.amber,
-                ),
-                _buildDetailRow(
-                  'VIN',
-                  vehicle.vin,
-                  icon: Icons.pin,
-                  iconColor: Colors.indigo,
-                ),
-                _buildDetailRow(
-                  'Rok produkcji',
-                  vehicle.year.toString(),
-                  icon: Icons.date_range,
-                  iconColor: Colors.green,
-                ),
-                _buildDetailRow(
-                  'Przebieg',
-                  '${vehicle.mileage} km',
-                  icon: Icons.speed,
-                  iconColor: Colors.red,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+        _buildDetailRow(
+          'Rok produkcji',
+          vehicle.year.toString(),
+          icon: Icons.date_range,
+          iconColor: Colors.green,
+        ),
+        _buildDetailRow(
+          'Przebieg',
+          '${vehicle.mileage} km',
+          icon: Icons.speed,
+          iconColor: Colors.red,
+        ),
+      ],
     );
   }
-
   Widget _buildCostSummaryCard(List<QuotationPart> parts) {
     final totalPartsCost = getTotalPartCost(parts);
     final totalServiceCost = getTotalServiceCost(parts);
     final totalMargin = getTotalMargin(parts);
-    final totalCost = totalPartsCost + totalServiceCost;
 
-    return Card(
-      elevation: 4,
-      margin: const EdgeInsets.symmetric(vertical: 8.0),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Podsumowanie kosztów',
-              style: TextStyle(
-                fontSize: 18.0,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 16.0),
-            _buildCostRow('Suma cen części:', totalPartsCost, false),
-            _buildCostRow('Marża:', totalMargin, false),
-            _buildCostRow('Suma cen usług:', totalServiceCost, false),
-            const Divider(thickness: 1.0),
-            _buildCostRow('Łączna cena:', totalCost, true),
-          ],
-        ),
-      ),
-    );
-  }
-  
-  Widget _buildCostRow(String label, double value, bool isTotal) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: TextStyle(
-              fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
-              fontSize: isTotal ? 16.0 : 14.0,
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
-            decoration: isTotal
-                ? BoxDecoration(
-                    color: Colors.green.shade50,
-                    borderRadius: BorderRadius.circular(8.0),
-                    border: Border.all(color: Colors.green.shade200),
-                  )
-                : null,
-            child: Text(
-              '${value.toStringAsFixed(2)} PLN',
-              style: TextStyle(
-                fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
-                fontSize: isTotal ? 16.0 : 14.0,
-                color: isTotal ? Colors.green.shade800 : null,
-              ),
-            ),
-          ),
-        ],
-      ),
+    return CostSummaryWidget(
+      totalPartsCost: totalPartsCost,
+      totalServiceCost: totalServiceCost,
+      totalMargin: totalMargin,
     );
   }
 
@@ -1293,20 +977,14 @@ class _QuotationDetailsScreenState extends State<QuotationDetailsScreen> with Fo
       ),
     );
   }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: _AppBarBuilder(
-        appointment: null,
-        onPrintPressed: _onPrintButtonPressed,
+        onPrintPressed: _generatePdf,
       ),
       body: _buildBody(),
     );
-  }
-  
-  void _onPrintButtonPressed(Quotation quotation) {
-    _generatePdf(quotation);
   }
   
   Widget _buildBody() {
@@ -1417,18 +1095,18 @@ class _QuotationDetailsScreenState extends State<QuotationDetailsScreen> with Fo
 }
 
 class _AppBarBuilder extends StatelessWidget implements PreferredSizeWidget {
-  final dynamic appointment; // Could be Quotation? but keeping consistent with AppointmentDetailsScreen interface
   final Function(Quotation) onPrintPressed;
 
   const _AppBarBuilder({
-    required this.appointment,
     required this.onPrintPressed,
   });
   
   @override
   Widget build(BuildContext context) {
-    return AppBar(
-      title: BlocBuilder<QuotationBloc, QuotationState>(
+    return CustomAppBar(
+      title: 'Wycena',
+      feature: 'quotations',
+      titleWidget: BlocBuilder<QuotationBloc, QuotationState>(
         buildWhen: (previous, current) {
           if (previous is QuotationLoading && current is QuotationLoading) {
             return false;
@@ -1438,12 +1116,18 @@ class _AppBarBuilder extends StatelessWidget implements PreferredSizeWidget {
         builder: (context, state) {
           if (state is QuotationDetailsLoaded) {
             final quotation = state.quotation;
-            return Text('Wycena ${quotation.quotationNumber} - ${quotation.vehicle.make} ${quotation.vehicle.model}');
+            return Text(
+              'Wycena ${quotation.quotationNumber} - ${quotation.vehicle.make} ${quotation.vehicle.model}', 
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20)
+            );
           } else if (state is QuotationOperationSuccessWithDetails) {
             final quotation = state.quotation;
-            return Text('Wycena ${quotation.quotationNumber} - ${quotation.vehicle.make} ${quotation.vehicle.model}');
+            return Text(
+              'Wycena ${quotation.quotationNumber} - ${quotation.vehicle.make} ${quotation.vehicle.model}',
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20)
+            );
           }
-          return const Text('Ładowanie...');
+          return const Text('Ładowanie...', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20));
         },
       ),
       actions: _buildAppBarActions(context),

@@ -4,6 +4,7 @@ import 'package:flutter_frontend/features/vehicles/domain/entities/vehicle.dart'
 import 'package:flutter_frontend/features/vehicles/presentation/bloc/vehicle_bloc.dart';
 import 'package:flutter_frontend/features/vehicles/presentation/screens/vehicle_details_screen.dart';
 import 'package:flutter_frontend/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:flutter_frontend/core/widgets/custom_app_bar.dart';
 
 class ClientVehicleListScreen extends StatefulWidget {
   static const routeName = '/client-vehicle-list';
@@ -57,7 +58,10 @@ void _loadVehicles() {
       builder: (context, authState) {
         if (authState is! Authenticated) {
           return Scaffold(
-            appBar: AppBar(title: const Text('Lista Pojazdów Klienta')),
+            appBar: CustomAppBar(
+              title: 'Lista Pojazdów Klienta',
+              feature: 'vehicles',
+            ),
             body: const Center(
               child: Text(
                 'Brak dostępu do danych użytkownika.\nZaloguj się, aby zobaczyć listę pojazdów.',
@@ -67,9 +71,9 @@ void _loadVehicles() {
           );
         }
 
-        return Scaffold(
-          appBar: AppBar(
-            title: const Text('Lista Pojazdów Klienta'),
+        return Scaffold(          appBar: CustomAppBar(
+            title: 'Lista Pojazdów Klienta',
+            feature: 'vehicles',
             actions: [
               IconButton(
                 icon: const Icon(Icons.refresh),

@@ -22,8 +22,12 @@ class ClientDetailsLoaded extends ClientState {
 
 class ClientOperationSuccess extends ClientState {
   final String message;
+  final Client? client; // Opcjonalny klient dla operacji, które go tworzą
 
-  const ClientOperationSuccess({required this.message});
+  const ClientOperationSuccess({
+    required this.message,
+    this.client,
+  });
 }
 
 class ClientError extends ClientState {

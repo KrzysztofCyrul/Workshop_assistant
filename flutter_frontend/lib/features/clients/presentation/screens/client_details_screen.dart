@@ -4,6 +4,8 @@ import 'package:flutter_frontend/features/clients/presentation/bloc/client_bloc.
 import 'package:flutter_frontend/features/vehicles/presentation/bloc/vehicle_bloc.dart';
 import 'package:flutter_frontend/features/clients/presentation/widgets/client_info_widget.dart';
 import 'package:flutter_frontend/features/clients/presentation/widgets/vehicles_list_widget.dart';
+import 'package:flutter_frontend/core/widgets/custom_app_bar.dart';
+import 'package:flutter_frontend/core/theme/app_theme.dart';
 
 class ClientDetailsScreen extends StatefulWidget {
   static const routeName = '/client-details';
@@ -106,29 +108,26 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: BlocBuilder<ClientBloc, ClientState>(
+    return Scaffold(      appBar: CustomAppBar(
+        title: 'Szczegóły klienta',
+        feature: 'clients',
+        titleWidget: BlocBuilder<ClientBloc, ClientState>(
           builder: (context, state) {
             if (state is ClientDetailsLoaded) {
               return Text(
                 '${state.client.firstName} ${state.client.lastName}',
-                style: const TextStyle(fontWeight: FontWeight.bold),
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
               );
             }
             return const Text(
               'Szczegóły klienta',
-              style: TextStyle(fontWeight: FontWeight.bold),
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
             );
           },
         ),
-        elevation: 2,
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        actions: [
-          IconButton(
+        actions: [          IconButton(
             icon: const Icon(Icons.edit),
             tooltip: 'Edytuj klienta',
-            color: Theme.of(context).colorScheme.primary,
             onPressed: () => Navigator.of(context).pushNamed(
               '/client-edit',
               arguments: {
@@ -136,11 +135,9 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
                 'clientId': widget.clientId,
               },
             ).then((_) => _loadClientDetails()),
-          ),
-          IconButton(
+          ),          IconButton(
             icon: const Icon(Icons.delete),
             tooltip: 'Usuń klienta',
-            color: Colors.red,
             onPressed: _deleteClient,
           ),
         ],
@@ -319,19 +316,44 @@ class _ClientDetailsScreenState extends State<ClientDetailsScreen> {
             ),
           ),
         ),
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => Navigator.of(context).pushNamed(
-          '/add-vehicle',
-          arguments: {
-            'workshopId': widget.workshopId,
-            'clientId': widget.clientId,
-          },
-        ).then((_) => _loadVehicles()),
-        icon: const Icon(Icons.directions_car),
-        label: const Text('Dodaj pojazd'),
-        tooltip: 'Dodaj pojazd dla klienta',
-        backgroundColor: Colors.blue,
+      ),      floatingActionButton: BlocBuilder<ClientBloc, ClientState>(
+        builder: (context, state) {
+          if (state is ClientDetailsLoaded) {
+            return FloatingActionButton.extended(
+              onPressed: () => Navigator.of(context).pushNamed(
+                '/add-vehicle',
+                arguments: {
+                  'workshopId': widget.workshopId,
+                  'selectedClient': state.client,
+                },
+              ).then((result) {
+                if (result == true) {
+                  _loadVehicles();
+                }
+              }),
+              icon: const Icon(Icons.directions_car),
+              label: const Text('Dodaj pojazd'),
+              tooltip: 'Dodaj pojazd dla klienta',
+              backgroundColor: AppTheme.getFeatureColor('clients'),
+            );
+          }
+          return FloatingActionButton.extended(
+            onPressed: () => Navigator.of(context).pushNamed(
+              '/add-vehicle',
+              arguments: {
+                'workshopId': widget.workshopId,
+                'clientId': widget.clientId,
+              },
+            ).then((result) {
+              if (result == true) {
+                _loadVehicles();
+              }
+            }),            icon: const Icon(Icons.directions_car),
+            label: const Text('Dodaj pojazd'),
+            tooltip: 'Dodaj pojazd dla klienta',
+            backgroundColor: AppTheme.getFeatureColor('clients'),
+          );
+        },
       ),
     );
   }

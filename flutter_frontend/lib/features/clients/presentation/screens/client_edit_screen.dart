@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_frontend/features/clients/domain/entities/client.dart';
 import 'package:flutter_frontend/features/clients/presentation/bloc/client_bloc.dart';
 import 'package:flutter_frontend/features/clients/presentation/widgets/client_form_widget.dart';
+import 'package:flutter_frontend/core/widgets/custom_app_bar.dart';
 
 class ClientEditScreen extends StatefulWidget {
   static const routeName = '/client-edit';
@@ -94,9 +95,9 @@ class _ClientEditScreenState extends State<ClientEditScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Edytuj Klienta'),
+    return Scaffold(      appBar: CustomAppBar(
+        title: 'Edytuj Klienta',
+        feature: 'clients',
       ),
       body: BlocConsumer<ClientBloc, ClientState>(
         listener: (context, state) {

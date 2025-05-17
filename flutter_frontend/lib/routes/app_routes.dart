@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_frontend/features/appointments/presentation/bloc/appointment_bloc.dart';
 import 'package:flutter_frontend/features/quotations/presentation/bloc/quotation_bloc.dart';
 import 'package:flutter_frontend/core/di/injector_container.dart' as di;
+import 'package:flutter_frontend/core/widgets/custom_app_bar.dart';
 // Auth screens
 import 'package:flutter_frontend/features/auth/presentation/screens/login_screen.dart';
 import 'package:flutter_frontend/features/auth/presentation/screens/register_screen.dart';
@@ -184,14 +185,30 @@ class AppRoutes {
         return _buildErrorScreen('Brak wymaganych parametrów dla VehicleListScreen');
       }
       return VehicleListScreen(workshopId: args['workshopId']! as String);
-    },
-    AddVehicleScreen.routeName: (context) {
+    },    AddVehicleScreen.routeName: (context) {
       final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
       if (args == null) return const AddVehicleScreen(workshopId: '');
+      
+      // Jeśli mamy już obiekt Client, użyj go bezpośrednio
+      if (args['selectedClient'] != null) {
+        return AddVehicleScreen(
+          workshopId: args['workshopId'] as String,
+          selectedClient: args['selectedClient'],
+        );
+      }
+      
+      // Jeśli mamy tylko clientId, zwróć ekran z informacją o ładowaniu
+      // a następnie pobierz klienta w build metodzie AddVehicleScreen
+      if (args['clientId'] != null) {
+        return AddVehicleScreen(
+          workshopId: args['workshopId'] as String,
+          clientId: args['clientId'] as String,
+        );
+      }
 
+      // Domyślnie zwróć pusty ekran
       return AddVehicleScreen(
         workshopId: args['workshopId'] as String,
-        selectedClient: args['selectedClient'],
       );
     },
     ClientVehicleListScreen.routeName: (context) {
@@ -273,7 +290,7 @@ class AppRoutes {
     return _NavigateAfterBuild(
       navigateTo: HomeScreen.routeName,
       child: Scaffold(
-        appBar: AppBar(title: const Text('Błąd')),
+        appBar: CustomAppBar(title: 'Błąd', feature: 'home'),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,

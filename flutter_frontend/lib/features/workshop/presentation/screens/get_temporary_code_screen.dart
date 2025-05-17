@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/workshop_bloc.dart';
+import 'package:flutter_frontend/core/widgets/custom_app_bar.dart';
 
 class GetTemporaryCodeScreen extends StatelessWidget {
   static const routeName = '/generate-code';
@@ -12,22 +13,20 @@ class GetTemporaryCodeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     // Get workshopId from route if not provided in constructor
     final String? routeWorkshopId = workshopId ?? 
-        (ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?)?['workshopId'];
-
-    if (routeWorkshopId == null) {
+        (ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?)?['workshopId'];    if (routeWorkshopId == null) {
       return Scaffold(
-        appBar: AppBar(
-          title: const Text('Błąd'),
+        appBar: CustomAppBar(
+          title: 'Błąd',
+          feature: 'settings',
         ),
         body: const Center(
           child: Text('Brak wymaganego ID warsztatu'),
         ),
       );
-    }
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Generuj kod'),
+    }    return Scaffold(
+      appBar: CustomAppBar(
+        title: 'Generuj kod',
+        feature: 'settings',
       ),
       body: BlocConsumer<WorkshopBloc, WorkshopState>(
         listener: (context, state) {

@@ -10,6 +10,8 @@ import 'package:flutter_frontend/features/vehicles/presentation/screens/vehicle_
 import 'package:flutter_frontend/features/clients/presentation/screens/clients_list_screen.dart';
 import 'package:flutter_frontend/features/appointments/presentation/screens/appointments_list_screen.dart';
 import 'package:flutter_frontend/features/workshop/presentation/screens/use_code_screen.dart';
+import 'package:flutter_frontend/core/widgets/custom_app_bar.dart';
+import 'package:flutter_frontend/core/theme/app_theme.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../features/auth/presentation/bloc/auth_bloc.dart';
@@ -42,25 +44,12 @@ class HomeScreen extends StatelessWidget {
           }
 
           final workshopId = employeeProfiles.first.workshopId;
-          final employeeId = employeeProfiles.first.id;          return Scaffold(
-            appBar: AppBar(
-              // leading: IconButton(
-              //   icon: const Icon(Icons.settings),
-              //   onPressed: () => _navigateToSettings(context),
-              // ),
-              title: const Text(
-                'Panel Główny',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-              ),
+          final employeeId = employeeProfiles.first.id;
+          return Scaffold(
+            appBar: CustomAppBar(
+              title: 'Panel Główny',
               centerTitle: true,
-              backgroundColor: Colors.blue.shade700,
-              foregroundColor: Colors.white,
-              elevation: 3,
-              shape: const RoundedRectangleBorder(
-                borderRadius: BorderRadius.vertical(
-                  bottom: Radius.circular(16),
-                ),
-              ),
+              feature: 'home',
               actions: [
                 IconButton(
                   icon: const Icon(Icons.logout),
@@ -85,48 +74,50 @@ class HomeScreen extends StatelessWidget {
         );
       },
     );
-  }  Widget _buildWorkshopActions(BuildContext context, String workshopId, String? employeeId) {
+  }
+
+  Widget _buildWorkshopActions(BuildContext context, String workshopId, String? employeeId) {
     // Grupowanie elementów według funkcji dla lepszej organizacji
     final mainActions = [
       {
         'title': 'Zlecenia',
         'subtitle': 'Zarządzaj zleceniami',
         'icon': Icons.assignment,
-        'color': Colors.blue.shade700,
+        'color': AppTheme.featureColors['appointments'],
         'action': () => _navigateToAppointmentsList(context, workshopId),
       },
       {
         'title': 'Wyceny',
         'subtitle': 'Twórz i przeglądaj wyceny',
         'icon': Icons.description,
-        'color': Colors.indigo.shade600,
+        'color': AppTheme.featureColors['quotations'],
         'action': () => _navigateToQuotations(context, workshopId),
       },
     ];
-    
+
     final resourcesActions = [
       {
         'title': 'Klienci',
         'subtitle': 'Baza klientów',
         'icon': Icons.people,
-        'color': Colors.green.shade700,
+        'color': AppTheme.featureColors['clients'],
         'action': () => _navigateToClientsList(context, workshopId),
       },
       {
         'title': 'Pojazdy',
         'subtitle': 'Zarządzaj pojazdami',
         'icon': Icons.directions_car,
-        'color': Colors.orange.shade700,
+        'color': AppTheme.featureColors['vehicles'],
         'action': () => _navigateToVehicleList(context, workshopId),
       },
     ];
-    
+
     final adminActions = [
       {
         'title': 'Generuj kod',
         'subtitle': 'Dostęp dla pracowników',
         'icon': Icons.qr_code,
-        'color': Colors.purple.shade700,
+        'color': AppTheme.featureColors['settings'],
         'action': () => _navigateToGetTemporaryCode(context, workshopId),
       },
       // Miejsce na przyszłe funkcje
@@ -138,7 +129,7 @@ class HomeScreen extends StatelessWidget {
       //   'action': () => _navigateToClientStatistics(context),
       // },
     ];
-    
+
     return CustomScrollView(
       physics: const BouncingScrollPhysics(),
       slivers: [
@@ -168,7 +159,7 @@ class HomeScreen extends StatelessWidget {
         //     ),
         //   ),
         // ),
-        
+
         // Główne funkcje
         SliverToBoxAdapter(
           child: Padding(
@@ -178,7 +169,7 @@ class HomeScreen extends StatelessWidget {
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
-                color: Colors.blue.shade800,
+                color: AppTheme.primaryColor,
               ),
             ),
           ),
@@ -259,7 +250,7 @@ class HomeScreen extends StatelessWidget {
             ),
           ),
         ),
-        
+
         // Zarządzanie bazą
         SliverToBoxAdapter(
           child: Padding(
@@ -348,7 +339,7 @@ class HomeScreen extends StatelessWidget {
             ),
           ),
         ),
-        
+
         // Funkcje administracyjne
         SliverToBoxAdapter(
           child: Padding(
@@ -467,6 +458,7 @@ class HomeScreen extends StatelessWidget {
       },
     );
   }
+
   void _navigateToGetTemporaryCode(BuildContext context, String workshopId) {
     Navigator.of(context).pushNamed(
       GetTemporaryCodeScreen.routeName,
@@ -480,6 +472,7 @@ class HomeScreen extends StatelessWidget {
   void _logout(BuildContext context) {
     context.read<AuthBloc>().add(LogoutRequested());
   }
+
   // Funkcje te mogą być przywrócone w przyszłości, gdy zostanie dodana funkcjonalność
   /*
   void _navigateToClientStatistics(BuildContext context) {
@@ -494,7 +487,8 @@ class HomeScreen extends StatelessWidget {
       },
     );
   }
-  */void _navigateToQuotations(BuildContext context, String workshopId) {
+  */
+  void _navigateToQuotations(BuildContext context, String workshopId) {
     Navigator.of(context).pushNamed(
       QuotationsListScreen.routeName,
       arguments: {

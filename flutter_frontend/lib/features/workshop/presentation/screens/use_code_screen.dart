@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/workshop_bloc.dart';
+import 'package:flutter_frontend/core/widgets/custom_app_bar.dart';
 
 class UseCodeScreen extends StatefulWidget {
   static const routeName = '/use-code';
@@ -19,12 +20,12 @@ class _UseCodeScreenState extends State<UseCodeScreen> {
     _codeController.dispose();
     super.dispose();
   }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Wprowadź kod'),
+      appBar: CustomAppBar(
+        title: 'Wprowadź kod',
+        feature: 'settings',
       ),
       body: BlocConsumer<WorkshopBloc, WorkshopState>(
         listener: (context, state) {
