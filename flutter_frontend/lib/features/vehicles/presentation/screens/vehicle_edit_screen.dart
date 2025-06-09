@@ -2,6 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_frontend/features/vehicles/presentation/bloc/vehicle_bloc.dart';
 import 'package:flutter_frontend/core/widgets/custom_app_bar.dart';
+import 'package:flutter_frontend/core/theme/app_theme.dart';
+import 'package:flutter_frontend/features/shared/presentation/widgets/custom_text_field.dart';
+import 'package:flutter_frontend/features/shared/presentation/widgets/details_card_widget.dart';
+import 'package:flutter_frontend/features/shared/presentation/widgets/form_submit_button.dart';
+import 'package:flutter_frontend/features/shared/presentation/widgets/loading_indicator.dart';
+import 'package:flutter_frontend/features/shared/presentation/widgets/error_state_widget.dart';
+import 'package:flutter_frontend/features/shared/presentation/widgets/vehicle_profile_widget.dart';
 
 class VehicleEditScreen extends StatefulWidget {
   static const routeName = '/vehicle-edit';
@@ -81,12 +88,13 @@ class _VehicleEditScreenState extends State<VehicleEditScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(      appBar: CustomAppBar(
-        title: 'Edit Vehicle',
+        title: 'Edytuj Pojazd',
         feature: 'vehicles',
         actions: [
           IconButton(
             icon: const Icon(Icons.save),
             onPressed: _saveForm,
+            tooltip: 'Zapisz zmiany',
           ),
         ],
       ),
@@ -102,96 +110,149 @@ class _VehicleEditScreenState extends State<VehicleEditScreen> {
               SnackBar(content: Text(state.message)),
             );
           }
-        },
-        builder: (context, state) {
+        },        builder: (context, state) {
           if (state is VehicleLoading) {
-            return const Center(child: CircularProgressIndicator());
+            return const LoadingIndicator();
           }
           if (state is VehicleError) {
-            return Center(child: Text(state.message));
+            return ErrorStateWidget(
+              message: state.message,
+              onRetry: _loadVehicleDetails,
+            );
           }
           if (state is VehicleDetailsLoaded) {
             _initializeControllers(state);
-            return SingleChildScrollView(
-              padding: const EdgeInsets.all(16.0),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  children: [
-                    _buildFormField(
-                      label: 'Make',
-                      controller: _makeController,
-                      validator: (value) => value!.isEmpty ? 'Enter make' : null,
-                    ),
-                    _buildFormField(
-                      label: 'Model',
-                      controller: _modelController,
-                      validator: (value) => value!.isEmpty ? 'Enter model' : null,
-                    ),
-                    _buildFormField(
-                      label: 'Year',
-                      controller: _yearController,
-                      validator: (value) => value!.isEmpty || int.tryParse(value) == null
-                          ? 'Enter valid year'
-                          : null,
-                      keyboardType: TextInputType.number,
-                    ),
-                    _buildFormField(
-                      label: 'VIN',
-                      controller: _vinController,
-                      validator: (value) => null,
-                    ),
-                    _buildFormField(
-                      label: 'License Plate',
-                      controller: _licensePlateController,
-                      validator: (value) => value!.isEmpty ? 'Enter license plate' : null,
-                    ),
-                    _buildFormField(
-                      label: 'Mileage (km)',
-                      controller: _mileageController,
-                      validator: (value) => value!.isEmpty || int.tryParse(value) == null
-                          ? 'Enter valid mileage'
-                          : null,
-                      keyboardType: TextInputType.number,
-                    ),
-                    const SizedBox(height: 20),
-                    _isLoading
-                        ? const CircularProgressIndicator()
-                        : ElevatedButton(
-                            onPressed: _saveForm,
-                            child: const Text('Save Changes'),
-                          ),
-                  ],
-                ),
-              ),
-            );
+            return _buildBody(state);
           }
-          return const Center(child: Text('Vehicle not found'));
+          return const Center(
+            child: Text(
+              'Nie znaleziono pojazdu',
+              style: TextStyle(fontSize: 16, color: Colors.grey),
+            ),
+          );
         },
       ),
     );
   }
-
-  Widget _buildFormField({
-    required String label,
-    required TextEditingController controller,
-    required String? Function(String?) validator,
-    TextInputType? keyboardType,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: TextFormField(
-        controller: controller,
-        decoration: InputDecoration(
-          labelText: label,
-          border: const OutlineInputBorder(),
+  Widget _buildBody(VehicleDetailsLoaded state) {
+    final vehicle = state.vehicle;
+    final vehicleFeatureColor = AppTheme.getFeatureColor('vehicles');
+    
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16.0),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Vehicle Profile Card
+            VehicleProfileWidget(
+              make: vehicle.make,
+              model: vehicle.model,
+              licensePlate: vehicle.licensePlate,
+            ),
+            
+            const SizedBox(height: 16.0),
+            
+            // Basic Information Section
+            DetailsCardWidget(
+              title: 'Informacje podstawowe',
+              subtitle: 'Dane identyfikacyjne pojazdu',
+              icon: Icons.info,
+              iconBackgroundColor: vehicleFeatureColor.withValues(alpha: 0.1),
+              iconColor: vehicleFeatureColor,
+              initiallyExpanded: true,
+              children: [
+                CustomTextField(
+                  controller: _makeController,
+                  labelText: 'Marka',
+                  prefixIcon: Icons.category,
+                  validator: (value) => value?.isEmpty ?? true ? 'Marka jest wymagana' : null,
+                ),
+                const SizedBox(height: 16),
+                CustomTextField(
+                  controller: _modelController,
+                  labelText: 'Model',
+                  prefixIcon: Icons.style,
+                  validator: (value) => value?.isEmpty ?? true ? 'Model jest wymagany' : null,
+                ),
+                const SizedBox(height: 16),
+                CustomTextField(
+                  controller: _yearController,
+                  labelText: 'Rok produkcji',
+                  prefixIcon: Icons.date_range,
+                  keyboardType: TextInputType.number,
+                  validator: (value) {
+                    if (value?.isEmpty ?? true) return 'Rok jest wymagany';
+                    final year = int.tryParse(value!);
+                    if (year == null) return 'Wprowadź prawidłowy rok';
+                    if (year < 1900 || year > DateTime.now().year + 1) {
+                      return 'Rok musi być między 1900 a ${DateTime.now().year + 1}';
+                    }
+                    return null;
+                  },
+                ),
+              ],
+            ),
+            
+            const SizedBox(height: 16.0),
+            
+            // Technical Information Section
+            DetailsCardWidget(
+              title: 'Dane techniczne',
+              subtitle: 'VIN i informacje eksploatacyjne',
+              icon: Icons.engineering,
+              iconBackgroundColor: Colors.grey.shade100,
+              iconColor: Colors.grey.shade600,
+              initiallyExpanded: true,
+              children: [
+                CustomTextField(
+                  controller: _vinController,
+                  labelText: 'VIN',
+                  prefixIcon: Icons.tag,
+                  hintText: 'Opcjonalnie - numer VIN',
+                ),
+                const SizedBox(height: 16),
+                CustomTextField(
+                  controller: _licensePlateController,
+                  labelText: 'Numer rejestracyjny',
+                  prefixIcon: Icons.badge,
+                  validator: (value) => value?.isEmpty ?? true ? 'Numer rejestracyjny jest wymagany' : null,
+                ),
+                const SizedBox(height: 16),
+                CustomTextField(
+                  controller: _mileageController,
+                  labelText: 'Przebieg (km)',
+                  prefixIcon: Icons.speed,
+                  keyboardType: TextInputType.number,
+                  suffixText: 'km',
+                  validator: (value) {
+                    if (value?.isEmpty ?? true) return 'Przebieg jest wymagany';
+                    final mileage = int.tryParse(value!);
+                    if (mileage == null) return 'Wprowadź prawidłowy przebieg';
+                    if (mileage < 0) return 'Przebieg nie może być ujemny';
+                    return null;
+                  },
+                ),
+              ],
+            ),
+            
+            const SizedBox(height: 24),
+            
+            // Save Button
+            FormSubmitButton(
+              label: 'Zapisz zmiany',
+              onPressed: _saveForm,
+              isSubmitting: _isLoading,
+              backgroundColor: vehicleFeatureColor,
+            ),
+            
+            const SizedBox(height: 16),
+          ],
         ),
-        keyboardType: keyboardType,
-        validator: validator,
       ),
     );
   }
-
   @override
   void dispose() {
     if (_controllersInitialized) {

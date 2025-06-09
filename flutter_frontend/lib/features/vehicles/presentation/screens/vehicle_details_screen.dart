@@ -11,7 +11,6 @@ import 'package:flutter_frontend/features/shared/presentation/widgets/vehicle_pr
 import 'package:flutter_frontend/features/shared/presentation/widgets/empty_state_widget.dart';
 import 'package:flutter_frontend/features/shared/presentation/widgets/loading_indicator.dart';
 import 'package:flutter_frontend/features/shared/presentation/widgets/error_state_widget.dart';
-
 import 'package:intl/intl.dart';
 
 class VehicleDetailsScreen extends StatefulWidget {
@@ -131,6 +130,7 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen> {
       ],
     );
   }
+
   Widget _buildSystemInfoCard(dynamic vehicle) {
     return DetailsCardWidget(
       title: 'Informacje systemowe',
@@ -363,7 +363,9 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen> {
           : <ServiceRecord>[];
 
       return _buildContent(context, vehicle, serviceRecords);
-    }    return EmptyStateWidget(
+    }
+
+    return EmptyStateWidget(
       icon: Icons.car_crash,
       message: 'Nie znaleziono pojazdu o podanym ID lub został usunięty.',
       actionButtonText: 'Powrót do listy pojazdów',
@@ -418,7 +420,8 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen> {
                 ),
               );
             }
-          },          builder: (context, state) => _buildBody(state),
+          },
+          builder: (context, state) => _buildBody(state),
         ),
       ),
     );
