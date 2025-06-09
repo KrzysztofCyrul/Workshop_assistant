@@ -15,6 +15,7 @@ import 'package:flutter_frontend/features/shared/domain/services/pdf_generator_s
 import 'package:flutter_frontend/features/workshop/domain/usecases/get_workshop_details.dart';
 import 'package:flutter_frontend/core/widgets/custom_app_bar.dart';
 import 'package:flutter_frontend/core/di/injector_container.dart';
+import 'package:flutter_frontend/core/theme/app_theme.dart';
 import 'package:intl/intl.dart';
 import 'dart:convert';
 import 'package:url_launcher/url_launcher.dart';
@@ -725,8 +726,7 @@ class _QuotationDetailsScreenState extends State<QuotationDetailsScreen> with Fo
                 },
               ),
           ],
-        ),
-        const SizedBox(height: 16),
+        ),        const SizedBox(height: 16),
         _buildDetailRow(
           'Email',
           client.email,
@@ -739,7 +739,31 @@ class _QuotationDetailsScreenState extends State<QuotationDetailsScreen> with Fo
             client.address ?? '',
             icon: Icons.home,
             iconColor: Colors.blue,
-          ),
+          ),        const SizedBox(height: 16),
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: () {
+                  Navigator.pushNamed(
+                    context,
+                    '/client-edit',
+                    arguments: {
+                      'workshopId': widget.workshopId,
+                      'clientId': client.id,
+                    },
+                  );
+                },
+                icon: const Icon(Icons.edit, size: 18),
+                label: const Text('Edytuj klienta'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppTheme.getFeatureColor('clients'),
+                  side: BorderSide(color: AppTheme.getFeatureColor('clients')),
+                ),
+              ),
+            ),
+          ],
+        ),
       ],
     );
   }
@@ -773,12 +797,35 @@ class _QuotationDetailsScreenState extends State<QuotationDetailsScreen> with Fo
           vehicle.year.toString(),
           icon: Icons.date_range,
           iconColor: Colors.green,
-        ),
-        _buildDetailRow(
+        ),        _buildDetailRow(
           'Przebieg',
           '${vehicle.mileage} km',
           icon: Icons.speed,
           iconColor: Colors.red,
+        ),        const SizedBox(height: 16),
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: () {
+                  Navigator.pushNamed(
+                    context,
+                    '/vehicle-edit',
+                    arguments: {
+                      'workshopId': widget.workshopId,
+                      'vehicleId': vehicle.id,
+                    },
+                  );
+                },
+                icon: const Icon(Icons.edit, size: 18),
+                label: const Text('Edytuj pojazd'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppTheme.getFeatureColor('vehicles'),
+                  side: BorderSide(color: AppTheme.getFeatureColor('vehicles')),
+                ),
+              ),
+            ),
+          ],
         ),
       ],
     );
