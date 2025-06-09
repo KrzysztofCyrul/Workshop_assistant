@@ -133,10 +133,10 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
   final _buyCostPartController = TextEditingController(text: '0.0');
   final _repairDescriptionController = TextEditingController();
   final _notesController = TextEditingController();
-    // Parts suggestions for autocomplete
+  // Parts suggestions for autocomplete
   List<String> _partsSuggestions = [];
   bool _isSuggestionsLoaded = false;
-  
+
   // Pomocnicze metody
   String _getInitials(String firstName, String lastName) {
     String initials = '';
@@ -163,7 +163,7 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
         );
     _loadPartsSuggestions();
   }
-  
+
   Future<void> _loadPartsSuggestions() async {
     if (!_isSuggestionsLoaded) {
       try {
@@ -200,19 +200,23 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
       ),
       body: _buildBody(),
     );
-  }  void _onPrintButtonPressed(Appointment appointment) async {
+  }
+
+  void _onPrintButtonPressed(Appointment appointment) async {
     try {
       // Fetch workshop details
       final getWorkshopDetails = getIt<GetWorkshopDetails>();
       final workshop = await getWorkshopDetails(appointment.workshopId);
 
       // Convert Parts to PdfTableItems
-      final pdfTableItems = appointment.parts.map((part) => PdfTableItem(
-        name: part.name,
-        quantity: part.quantity,
-        costPart: part.costPart,
-        costService: part.costService,
-      )).toList();
+      final pdfTableItems = appointment.parts
+          .map((part) => PdfTableItem(
+                name: part.name,
+                quantity: part.quantity,
+                costPart: part.costPart,
+                costService: part.costService,
+              ))
+          .toList();
 
       // Prepare document data
       final documentData = PdfDocumentData(
@@ -256,7 +260,8 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
 
   Future<void> _confirmDeletePartItem(Part part, Appointment appointment) async {
     // Wyświetl dialog z potwierdzeniem usunięcia
-    final shouldDelete = await showDialog<bool>(      context: context,
+    final shouldDelete = await showDialog<bool>(
+      context: context,
       builder: (context) {
         return AlertDialog(
           title: const Text('Potwierdzenie usunięcia'),
@@ -306,7 +311,8 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
   }
 
   Widget _buildBody() {
-    return BlocConsumer<AppointmentBloc, AppointmentState>(      listener: (context, state) {
+    return BlocConsumer<AppointmentBloc, AppointmentState>(
+      listener: (context, state) {
         if (state is AppointmentError) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -401,11 +407,12 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
       ),
     );
   }
+
   Widget _buildAppointmentDetailsCard(BuildContext context, Appointment appointment) {
     final statusColor = AppointmentStatus.getColor(appointment.status);
     final statusIcon = AppointmentStatus.getIcon(appointment.status);
     final featureColor = AppTheme.getFeatureColor('appointments');
-    
+
     return DetailsCardWidget(
       title: 'Szczegóły Zlecenia',
       subtitle: AppointmentStatus.getLabel(appointment.status),
@@ -434,7 +441,7 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
           iconColor: featureColor,
         ),
         const SizedBox(height: 12.0),
-        
+
         // Notes section
         Container(
           width: double.infinity,
@@ -510,9 +517,10 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
       ],
     );
   }
+
   Widget _buildVehicleDetailsCard(Vehicle vehicle) {
     final vehicleFeatureColor = AppTheme.getFeatureColor('vehicles');
-    
+
     return DetailsCardWidget(
       title: 'Szczegóły Pojazdu',
       subtitle: '${vehicle.make} ${vehicle.model}',
@@ -527,7 +535,7 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
           model: vehicle.model,
           licensePlate: vehicle.licensePlate,
         ),
-        
+
         // Vehicle details
         DetailRowWidget(
           label: 'Marka',
@@ -559,12 +567,40 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
           icon: Icons.badge,
           iconColor: Colors.teal.shade600,
         ),
+
+        // Edit button
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: () {
+                  Navigator.pushNamed(
+                    context,
+                    '/vehicle-edit',
+                    arguments: {
+                      'workshopId': widget.workshopId,
+                      'vehicleId': vehicle.id,
+                    },
+                  );
+                },
+                icon: const Icon(Icons.edit, size: 18),
+                label: const Text('Edytuj pojazd'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: vehicleFeatureColor,
+                  side: BorderSide(color: vehicleFeatureColor),
+                ),
+              ),
+            ),
+          ],
+        ),
       ],
     );
   }
+
   Widget _buildClientDetailsCard(Client client) {
     final clientFeatureColor = AppTheme.getFeatureColor('clients');
-    
+
     return DetailsCardWidget(
       title: 'Szczegóły Klienta',
       subtitle: '${client.firstName} ${client.lastName}',
@@ -599,7 +635,7 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
           address: client.address,
           initials: _getInitials(client.firstName, client.lastName),
         ),
-        
+
         // Contact buttons row
         Row(
           children: [
@@ -648,7 +684,7 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
               ),
           ],
         ),
-        
+
         // Client details
         DetailRowWidget(
           label: 'Email',
@@ -669,9 +705,37 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
             icon: Icons.home,
             iconColor: clientFeatureColor,
           ),
+
+        // Edit button
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: () {
+                  Navigator.pushNamed(
+                    context,
+                    '/client-edit',
+                    arguments: {
+                      'workshopId': widget.workshopId,
+                      'clientId': client.id,
+                    },
+                  );
+                },
+                icon: const Icon(Icons.edit, size: 18),
+                label: const Text('Edytuj klienta'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: clientFeatureColor,
+                  side: BorderSide(color: clientFeatureColor),
+                ),
+              ),
+            ),
+          ],
+        ),
       ],
     );
   }
+
   Widget _buildRepairSection(BuildContext context, Appointment appointment) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -692,7 +756,8 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
     final TextEditingController repairDescriptionController = TextEditingController();
     final featureColor = AppTheme.getFeatureColor('appointments');
 
-    return BlocBuilder<AppointmentBloc, AppointmentState>(      builder: (context, state) {
+    return BlocBuilder<AppointmentBloc, AppointmentState>(
+      builder: (context, state) {
         return Card(
           elevation: 2,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
@@ -719,7 +784,8 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
                     ),
                   ),
                 ),
-                const SizedBox(width: 16),                ElevatedButton.icon(
+                const SizedBox(width: 16),
+                ElevatedButton.icon(
                   icon: const Icon(Icons.add),
                   label: const Text('Dodaj'),
                   style: ElevatedButton.styleFrom(
@@ -823,7 +889,8 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
 
     Future<void> confirmDeleteRepairItem(RepairItem item) async {
       // Wyświetl dialog z potwierdzeniem usunięcia
-      final shouldDelete = await showDialog<bool>(        context: context,
+      final shouldDelete = await showDialog<bool>(
+        context: context,
         builder: (context) {
           return AlertDialog(
             title: const Text('Potwierdzenie usunięcia'),
@@ -898,154 +965,155 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
         child: LayoutBuilder(
           builder: (context, constraints) {
             return SingleChildScrollView(
-              child: SizedBox(
-                width: constraints.maxWidth,
-                child: DataTable(
-                  columnSpacing: 16.0,
-                  horizontalMargin: 16.0,
-                  headingRowHeight: 48.0,
-                  dataRowHeight: 56.0,
-                  border: TableBorder.all(
-                    color: Colors.grey.shade300,
-                    width: 1,
-                    borderRadius: BorderRadius.circular(8.0),
+                child: SizedBox(
+              width: constraints.maxWidth,
+              child: DataTable(
+                columnSpacing: 16.0,
+                horizontalMargin: 16.0,
+                headingRowHeight: 48.0,
+                dataRowHeight: 56.0,
+                border: TableBorder.all(
+                  color: Colors.grey.shade300,
+                  width: 1,
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+                headingRowColor: WidgetStateProperty.resolveWith(
+                  (states) => AppTheme.getFeatureColor('appointments').withOpacity(0.2),
+                ),
+                dataRowColor: WidgetStateProperty.resolveWith((states) {
+                  if (states.contains(WidgetState.selected)) {
+                    return AppTheme.getFeatureColor('appointments').withOpacity(0.1);
+                  }
+                  return states.any((element) => element == WidgetState.hovered) ? Colors.grey.shade200 : Colors.grey.shade50;
+                }),
+                columns: const [
+                  DataColumn(
+                    label: Expanded(
+                      child: Center(
+                        child: Text(
+                          'Opis',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
                   ),
-                  headingRowColor: WidgetStateProperty.resolveWith(
-                    (states) => AppTheme.getFeatureColor('appointments').withOpacity(0.2),
+                  DataColumn(
+                    label: Expanded(
+                      child: Center(
+                        child: Text(
+                          'Status',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
                   ),
-                  dataRowColor: WidgetStateProperty.resolveWith((states) {
-                    if (states.contains(WidgetState.selected)) {
-                      return AppTheme.getFeatureColor('appointments').withOpacity(0.1);
-                    }
-                    return states.any((element) => element == WidgetState.hovered) ? Colors.grey.shade200 : Colors.grey.shade50;
-                  }),
-                  columns: const [
-                    DataColumn(
-                      label: Expanded(
-                        child: Center(
-                          child: Text(
-                            'Opis',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 15,
-                            ),
-                            textAlign: TextAlign.center,
+                  DataColumn(
+                    label: Expanded(
+                      child: Center(
+                        child: Text(
+                          'Akcje',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15,
                           ),
+                          textAlign: TextAlign.center,
                         ),
                       ),
                     ),
-                    DataColumn(
-                      label: Expanded(
-                        child: Center(
-                          child: Text(
-                            'Status',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 15,
+                  ),
+                ],
+                rows: appointment.repairItems.map((item) {
+                  return DataRow(
+                    color: WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
+                      if (states.contains(WidgetState.selected)) {
+                        return Colors.blue.shade50;
+                      }
+                      return states.any((element) => element == WidgetState.hovered) ? Colors.grey.shade200 : null; // Use the default value.
+                    }),
+                    cells: [
+                      DataCell(
+                        Container(
+                          padding: const EdgeInsets.symmetric(vertical: 4.0),
+                          child: TextFormField(
+                            initialValue: item.description ?? 'Brak opisu',
+                            decoration: const InputDecoration(
+                              border: InputBorder.none,
+                              contentPadding: EdgeInsets.symmetric(horizontal: 8.0),
+                              isDense: true,
                             ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                      ),
-                    ),
-                    DataColumn(
-                      label: Expanded(
-                        child: Center(
-                          child: Text(
-                            'Akcje',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 15,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                  rows: appointment.repairItems.map((item) {
-                    return DataRow(
-                      color: WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
-                        if (states.contains(WidgetState.selected)) {
-                          return Colors.blue.shade50;
-                        }
-                        return states.any((element) => element == MaterialState.hovered) ? Colors.grey.shade200 : null; // Use the default value.
-                      }),
-                      cells: [
-                        DataCell(
-                          Container(
-                            padding: const EdgeInsets.symmetric(vertical: 4.0),
-                            child: TextFormField(
-                              initialValue: item.description ?? 'Brak opisu',
-                              decoration: const InputDecoration(
-                                border: InputBorder.none,
-                                contentPadding: EdgeInsets.symmetric(horizontal: 8.0),
-                                isDense: true,
-                              ),
-                              style: const TextStyle(fontSize: 14),
-                              maxLines: null,
-                              onFieldSubmitted: (newValue) {
+                            style: const TextStyle(fontSize: 14),
+                            maxLines: null,
+                            onFieldSubmitted: (newValue) {
+                              context.read<AppointmentBloc>().add(UpdateRepairItemEvent(
+                                    workshopId: appointment.workshopId,
+                                    appointmentId: appointment.id,
+                                    repairItemId: item.id,
+                                    description: newValue,
+                                    status: item.status,
+                                    order: item.order,
+                                    isCompleted: item.isCompleted,
+                                  ));
+                            },
+                            onTapOutside: (_) {
+                              final value = FocusScope.of(context).focusedChild?.context?.widget;
+                              if (value != null && value is TextFormField) {
                                 context.read<AppointmentBloc>().add(UpdateRepairItemEvent(
                                       workshopId: appointment.workshopId,
                                       appointmentId: appointment.id,
                                       repairItemId: item.id,
-                                      description: newValue,
+                                      description: value.controller?.text ?? value.initialValue ?? '',
                                       status: item.status,
                                       order: item.order,
                                       isCompleted: item.isCompleted,
                                     ));
-                              },
-                              onTapOutside: (_) {
-                                final value = FocusScope.of(context).focusedChild?.context?.widget;
-                                if (value != null && value is TextFormField) {
-                                  context.read<AppointmentBloc>().add(UpdateRepairItemEvent(
-                                        workshopId: appointment.workshopId,
-                                        appointmentId: appointment.id,
-                                        repairItemId: item.id,
-                                        description: value.controller?.text ?? value.initialValue ?? '',
-                                        status: item.status,
-                                        order: item.order,
-                                        isCompleted: item.isCompleted,
-                                      ));
-                                  FocusManager.instance.primaryFocus?.unfocus();
-                                }
-                              },
-                            ),
-                          ),
-                        ),                        DataCell(
-                          Center(
-                            child: GestureDetector(
-                              onTap: () => showStatusChangeDialog(item),
-                              child: StatusBadgeWidget.fromStatus(item.status),
-                            ),
+                                FocusManager.instance.primaryFocus?.unfocus();
+                              }
+                            },
                           ),
                         ),
-                        DataCell(
-                          Center(
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                IconButton(
-                                  icon: const Icon(Icons.delete, color: Colors.red, size: 20),
-                                  onPressed: () => confirmDeleteRepairItem(item),
-                                  tooltip: 'Usuń element naprawy',
-                                  splashRadius: 20,
-                                ),
-                              ],
-                            ),
+                      ),
+                      DataCell(
+                        Center(
+                          child: GestureDetector(
+                            onTap: () => showStatusChangeDialog(item),
+                            child: StatusBadgeWidget.fromStatus(item.status),
                           ),
                         ),
-                      ],
-                    );
-                  }).toList(),
-                ),
+                      ),
+                      DataCell(
+                        Center(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.delete, color: Colors.red, size: 20),
+                                onPressed: () => confirmDeleteRepairItem(item),
+                                tooltip: 'Usuń element naprawy',
+                                splashRadius: 20,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                }).toList(),
               ),
-            );
+            ));
           },
         ),
       ),
     );
   }
+
   Widget _buildPartsSection(BuildContext context, Appointment appointment) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1060,14 +1128,18 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
         _buildPartsTable(context, appointment),
       ],
     );
-  }  Widget _buildAddPartForm(BuildContext context, Appointment appointment) {
+  }
+
+  Widget _buildAddPartForm(BuildContext context, Appointment appointment) {
     final TextEditingController partNameController = TextEditingController();
     final TextEditingController quantityController = TextEditingController(text: '1');
     final TextEditingController partCostController = TextEditingController(text: '0.0');
     final TextEditingController serviceCostController = TextEditingController(text: '0.0');
     final TextEditingController buyCostPartController = TextEditingController(text: '0.0');
-    
-    return BlocBuilder<AppointmentBloc, AppointmentState>(      builder: (context, state) {        return PartFormWidget(
+
+    return BlocBuilder<AppointmentBloc, AppointmentState>(
+      builder: (context, state) {
+        return PartFormWidget(
           partNameController: partNameController,
           quantityController: quantityController,
           partCostController: partCostController,
@@ -1370,6 +1442,7 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
       ),
     );
   }
+
   Widget _buildCostSummary(Appointment appointment) {
     double totalBuyCostPart = appointment.parts.fold(0, (sum, item) => sum + (item.buyCostPart * item.quantity));
     double totalPartCost = appointment.parts.fold(0, (sum, item) => sum + (item.costPart * item.quantity));
@@ -1392,13 +1465,14 @@ class _AppBarBuilder extends StatelessWidget implements PreferredSizeWidget {
     required this.appointment,
     required this.onPrintPressed,
   });
-  
+
   @override
   Widget build(BuildContext context) {
     return CustomAppBar(
       title: 'Szczegóły zlecenia',
       feature: 'appointments',
-      titleWidget: BlocBuilder<AppointmentBloc, AppointmentState>(        buildWhen: (previous, current) {
+      titleWidget: BlocBuilder<AppointmentBloc, AppointmentState>(
+        buildWhen: (previous, current) {
           // Only rebuild for initial loading or when appointment data changes
           if (previous is AppointmentLoading && current is AppointmentLoading) {
             return false; // Skip rebuilds between loading states
@@ -1416,7 +1490,7 @@ class _AppBarBuilder extends StatelessWidget implements PreferredSizeWidget {
             );
           }
           return const Text(
-            'Ładowanie...', 
+            'Ładowanie...',
             style: AppTheme.appBarTitleStyle,
           );
         },
@@ -1427,7 +1501,8 @@ class _AppBarBuilder extends StatelessWidget implements PreferredSizeWidget {
 
   List<Widget> _buildAppBarActions(BuildContext context) {
     return [
-      BlocBuilder<AppointmentBloc, AppointmentState>(        builder: (context, state) {
+      BlocBuilder<AppointmentBloc, AppointmentState>(
+        builder: (context, state) {
           if (state is! AppointmentDetailsLoaded) {
             return const SizedBox.shrink();
           }
@@ -1453,7 +1528,8 @@ class _AppBarBuilder extends StatelessWidget implements PreferredSizeWidget {
           );
         },
       ),
-      BlocBuilder<AppointmentBloc, AppointmentState>(        builder: (context, state) {
+      BlocBuilder<AppointmentBloc, AppointmentState>(
+        builder: (context, state) {
           if (state is! AppointmentDetailsLoaded) {
             return const SizedBox.shrink();
           }
