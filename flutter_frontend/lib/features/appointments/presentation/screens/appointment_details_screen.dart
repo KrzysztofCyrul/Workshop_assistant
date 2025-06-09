@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_frontend/features/shared/domain/services/pdf_generator_service.dart';
+import 'package:flutter_frontend/features/workshop/domain/usecases/get_workshop_details.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:convert';
@@ -8,7 +10,6 @@ import '../bloc/appointment_bloc.dart';
 import '../../domain/entities/appointment.dart';
 import '../../domain/entities/part.dart';
 import '../../domain/entities/repair_item.dart';
-import '../../domain/services/appointment_pdf_generator.dart';
 import 'package:flutter_frontend/features/vehicles/presentation/screens/service_history_screen.dart';
 import 'package:flutter_frontend/features/vehicles/domain/entities/vehicle.dart';
 import 'package:flutter_frontend/features/clients/domain/entities/client.dart';
@@ -23,6 +24,7 @@ import 'package:flutter_frontend/features/shared/presentation/widgets/section_ti
 import 'package:flutter_frontend/features/shared/presentation/widgets/status_badge_widget.dart';
 import 'package:flutter_frontend/core/widgets/custom_app_bar.dart';
 import 'package:flutter_frontend/core/theme/app_theme.dart';
+import 'package:flutter_frontend/core/di/injector_container.dart';
 
 // Constants
 class AppointmentStatus {
@@ -198,15 +200,58 @@ class _AppointmentDetailsScreenState extends State<AppointmentDetailsScreen> wit
       ),
       body: _buildBody(),
     );
-  }
+  }  void _onPrintButtonPressed(Appointment appointment) async {
+    try {
+      // Fetch workshop details
+      final getWorkshopDetails = getIt<GetWorkshopDetails>();
+      final workshop = await getWorkshopDetails(appointment.workshopId);
 
-  void _onPrintButtonPressed(Appointment appointment) {
-    final pdfGenerator = AppointmentPdfGenerator();
-    pdfGenerator.generateAndPrint(
-      appointment,
-      appointment.parts,
-      appointment.repairItems,
-    );
+      // Convert Parts to PdfTableItems
+      final pdfTableItems = appointment.parts.map((part) => PdfTableItem(
+        name: part.name,
+        quantity: part.quantity,
+        costPart: part.costPart,
+        costService: part.costService,
+      )).toList();
+
+      // Prepare document data
+      final documentData = PdfDocumentData(
+        title: 'ZLECENIE NAPRAWY - ${DateFormat('dd.MM.yyyy').format(appointment.scheduledTime.toLocal())}',
+        documentType: 'ZLECENIE NAPRAWY',
+        workshop: workshop,
+        infoRows: [
+          PdfInfoRow(
+            label: 'Pojazd:',
+            value: '${appointment.vehicle.licensePlate} ${appointment.vehicle.make} ${appointment.vehicle.model}',
+          ),
+          PdfInfoRow(
+            label: 'Numer VIN:',
+            value: appointment.vehicle.vin,
+          ),
+        ],
+        tableHeaders: ['DO ZROBIENIA', 'ILOŚĆ', 'CZĘŚCI (PLN)', 'RAZEM (PLN)', 'USŁUGA (PLN)'],
+        fileName: '${appointment.vehicle.make}_${appointment.vehicle.model}_${DateFormat('ddMMyyyy').format(appointment.scheduledTime.toLocal())}.pdf',
+      );
+
+      // Generate PDF using shared service
+      final pdfGenerator = getIt<PdfGeneratorService>();
+      await pdfGenerator.generateAndPrint(
+        documentData: documentData,
+        items: pdfTableItems,
+      );
+    } catch (e) {
+      // Handle errors gracefully - could show a snackbar or dialog
+      print('Error generating PDF: $e');
+      // Show user-friendly error message
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Błąd podczas generowania PDF: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   Future<void> _confirmDeletePartItem(Part part, Appointment appointment) async {

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_frontend/features/clients/domain/entities/client.dart';
 import 'package:flutter_frontend/features/quotations/domain/entities/quotation.dart';
@@ -10,12 +11,11 @@ import 'package:flutter_frontend/features/shared/presentation/widgets/details_ca
 import 'package:flutter_frontend/features/shared/presentation/widgets/client_profile_widget.dart';
 import 'package:flutter_frontend/features/shared/presentation/widgets/vehicle_profile_widget.dart';
 import 'package:flutter_frontend/features/shared/presentation/widgets/part_form_widget.dart';
+import 'package:flutter_frontend/features/shared/domain/services/pdf_generator_service.dart';
+import 'package:flutter_frontend/features/workshop/domain/usecases/get_workshop_details.dart';
 import 'package:flutter_frontend/core/widgets/custom_app_bar.dart';
+import 'package:flutter_frontend/core/di/injector_container.dart';
 import 'package:intl/intl.dart';
-import 'package:pdf/pdf.dart';
-import 'package:printing/printing.dart';
-import 'package:pdf/widgets.dart' as pw;
-import 'package:flutter/services.dart';
 import 'dart:convert';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_frontend/features/quotations/presentation/bloc/quotation_bloc.dart';
@@ -79,6 +79,9 @@ class _QuotationDetailsScreenState extends State<QuotationDetailsScreen> with Fo
   // Parts suggestions for autocomplete
   List<String> _partsSuggestions = [];
   bool _isSuggestionsLoaded = false;
+
+  // PDF generator service
+  final PdfGeneratorService _pdfService = PdfGeneratorService();
 
   // Calculate totals
   double getTotalPartCost(List<QuotationPart> parts) => 
@@ -256,214 +259,51 @@ class _QuotationDetailsScreenState extends State<QuotationDetailsScreen> with Fo
         partId: partId,
       ),
     );
-  }
+  }  Future<void> _generatePdf(Quotation quotation) async {
+    try {
+      // Fetch workshop details
+      final getWorkshopDetails = getIt<GetWorkshopDetails>();
+      final workshop = await getWorkshopDetails(widget.workshopId);
 
-  Future<void> _generatePdf(Quotation quotation) async {
-    final pdf = pw.Document();
+      // Convert QuotationParts to PdfTableItems
+      final pdfTableItems = quotation.parts.map((part) => PdfTableItem(
+        name: part.name,
+        quantity: part.quantity,
+        costPart: part.costPart,
+        costService: part.costService,
+      )).toList();
 
-    // Load fonts
-    final fontData = await rootBundle.load("assets/fonts/Roboto-Regular.ttf");
-    final ttf = pw.Font.ttf(fontData);
+      // Prepare document data
+      final documentData = PdfDocumentData(
+        title: 'WYCENA nr ${quotation.quotationNumber}',
+        subtitle: 'Data: ${DateFormat('dd.MM.yyyy').format(quotation.createdAt)}',
+        documentType: 'WYCENA',
+        workshop: workshop,
+        infoRows: [
+          PdfInfoRow(
+            label: 'Pojazd:',
+            value: '${quotation.vehicle.make} ${quotation.vehicle.model} ${quotation.vehicle.licensePlate}',
+          ),
+          PdfInfoRow(
+            label: 'VIN:',
+            value: quotation.vehicle.vin,
+          ),
+        ],
+        tableHeaders: ['Część', 'Ilość', 'Cena części (PLN)', 'Razem (PLN)', 'Usługa (PLN)'],
+        fileName: 'Wycena_${quotation.quotationNumber}_${DateFormat('ddMMyyyy').format(quotation.createdAt.toLocal())}.pdf',
+      );
 
-    final boldFontData = await rootBundle.load("assets/fonts/Roboto-Bold.ttf");
-    final boldTtf = pw.Font.ttf(boldFontData);
-
-    // Calculate totals
-    final totalPartsCost = getTotalPartCost(quotation.parts.cast<QuotationPart>());
-    final totalServiceCost = getTotalServiceCost(quotation.parts.cast<QuotationPart>());
-    final totalCost = totalPartsCost + totalServiceCost;
-
-    pdf.addPage(
-      pw.Page(
-        pageFormat: PdfPageFormat.a4,
-        build: (pw.Context context) {
-          return pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.center,
-            children: [
-              pw.Text('WYCENA nr ${quotation.quotationNumber}',
-                  style: pw.TextStyle(font: boldTtf, fontSize: 20)),
-              pw.Text(
-                  'Data: ${DateFormat('dd.MM.yyyy').format(quotation.createdAt)}',
-                  style: pw.TextStyle(font: ttf, fontSize: 10)),
-              pw.SizedBox(height: 20),
-              
-              // Client and vehicle information
-              pw.Table(
-                border: pw.TableBorder.all(),
-                columnWidths: {
-                  0: const pw.FlexColumnWidth(1),
-                  1: const pw.FlexColumnWidth(3),
-                },
-                children: [
-                  pw.TableRow(
-                    children: [
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(6.0),
-                        child: pw.Text('Pojazd:', style: pw.TextStyle(font: ttf)),
-                      ),
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(6.0),
-                        child: pw.Text(
-                            '${quotation.vehicle.make} ${quotation.vehicle.model} ${quotation.vehicle.licensePlate}',
-                            style: pw.TextStyle(font: ttf)),
-                      ),
-                    ],
-                  ),
-                  pw.TableRow(
-                    children: [
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(6.0),
-                        child: pw.Text('VIN::', style: pw.TextStyle(font: ttf)),
-                      ),
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(6.0),
-                        child: pw.Text(
-                            quotation.vehicle.vin,
-                            style: pw.TextStyle(font: ttf)),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              
-              pw.SizedBox(height: 20),
-              
-              // Parts table
-              pw.Table(
-                border: pw.TableBorder.all(),
-                columnWidths: {
-                  0: const pw.FlexColumnWidth(2),
-                  1: const pw.FlexColumnWidth(1),
-                  2: const pw.FlexColumnWidth(1),
-                  3: const pw.FlexColumnWidth(1),
-                  4: const pw.FlexColumnWidth(1),
-                },
-                children: [
-                  // Header row
-                  pw.TableRow(
-                    children: [
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(6.0),
-                        child: pw.Text('Część', style: pw.TextStyle(font: boldTtf)),
-                      ),
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(6.0),
-                        child: pw.Text('Ilość', style: pw.TextStyle(font: boldTtf)),
-                      ),
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(6.0),
-                        child: pw.Text('Cena części (PLN)', style: pw.TextStyle(font: boldTtf)),
-                      ),
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(6.0),
-                        child: pw.Text('Razem (PLN)', style: pw.TextStyle(font: boldTtf)),
-                      ),
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(6.0),
-                        child: pw.Text('Usługa (PLN)', style: pw.TextStyle(font: boldTtf)),
-                      ),
-                    ],
-                  ),
-                  
-                  // Parts rows
-                  ...quotation.parts.map((part) => pw.TableRow(
-                    children: [
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(8.0),
-                        child: pw.Text(part.name, style: pw.TextStyle(font: ttf)),
-                      ),
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(8.0),
-                        child: pw.Text(part.quantity.toString(), style: pw.TextStyle(font: ttf)),
-                      ),
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(8.0),
-                        child: pw.Text(part.costPart.toStringAsFixed(2), style: pw.TextStyle(font: ttf)),
-                      ),
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(8.0),
-                        child: pw.Text((part.costPart * part.quantity).toStringAsFixed(2), style: pw.TextStyle(font: ttf)),
-                      ),
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(8.0),
-                        child: pw.Text(part.costService.toStringAsFixed(2), style: pw.TextStyle(font: ttf)),
-                      ),
-                    ],
-                  )),
-                ],
-              ),
-              
-              pw.SizedBox(height: 20),
-              
-              // Summary table
-              pw.Table(
-                border: pw.TableBorder.all(),
-                columnWidths: {
-                  0: const pw.FlexColumnWidth(3),
-                  1: const pw.FlexColumnWidth(2),
-                },
-                children: [
-                  pw.TableRow(
-                    children: [
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(6.0),
-                        child: pw.Text('SUMA CZĘŚCI (PLN):', style: pw.TextStyle(font: boldTtf)),
-                      ),
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(6.0),
-                        child: pw.Text(totalPartsCost.toStringAsFixed(2), style: pw.TextStyle(font: ttf)),
-                      ),
-                    ],
-                  ),
-                  pw.TableRow(
-                    children: [
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(6.0),
-                        child: pw.Text('SUMA USŁUG (PLN):', style: pw.TextStyle(font: boldTtf)),
-                      ),
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(6.0),
-                        child: pw.Text(totalServiceCost.toStringAsFixed(2), style: pw.TextStyle(font: ttf)),
-                      ),
-                    ],
-                  ),
-                  pw.TableRow(
-                    children: [
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(6.0),
-                        child: pw.Text('CAŁKOWITA SUMA (PLN):', style: pw.TextStyle(font: boldTtf)),
-                      ),
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(6.0),
-                        child: pw.Text(totalCost.toStringAsFixed(2), style: pw.TextStyle(font: ttf)),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              
-              pw.SizedBox(height: 20),
-              
-              // Footer
-              pw.Text('IN-CARS Beata Inglot', style: pw.TextStyle(font: ttf, fontSize: 10)),
-              pw.Text('Malawa 827', style: pw.TextStyle(font: ttf, fontSize: 10)),
-              pw.Text('36–007 Krasne', style: pw.TextStyle(font: ttf, fontSize: 10)),
-              pw.Text('NIP 8131190318', style: pw.TextStyle(font: ttf, fontSize: 10)),
-              pw.Text('serwisincars@gmail.com', style: pw.TextStyle(font: ttf, fontSize: 10)),
-            ],
-          );
-        },
-      ),
-    );
-    
-    // Generate file name based on quotation information
-    final fileName = 'Wycena_${quotation.quotationNumber}_${DateFormat('ddMMyyyy').format(quotation.createdAt.toLocal())}.pdf';
-    
-    // Print the PDF
-    await Printing.layoutPdf(
-      onLayout: (PdfPageFormat format) async => pdf.save(),
-      name: fileName,
-    );
+      // Generate PDF using shared service
+      await _pdfService.generateAndPrint(
+        documentData: documentData,
+        items: pdfTableItems,
+      );
+    } catch (e) {
+      // Handle errors gracefully - could show a snackbar or dialog
+      print('Error generating PDF: $e');
+      // You might want to show a user-friendly error message here
+      rethrow;
+    }
   }
   Widget _buildDetailRow(String label, String value, {IconData? icon, Color? iconColor}) {
     return DetailRowWidget(

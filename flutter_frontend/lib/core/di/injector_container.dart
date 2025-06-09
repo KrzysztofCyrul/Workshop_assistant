@@ -9,6 +9,9 @@ import 'package:flutter_frontend/core/network/api_client.dart';
 import 'package:flutter_frontend/core/network/network_info.dart';
 import 'package:flutter_frontend/core/utils/constants.dart' as api_constants;
 
+// Shared Services
+import 'package:flutter_frontend/features/shared/domain/services/pdf_generator_service.dart';
+
 // Features - Auth
 import 'package:flutter_frontend/features/auth/data/datasources/auth_local_data_source.dart';
 import 'package:flutter_frontend/features/auth/data/datasources/auth_remote_data_source.dart';
@@ -105,10 +108,10 @@ final getIt = GetIt.instance;
 Future<void> initDependencies() async {
   // Initialize core dependencies
   await _initCoreDependencies();
-  
+
   // Initialize auth dependencies
   await _initAuthDependencies();
-  
+
   // Initialize vehicle dependencies
   await _initVehicleDependencies();
 
@@ -128,23 +131,25 @@ Future<void> initDependencies() async {
 Future<void> _initCoreDependencies() async {
   // HTTP Client
   getIt.registerLazySingleton(() => http.Client());
-  
+
   // Dio (for API Client)
   getIt.registerLazySingleton(() => Dio(BaseOptions(
-    baseUrl: api_constants.baseUrl,
-    connectTimeout: const Duration(seconds: 15),
-    receiveTimeout: const Duration(seconds: 15),
-  )));
+        baseUrl: api_constants.baseUrl,
+        connectTimeout: const Duration(seconds: 15),
+        receiveTimeout: const Duration(seconds: 15),
+      )));
 
   getIt.registerLazySingleton(() => const FlutterSecureStorage());
   getIt.registerLazySingleton(() => Connectivity());
   getIt.registerLazySingleton<NetworkInfo>(() => NetworkInfoImpl(getIt()));
-  
   // ApiClient
   getIt.registerLazySingleton(() => ApiClient(
-    dio: getIt<Dio>(),
-    localDataSource: getIt(),
-  ));
+        dio: getIt<Dio>(),
+        localDataSource: getIt(),
+      ));
+
+  // Shared Services
+  getIt.registerLazySingleton(() => PdfGeneratorService());
 }
 
 Future<void> _initAuthDependencies() async {
@@ -152,7 +157,7 @@ Future<void> _initAuthDependencies() async {
   getIt.registerLazySingleton<AuthLocalDataSource>(
     () => AuthLocalDataSourceImpl(secureStorage: getIt()),
   );
-  
+
   // Używamy http.Client zamiast Dio w AuthRemoteDataSourceImpl
   getIt.registerLazySingleton<AuthRemoteDataSource>(
     () => AuthRemoteDataSourceImpl(client: getIt<http.Client>()),
@@ -174,10 +179,10 @@ Future<void> _initAuthDependencies() async {
 
   // BLoC
   getIt.registerFactory(() => AuthBloc(
-    loginUseCase: getIt(),
-    registerUseCase: getIt(),
-    logoutUseCase: getIt(),
-  ));
+        loginUseCase: getIt(),
+        registerUseCase: getIt(),
+        logoutUseCase: getIt(),
+      ));
 }
 
 Future<void> _initVehicleDependencies() async {
@@ -203,16 +208,16 @@ Future<void> _initVehicleDependencies() async {
 
   // BLoC
   getIt.registerFactory(() => VehicleBloc(
-    getVehicles: getIt(),
-    getVehicleDetails: getIt(),
-    addVehicle: getIt(),
-    updateVehicle: getIt(),
-    deleteVehicle: getIt(),
-    searchVehicles: getIt(),
-    getVehiclesForClient: getIt(),
-    authBloc: getIt(),
-    getServiceRecords: getIt(),
-  ));
+        getVehicles: getIt(),
+        getVehicleDetails: getIt(),
+        addVehicle: getIt(),
+        updateVehicle: getIt(),
+        deleteVehicle: getIt(),
+        searchVehicles: getIt(),
+        getVehiclesForClient: getIt(),
+        authBloc: getIt(),
+        getServiceRecords: getIt(),
+      ));
 }
 
 Future<void> _initClientDependencies() async {
@@ -235,13 +240,13 @@ Future<void> _initClientDependencies() async {
 
   // BLoC
   getIt.registerFactory(() => ClientBloc(
-    getClients: getIt(),
-    getClientDetails: getIt(),
-    addClient: getIt(),
-    updateClient: getIt(),
-    deleteClient: getIt(),
-    authBloc: getIt(),
-  ));
+        getClients: getIt(),
+        getClientDetails: getIt(),
+        addClient: getIt(),
+        updateClient: getIt(),
+        deleteClient: getIt(),
+        authBloc: getIt(),
+      ));
 }
 
 Future<void> _initAppointmentDependencies() async {
@@ -263,13 +268,12 @@ Future<void> _initAppointmentDependencies() async {
   getIt.registerLazySingleton(() => DeleteAppointment(getIt()));
   getIt.registerLazySingleton(() => UpdateAppointmentStatus(getIt()));
   getIt.registerLazySingleton(() => EditNotesValue(getIt()));
-  
+
   // Parts use cases
   getIt.registerLazySingleton(() => GetParts(getIt()));
   getIt.registerLazySingleton(() => AddPart(getIt()));
   getIt.registerLazySingleton(() => UpdatePart(getIt()));
   getIt.registerLazySingleton(() => DeletePart(getIt()));
-
   // Repair items use cases
   getIt.registerLazySingleton(() => GetRepairItems(getIt()));
   getIt.registerLazySingleton(() => AddRepairItem(getIt()));
@@ -278,23 +282,23 @@ Future<void> _initAppointmentDependencies() async {
 
   // BLoC
   getIt.registerFactory(() => AppointmentBloc(
-    getAppointments: getIt(),
-    getAppointmentDetails: getIt(),
-    addAppointment: getIt(),
-    updateAppointment: getIt(),
-    deleteAppointment: getIt(),
-    updateAppointmentStatus: getIt(),
-    editNotesValue: getIt(),
-    getParts: getIt(),
-    addPart: getIt(),
-    updatePart: getIt(),
-    deletePart: getIt(),
-    getRepairItems: getIt(),
-    addRepairItem: getIt(),
-    updateRepairItem: getIt(),
-    deleteRepairItem: getIt(),
-    authBloc: getIt(),
-  ));
+        getAppointments: getIt(),
+        getAppointmentDetails: getIt(),
+        addAppointment: getIt(),
+        updateAppointment: getIt(),
+        deleteAppointment: getIt(),
+        updateAppointmentStatus: getIt(),
+        editNotesValue: getIt(),
+        getParts: getIt(),
+        addPart: getIt(),
+        updatePart: getIt(),
+        deletePart: getIt(),
+        getRepairItems: getIt(),
+        addRepairItem: getIt(),
+        updateRepairItem: getIt(),
+        deleteRepairItem: getIt(),
+        authBloc: getIt(),
+      ));
 }
 
 Future<void> _initWorkshopDependencies() async {
@@ -321,22 +325,21 @@ Future<void> _initWorkshopDependencies() async {
   getIt.registerLazySingleton(() => GetEmployees(getIt()));
   getIt.registerLazySingleton(() => GetEmployeeDetails(getIt()));
 
-
   // BLoC
   getIt.registerFactory(() => WorkshopBloc(
-    getWorkshops: getIt(),
-    getWorkshopDetails: getIt(),
-    addWorkshop: getIt(),
-    updateWorkshop: getIt(),
-    deleteWorkshop: getIt(),
-    getTemporaryCode: getIt(),
-    useTemporaryCode: getIt(),
-    assignCreatorToWorkshop: getIt(),
-    removeEmployeeFromWorkshop: getIt(),
-    getEmployees: getIt(),
-    getEmployeeDetails: getIt(),
-    authBloc: getIt(),
-  ));
+        getWorkshops: getIt(),
+        getWorkshopDetails: getIt(),
+        addWorkshop: getIt(),
+        updateWorkshop: getIt(),
+        deleteWorkshop: getIt(),
+        getTemporaryCode: getIt(),
+        useTemporaryCode: getIt(),
+        assignCreatorToWorkshop: getIt(),
+        removeEmployeeFromWorkshop: getIt(),
+        getEmployees: getIt(),
+        getEmployeeDetails: getIt(),
+        authBloc: getIt(),
+      ));
 }
 
 Future<void> initQuotationDependencies(GetIt getIt) async {
@@ -356,24 +359,24 @@ Future<void> initQuotationDependencies(GetIt getIt) async {
   getIt.registerLazySingleton(() => CreateQuotation(getIt()));
   getIt.registerLazySingleton(() => UpdateQuotation(getIt()));
   getIt.registerLazySingleton(() => DeleteQuotation(getIt()));
-  
+
   // Quotation parts use cases
   getIt.registerLazySingleton(() => GetQuotationParts(getIt()));
   getIt.registerLazySingleton(() => CreateQuotationPart(getIt()));
   getIt.registerLazySingleton(() => UpdateQuotationPart(getIt()));
   getIt.registerLazySingleton(() => DeleteQuotationPart(getIt()));
-  
+
   // BLoC
   getIt.registerFactory(() => QuotationBloc(
-    authBloc: getIt<AuthBloc>(),
-    getQuotations: getIt(),
-    getQuotationDetails: getIt(),
-    createQuotation: getIt(),
-    updateQuotation: getIt(),
-    deleteQuotation: getIt(),
-    getQuotationParts: getIt(),
-    createQuotationPart: getIt(),
-    updateQuotationPart: getIt(), 
-    deleteQuotationPart: getIt(),
-  ));
+        authBloc: getIt<AuthBloc>(),
+        getQuotations: getIt(),
+        getQuotationDetails: getIt(),
+        createQuotation: getIt(),
+        updateQuotation: getIt(),
+        deleteQuotation: getIt(),
+        getQuotationParts: getIt(),
+        createQuotationPart: getIt(),
+        updateQuotationPart: getIt(),
+        deleteQuotationPart: getIt(),
+      ));
 }

@@ -10,16 +10,15 @@ class WorkshopModel extends Workshop {
     required super.email,
     required super.phoneNumber,
   });
-
   factory WorkshopModel.fromJson(Map<String, dynamic> json) {
     return WorkshopModel(
-      id: json['id'],
-      name: json['name'],
-      address: json['address'],
-      postCode: json['post_code'],
-      nipNumber: json['nip_number'],
-      email: json['email'],
-      phoneNumber: json['phone_number'],
+      id: json['id'] ?? '',
+      name: json['name'] ?? '',
+      address: json['address'] ?? '',
+      postCode: json['post_code'] ?? '',
+      nipNumber: json['nip_number'] ?? '',
+      email: json['email'] ?? '',
+      phoneNumber: json['phone_number'] ?? '',
     );
   }
 
