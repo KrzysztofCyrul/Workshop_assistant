@@ -47,7 +47,6 @@ Future<void> _onLoginRequested(
     emit(Unauthenticated());
   }
 }
-
   Future<void> _onRegisterRequested(
     RegisterRequested event,
     Emitter<AuthState> emit,
@@ -55,9 +54,13 @@ Future<void> _onLoginRequested(
     emit(AuthLoading());
     try {
       await registerUseCase.execute(event.userData);
+      emit(RegistrationSuccess());
+      // After a brief delay, set to unauthenticated so user can login
+      await Future.delayed(const Duration(milliseconds: 500));
       emit(Unauthenticated());
     } catch (e) {
       emit(AuthError(message: e.toString()));
+      emit(Unauthenticated());
     }
   }
 
